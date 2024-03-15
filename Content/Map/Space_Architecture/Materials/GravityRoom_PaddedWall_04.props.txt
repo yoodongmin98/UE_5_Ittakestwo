@@ -1,0 +1,216 @@
+Parent = MaterialInstanceConstant'/Game/MasterMaterials/MasterInstances/Env_Tiler_1_Tint.Env_Tiler_1_Tint'
+ScalarParameterValues[16] =
+{
+    ScalarParameterValues[0] =
+    {
+        ParameterInfo = { Name=Tiler_UV_Channel }
+        ParameterValue = 0
+        ParameterName = None
+    }
+    ScalarParameterValues[1] =
+    {
+        ParameterInfo = { Name=HazeToggleCategory_Mesh Data Enabled }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[2] =
+    {
+        ParameterInfo = { Name=DataSlot_Tiler_A }
+        ParameterValue = 0
+        ParameterName = None
+    }
+    ScalarParameterValues[3] =
+    {
+        ParameterInfo = { Name=Tiler_A_TilingX }
+        ParameterValue = 5
+        ParameterName = None
+    }
+    ScalarParameterValues[4] =
+    {
+        ParameterInfo = { Name=Tiler_A_TilingY }
+        ParameterValue = 5
+        ParameterName = None
+    }
+    ScalarParameterValues[5] =
+    {
+        ParameterInfo = { Name=Tiler_A_RoughnessOffset }
+        ParameterValue = 0.619048
+        ParameterName = None
+    }
+    ScalarParameterValues[6] =
+    {
+        ParameterInfo = { Name=HazeToggleCategory_Tiler_B Enabled }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[7] =
+    {
+        ParameterInfo = { Name=Tiler_B_TilingX }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[8] =
+    {
+        ParameterInfo = { Name=Tiler_B_TilingY }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[9] =
+    {
+        ParameterInfo = { Name=Tiler_B_RoughnessOffset }
+        ParameterValue = 0.009524
+        ParameterName = None
+    }
+    ScalarParameterValues[10] =
+    {
+        ParameterInfo = { Name=Tiler_C_TilingX }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[11] =
+    {
+        ParameterInfo = { Name=Tiler_C_TilingY }
+        ParameterValue = 3
+        ParameterName = None
+    }
+    ScalarParameterValues[12] =
+    {
+        ParameterInfo = { Name=Tiler_C_RoughnessOffset }
+        ParameterValue = 0
+        ParameterName = None
+    }
+    ScalarParameterValues[13] =
+    {
+        ParameterInfo = { Name=HazeToggleCategory_Tint Enabled }
+        ParameterValue = 1
+        ParameterName = None
+    }
+    ScalarParameterValues[14] =
+    {
+        ParameterInfo = { Name=Tint_RoughnessOffset }
+        ParameterValue = 0.4
+        ParameterName = None
+    }
+    ScalarParameterValues[15] =
+    {
+        ParameterInfo = { Name=RefractionDepthBias }
+        ParameterValue = 0
+        ParameterName = None
+    }
+}
+TextureParameterValues[7] =
+{
+    TextureParameterValues[0] =
+    {
+        ParameterInfo = { Name=Tiler_A_T1 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/PaddingSpace_Masked_T1.PaddingSpace_Masked_T1'
+        ParameterName = None
+    }
+    TextureParameterValues[1] =
+    {
+        ParameterInfo = { Name=Tiler_A_T2 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/PaddingSpace__T2.PaddingSpace__T2'
+        ParameterName = None
+    }
+    TextureParameterValues[2] =
+    {
+        ParameterInfo = { Name=Tiler_A_T3 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/PaddingSpace_T3.PaddingSpace_T3'
+        ParameterName = None
+    }
+    TextureParameterValues[3] =
+    {
+        ParameterInfo = { Name=Tiler_B_T1 }
+        ParameterValue = Texture2D'/Game/MasterMaterials/Textures/Prop/Base_M1.Base_M1'
+        ParameterName = None
+    }
+    TextureParameterValues[4] =
+    {
+        ParameterInfo = { Name=Tiler_B_T2 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/Plastic_Space_ShinyBlue_01_T2.Plastic_Space_ShinyBlue_01_T2'
+        ParameterName = None
+    }
+    TextureParameterValues[5] =
+    {
+        ParameterInfo = { Name=Tiler_B_T3 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/Plastic_Space_ShinyBlue_01_T3.Plastic_Space_ShinyBlue_01_T3'
+        ParameterName = None
+    }
+    TextureParameterValues[6] =
+    {
+        ParameterInfo = { Name=Tiler_C_T3 }
+        ParameterValue = Texture2D'/Game/Environment/Tilers/Fantasy/PlayRoom/Plastic_Space_ShinyBlue_01_T3.Plastic_Space_ShinyBlue_01_T3'
+        ParameterName = None
+    }
+}
+VectorParameterValues[7] =
+{
+    VectorParameterValues[0] =
+    {
+        ParameterInfo = { Name=Tiler_ParallaxVertexColor }
+        ParameterValue = { R=1, G=0, B=0, A=0 }
+        ParameterName = None
+    }
+    VectorParameterValues[1] =
+    {
+        ParameterInfo = { Name=Tiler_A_BaseColorTint }
+        ParameterValue = { R=0.46875, G=0.151367, B=0.27102, A=1 }
+        ParameterName = None
+    }
+    VectorParameterValues[2] =
+    {
+        ParameterInfo = { Name=Tiler_B_BaseColorTint }
+        ParameterValue = { R=0.087132, G=0.107963, B=0.114583, A=1 }
+        ParameterName = None
+    }
+    VectorParameterValues[3] =
+    {
+        ParameterInfo = { Name=Tiler_B_Mask_Texture }
+        ParameterValue = { R=1, G=0, B=0, A=0 }
+        ParameterName = None
+    }
+    VectorParameterValues[4] =
+    {
+        ParameterInfo = { Name=Tiler_C_BaseColorTint }
+        ParameterValue = { R=0.074056, G=0.087356, B=0.109375, A=1 }
+        ParameterName = None
+    }
+    VectorParameterValues[5] =
+    {
+        ParameterInfo = { Name=Tiler_C_Mask_Texture }
+        ParameterValue = { R=0, G=1, B=0, A=0 }
+        ParameterName = None
+    }
+    VectorParameterValues[6] =
+    {
+        ParameterInfo = { Name=Tint_Color }
+        ParameterValue = { R=0.34375, G=0.34375, B=0.34375, A=1 }
+        ParameterName = None
+    }
+}
+BasePropertyOverrides =
+{
+    bOverride_BlendMode = false
+    BlendMode = BLEND_Opaque (0)
+    bOverride_TwoSided = false
+    TwoSided = false
+    bOverride_OpacityMaskClipValue = false
+    OpacityMaskClipValue = 0.3333
+}
+StaticParameters =
+{
+    StaticSwitchParameters[0] = {}
+    StaticComponentMaskParameters[0] = {}
+    TerrainLayerWeightParameters[0] = {}
+    MaterialLayersParameters[0] = {}
+}
+RuntimeVirtualTextureParameterValues[0] = {}
+FontParameterValues[0] = {}
+FlattenedTexture = None
+MobileBaseTexture = None
+MobileNormalTexture = None
+bUseMobileSpecular = false
+MobileSpecularPower = 16
+MobileSpecularMask = MSM_Constant (0)
+MobileMaskTexture = None
+TextureStreamingData[0] = {}

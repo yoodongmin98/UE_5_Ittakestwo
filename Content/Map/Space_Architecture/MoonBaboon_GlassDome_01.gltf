@@ -1,0 +1,237 @@
+{
+  "asset" : {
+    "generator" : "UE Viewer (umodel) build 1579 based",
+    "version" : "2.0"
+  },
+  "scene" : 0,
+  "scenes" : [
+    {
+      "nodes" : [ 0 ]
+    }
+  ],
+  "nodes" : [
+    {
+      "name" : "MoonBaboon_GlassDome_01",
+      "mesh" : 0
+    }
+  ],
+  "materials" : [
+    {
+      "name" : "Space_Plastic_Grey_01",
+      "pbrMetallicRoughness" : {
+        "baseColorFactor" : [ 0.3, 0.3, 0.3, 1.0 ],
+        "metallicFactor" : 0.1,
+        "roughnessFactor" : 0.5
+      }
+    },
+    {
+      "name" : "MoonBaboon_GlassWall_01",
+      "pbrMetallicRoughness" : {
+        "baseColorFactor" : [ 0.9, 0.3, 0.3, 1.0 ],
+        "metallicFactor" : 0.1,
+        "roughnessFactor" : 0.5
+      }
+    }
+  ],
+  "meshes" : [
+    {
+      "primitives" : [
+        {
+          "attributes" : {
+            "POSITION" : 1,
+            "NORMAL" : 2,
+            "TANGENT" : 3,
+            "COLOR_0" : 4,
+            "TEXCOORD_0" : 5,
+            "TEXCOORD_1" : 6
+          },
+          "indices" : 0,
+          "material" : 0
+        },
+        {
+          "attributes" : {
+            "POSITION" : 8,
+            "NORMAL" : 9,
+            "TANGENT" : 10,
+            "COLOR_0" : 11,
+            "TEXCOORD_0" : 12,
+            "TEXCOORD_1" : 13
+          },
+          "indices" : 7,
+          "material" : 1
+        }
+      ],
+      "name" : "MoonBaboon_GlassDome_01"
+    }
+  ],
+  "buffers" : [
+    {
+      "uri" : "MoonBaboon_GlassDome_01.bin",
+      "byteLength" : 1456704
+    }
+  ],
+  "bufferViews" : [
+    {
+      "buffer" : 0,
+      "byteOffset" : 0,
+      "byteLength" : 47136
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 47136,
+      "byteLength" : 64704
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 111840,
+      "byteLength" : 64704
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 176544,
+      "byteLength" : 86272
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 262816,
+      "byteLength" : 21568
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 284384,
+      "byteLength" : 43136
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 327520,
+      "byteLength" : 43136
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 370656,
+      "byteLength" : 96288
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 466944,
+      "byteLength" : 197952
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 664896,
+      "byteLength" : 197952
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 862848,
+      "byteLength" : 263936
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 1126784,
+      "byteLength" : 65984
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 1192768,
+      "byteLength" : 131968
+    },
+    {
+      "buffer" : 0,
+      "byteOffset" : 1324736,
+      "byteLength" : 131968
+    }
+  ],
+  "accessors" : [
+    {
+      "bufferView" : 0,
+      "componentType" : 5123,
+      "count" : 23568,
+      "type" : "SCALAR"
+    },
+    {
+      "bufferView" : 1,
+      "min" : [ -63.5677, 0.662565, -63.5677 ],
+      "max" : [ 63.5677, 49.438, 63.5677 ],
+      "componentType" : 5126,
+      "count" : 5392,
+      "type" : "VEC3"
+    },
+    {
+      "bufferView" : 2,
+      "componentType" : 5126,
+      "count" : 5392,
+      "type" : "VEC3"
+    },
+    {
+      "bufferView" : 3,
+      "componentType" : 5126,
+      "count" : 5392,
+      "type" : "VEC4"
+    },
+    {
+      "bufferView" : 4,
+      "normalized" : true,
+      "componentType" : 5121,
+      "count" : 5392,
+      "type" : "VEC4"
+    },
+    {
+      "bufferView" : 5,
+      "componentType" : 5126,
+      "count" : 5392,
+      "type" : "VEC2"
+    },
+    {
+      "bufferView" : 6,
+      "componentType" : 5126,
+      "count" : 5392,
+      "type" : "VEC2"
+    },
+    {
+      "bufferView" : 7,
+      "componentType" : 5123,
+      "count" : 48144,
+      "type" : "SCALAR"
+    },
+    {
+      "bufferView" : 8,
+      "min" : [ -65.412, 0.0522073, -65.412 ],
+      "max" : [ 65.412, 49.8187, 65.412 ],
+      "componentType" : 5126,
+      "count" : 16496,
+      "type" : "VEC3"
+    },
+    {
+      "bufferView" : 9,
+      "componentType" : 5126,
+      "count" : 16496,
+      "type" : "VEC3"
+    },
+    {
+      "bufferView" : 10,
+      "componentType" : 5126,
+      "count" : 16496,
+      "type" : "VEC4"
+    },
+    {
+      "bufferView" : 11,
+      "normalized" : true,
+      "componentType" : 5121,
+      "count" : 16496,
+      "type" : "VEC4"
+    },
+    {
+      "bufferView" : 12,
+      "componentType" : 5126,
+      "count" : 16496,
+      "type" : "VEC2"
+    },
+    {
+      "bufferView" : 13,
+      "componentType" : 5126,
+      "count" : 16496,
+      "type" : "VEC2"
+    }
+  ]
+}
