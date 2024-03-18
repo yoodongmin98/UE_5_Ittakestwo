@@ -34,6 +34,6 @@ private:
 	void Cody_LookUD(float _AxisValue);
 	void Cody_LookLR(float _AxisValue);
 
-	float UpRotationSpeed = 40.0f;
-	float RightRotationSpeed = 20.0f;
+	float UpRotationSpeed = 70.0f;
+	float RightRotationSpeed = 70.0f;
 };
