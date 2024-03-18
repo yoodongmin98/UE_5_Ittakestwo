@@ -2,20 +2,25 @@
 
 
 #include "MoonBaboon.h"
+#include "Components/SkeletalMeshComponent.h"
 
 // Sets default values
 AMoonBaboon::AMoonBaboon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
+	SetRootComponent(SceneComp);
 
+	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MoonBaboonMesh"));
+	SkeletalMeshComp->SetupAttachment(SceneComp);
 }
 
 // Called when the game starts or when spawned
 void AMoonBaboon::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
