@@ -15,7 +15,8 @@ ALaser::ALaser()
 void ALaser::BeginPlay()
 {
 	Super::BeginPlay();
-	DefaultPos = GetActorLocation();
+	
+	bPhaseEnd = true;
 }
 
 // Called every frame
@@ -23,13 +24,40 @@ void ALaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bAttackNow == false)
+	if (true == bAttackNow)
 	{
-		Ratio += DeltaTime;
-		SetActorLocation({ 0.f,0.f,FMath::Lerp(DefaultPos.Z, DefaultPos.Z + AttackHeight, Ratio) });
-		if (Ratio>=1.f)
+		RotateTime -= DeltaTime;
+		AddActorLocalRotation({0.f,360.f * DeltaTime,0.f});
+		if (RotateTime<=0.f)
+		{
+			RotateTime = 15.f; 
+			bAttackNow = false;
+			bPhaseEnd = false;
+		}
+		return;
+	}
+	if (true == bPhaseEnd)
+	{
+		MovingRatio += DeltaTime;
+
+		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
+
+		if (MovingRatio >=1.f)
 		{
 			bAttackNow = true;
+			MovingRatio = 1.f;
+		}
+	}
+	else
+	{
+		MovingRatio -= DeltaTime;
+
+		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
+
+		if (MovingRatio <= 0.f)
+		{
+			bPhaseEnd = true;
+			MovingRatio = 0.f;
 		}
 	}
 }

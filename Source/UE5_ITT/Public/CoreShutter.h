@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Laser.generated.h"
+#include "CoreShutter.generated.h"
 
 UCLASS()
-class ALaser : public AActor
+class UE5_ITT_API ACoreShutter : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ALaser();
+	ACoreShutter();
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,12 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:	
-	bool bAttackNow = false;
-	bool bPhaseEnd = false;	
+private:
+	bool bOpen = false;
 
-	FVector DefaultPos = { 0.f,0.f,-300.f };
-	FVector AttackPos = { 0.f,0.f,200.f };
 	float MovingRatio = 0.f;
-	float RotateTime = 15.f;
+
+
 };
