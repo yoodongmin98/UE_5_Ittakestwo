@@ -24,8 +24,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	bool bAttackNow = false;
-	FVector3d DefaultPos = { 0.f,0.f,-300.f };
-	FVector3d AttackPos = { 0.f,0.f,200.f };
+	bool bAttackNow = false;	
+	FVector DefaultPos = FVector::Zero();
+	float AttackHeight = 500.f;
 	float Ratio = 0.f;
 };

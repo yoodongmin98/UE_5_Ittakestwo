@@ -15,21 +15,22 @@ ALaser::ALaser()
 void ALaser::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorLocation(DefaultPos);
+	DefaultPos = GetActorLocation();
 }
 
 // Called every frame
 void ALaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*if (bAttackNow = false)
+
+	if (bAttackNow == false)
 	{
-		Ratio += 1.f * DeltaTime;
-		SetActorLocation(FMath::Lerp(DefaultPos, DefaultPos, Ratio));
+		Ratio += DeltaTime;
+		SetActorLocation({ 0.f,0.f,FMath::Lerp(DefaultPos.Z, DefaultPos.Z + AttackHeight, Ratio) });
 		if (Ratio>=1.f)
 		{
 			bAttackNow = true;
 		}
-	}*/
+	}
 }
 
