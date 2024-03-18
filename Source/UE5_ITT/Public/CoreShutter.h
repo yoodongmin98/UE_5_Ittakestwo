@@ -37,4 +37,7 @@ private:
 	FVector OpenPos = {-170.f,170.f,0.f};
 
 	float RotateSize = 90.f;
+
+	UPROPERTY(EditAnywhere);
+	class UStaticMeshComponent* MeshComp = nullptr;
 };

@@ -16,8 +16,6 @@ void AParentShutter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ACoreShutter* test = GetWorld()->SpawnActor<ACoreShutter>();
-	test->SetOwner(this);
 }
 
 // Called every frame
