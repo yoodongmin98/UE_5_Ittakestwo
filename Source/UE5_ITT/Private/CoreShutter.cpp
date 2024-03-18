@@ -22,6 +22,10 @@ void ACoreShutter::BeginPlay()
 void ACoreShutter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (true == bOpen)
+	{
 
+	}
 }
 

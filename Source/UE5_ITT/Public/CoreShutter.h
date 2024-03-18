@@ -28,5 +28,6 @@ private:
 
 	float MovingRatio = 0.f;
 
+	//fvec MoveDistance = 170.f;
 
 };
