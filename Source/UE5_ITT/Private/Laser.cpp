@@ -22,7 +22,7 @@ void ALaser::BeginPlay()
 void ALaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (bAttackNow = false)
+	/*if (bAttackNow = false)
 	{
 		Ratio += 1.f * DeltaTime;
 		SetActorLocation(FMath::Lerp(DefaultPos, DefaultPos, Ratio));
@@ -30,6 +30,6 @@ void ALaser::Tick(float DeltaTime)
 		{
 			bAttackNow = true;
 		}
-	}
+	}*/
 }
 
