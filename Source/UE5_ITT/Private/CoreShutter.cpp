@@ -20,9 +20,6 @@ void ACoreShutter::BeginPlay()
 
 	bOpen = true;
 
-	//auto test1 = GetAttachParentActor()->GetActorLocation();
-	//PivotPos = GetAttachParentActor()->GetActorLocation();
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
