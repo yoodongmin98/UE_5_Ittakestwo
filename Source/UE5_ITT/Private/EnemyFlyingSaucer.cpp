@@ -17,7 +17,6 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);
-	
 	GetArrowComponent()->SetupAttachment(SceneComp);
 	GetMesh()->SetupAttachment(SceneComp);
 }
@@ -31,13 +30,13 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
-	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
+	//// 네트워크 권한을 확인하는 코드
+	//if (true == HasAuthority())
+	//{
+	//	// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+	//	SetReplicates(true);
+	//	SetReplicateMovement(true);
+	//}
 }
 
 // Called every frame
@@ -46,10 +45,10 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
+	/*if (true == HasAuthority())
 	{
-		int a = 0;
-	}
+		
+	}*/
 }
 
 // Called to bind functionality to input
