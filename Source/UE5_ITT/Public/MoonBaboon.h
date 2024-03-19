@@ -23,4 +23,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditDefaultsOnly)
+	class USceneComponent* SceneComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	class USkeletalMeshComponent* SkeletalMeshComp;
 };

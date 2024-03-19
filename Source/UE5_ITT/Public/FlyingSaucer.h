@@ -24,6 +24,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	UPROPERTY(EditDefaultsOnly)
+	class USceneComponent* SceneComp;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class USkeletalMeshComponent* SkeletalMeshComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AMoonBaboon> MoonBaboonClass;
+
+	UPROPERTY(VisibleAnywhere)
+	class AMoonBaboon* MoonBaboon;
+
 };
