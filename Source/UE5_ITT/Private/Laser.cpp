@@ -17,50 +17,60 @@ void ALaser::BeginPlay()
 	Super::BeginPlay();
 	
 	bPhaseEnd = true;
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 }
 
 // Called every frame
 void ALaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (true == bAttackNow)
+	if (true == HasAuthority())
 	{
-		RotateTime -= DeltaTime;
-
-		AddActorLocalRotation({0.f,360.f * DeltaTime,0.f});
-
-		if (RotateTime<=0.f)
+		if (true == bAttackNow)
 		{
-			RotateTime = 15.f; 
-			bAttackNow = false;
-			bPhaseEnd = false;
-		}
-		return;
-	}
-	if (true == bPhaseEnd)
-	{
-		MovingRatio += DeltaTime;
+			RotateTime -= DeltaTime;
 
-		if (MovingRatio >= 1.f)
+			AddActorLocalRotation({ 0.f,360.f * DeltaTime,0.f });
+
+			if (RotateTime <= 0.f)
+			{
+				RotateTime = 15.f;
+				bAttackNow = false;
+				bPhaseEnd = false;
+			}
+			return;
+		}
+		if (true == bPhaseEnd)
 		{
-			bAttackNow = true;
-			MovingRatio = 1.f;
+			MovingRatio += DeltaTime;
+
+			if (MovingRatio >= 1.f)
+			{
+				bAttackNow = true;
+				MovingRatio = 1.f;
+			}
+
+			SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
 		}
-
-		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));		
-	}
-	else
-	{
-		MovingRatio -= DeltaTime;
-
-		if (MovingRatio <= 0.f)
+		else
 		{
-			bPhaseEnd = true;
-			MovingRatio = 0.f;
-		}
+			MovingRatio -= DeltaTime;
 
-		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
+			if (MovingRatio <= 0.f)
+			{
+				bPhaseEnd = true;
+				MovingRatio = 0.f;
+			}
+
+			SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
+		}
 	}
 }
 

@@ -4,6 +4,8 @@
 #include "CoreShutter.h"
 #include <Components/StaticMeshComponent.h>
 
+#include "ParentShutter.h"
+
 // Sets default values
 ACoreShutter::ACoreShutter()
 {
@@ -17,53 +19,66 @@ void ACoreShutter::BeginPlay()
 	Super::BeginPlay();
 
 	bOpen = true;
+
+	//auto test1 = GetAttachParentActor()->GetActorLocation();
+	//PivotPos = GetAttachParentActor()->GetActorLocation();
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 }
 
 // Called every frame
 void ACoreShutter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if (true == bAttackNow)
-	{		
-		OpenTime -= DeltaTime;
-	
-		if (OpenTime <= 0.f)
-		{
-			OpenTime = 3.f;
-			bAttackNow = false;
-			bOpen = false;
-		}
-		return;
-	}
-	if (true == bOpen)
+	if (true == HasAuthority())
 	{
-		MovingRatio += DeltaTime*0.5f;
-
-		if (MovingRatio >= 1.f)
+		if (true == bAttackNow)
 		{
-			bAttackNow = true;
-			MovingRatio = 1.f;
-		}
+			OpenTime -= DeltaTime;
 
-		AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
-		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-	
-		
-	}
-	else
-	{
-		MovingRatio -= DeltaTime * 0.5f;
-		if (MovingRatio <= 0.f)
-		{
-			bOpen = true;
-			MovingRatio = 0.f;
+			if (OpenTime <= 0.f)
+			{
+				OpenTime = 3.f;
+				bAttackNow = false;
+				bOpen = false;
+			}
+			return;
 		}
-	
-		AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
-		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-	
-		
+		if (true == bOpen)
+		{
+			MovingRatio += DeltaTime * 0.5f;
+
+			if (MovingRatio >= 1.f)
+			{
+				bAttackNow = true;
+				MovingRatio = 1.f;
+			}
+
+			AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
+			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+
+
+		}
+		else
+		{
+			MovingRatio -= DeltaTime * 0.5f;
+			if (MovingRatio <= 0.f)
+			{
+				bOpen = true;
+				MovingRatio = 0.f;
+			}
+
+			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
+			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+
+
+		}
 	}
 }
 

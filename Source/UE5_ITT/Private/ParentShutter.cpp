@@ -22,12 +22,14 @@ void AParentShutter::BeginPlay()
 	for (int i = 0; i < 4; i++)
 	{
 		ArrayCoreShutter[i] = GetWorld()->SpawnActor<ACoreShutter>(CoreShutterClass);
+		ArrayCoreShutter[i]->AttachToActor(this,FAttachmentTransformRules::KeepRelativeTransform);
 		ArrayCoreShutter[i]->SetActorRelativeRotation({ 0.f, 90.f * i,0.f });
+		ArrayCoreShutter[i]->SetPivotPos(GetActorLocation());
 	}
 	ArrayCoreShutter[0]->SetOpenPos({ -MovingSize,MovingSize ,0.f });
 	ArrayCoreShutter[1]->SetOpenPos({ -MovingSize,-MovingSize ,0.f });
 	ArrayCoreShutter[2]->SetOpenPos({ MovingSize,-MovingSize ,0.f });
-	ArrayCoreShutter[3]->SetOpenPos({ MovingSize,MovingSize ,0.f });
+	ArrayCoreShutter[3]->SetOpenPos({ MovingSize,MovingSize ,0.f });	
 }
 
 // Called every frame
