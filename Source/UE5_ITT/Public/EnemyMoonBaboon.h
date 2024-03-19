@@ -25,4 +25,10 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USceneComponent* SceneComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	class USkeletalMeshComponent* SkeletalMeshComp;
 };
