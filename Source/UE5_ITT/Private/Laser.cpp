@@ -27,7 +27,9 @@ void ALaser::Tick(float DeltaTime)
 	if (true == bAttackNow)
 	{
 		RotateTime -= DeltaTime;
+
 		AddActorLocalRotation({0.f,360.f * DeltaTime,0.f});
+
 		if (RotateTime<=0.f)
 		{
 			RotateTime = 15.f; 
@@ -40,25 +42,25 @@ void ALaser::Tick(float DeltaTime)
 	{
 		MovingRatio += DeltaTime;
 
-		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
-
-		if (MovingRatio >=1.f)
+		if (MovingRatio >= 1.f)
 		{
 			bAttackNow = true;
 			MovingRatio = 1.f;
 		}
+
+		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));		
 	}
 	else
 	{
 		MovingRatio -= DeltaTime;
-
-		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
 
 		if (MovingRatio <= 0.f)
 		{
 			bPhaseEnd = true;
 			MovingRatio = 0.f;
 		}
+
+		SetActorRelativeLocation(FMath::Lerp(DefaultPos, AttackPos, MovingRatio));
 	}
 }
 

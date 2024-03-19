@@ -23,10 +23,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetOpenPos(FVector _Open)
+	{
+		OpenPos = _Open;
+	}
+
 private:
 	bool bOpen = false;
 
-	float OpenTime = 15.f;
+	float OpenTime = 3.f;
 
 	bool bAttackNow = false;
 
@@ -34,7 +39,7 @@ private:
 
 	FVector PivotPos = { 1741.f,-4205.f, 34660.f };
 	FVector DefaultPos = FVector::Zero();
-	FVector OpenPos = {-170.f,170.f,0.f};
+	FVector OpenPos = FVector::Zero();
 
 	float RotateSize = 90.f;
 

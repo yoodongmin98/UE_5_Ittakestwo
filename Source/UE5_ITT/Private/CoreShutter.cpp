@@ -9,9 +9,6 @@ ACoreShutter::ACoreShutter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Shutter"));
-	SetRootComponent(MeshComp);
 }
 	
 // Called when the game starts or when spawned
@@ -30,10 +27,10 @@ void ACoreShutter::Tick(float DeltaTime)
 	if (true == bAttackNow)
 	{		
 		OpenTime -= DeltaTime;
-
+	
 		if (OpenTime <= 0.f)
 		{
-			OpenTime = 20.f;
+			OpenTime = 3.f;
 			bAttackNow = false;
 			bOpen = false;
 		}
@@ -41,28 +38,32 @@ void ACoreShutter::Tick(float DeltaTime)
 	}
 	if (true == bOpen)
 	{
-		MovingRatio += DeltaTime;
-		AddActorLocalRotation({ 0.f,RotateSize * DeltaTime,0.f });
-		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+		MovingRatio += DeltaTime*0.5f;
 
 		if (MovingRatio >= 1.f)
 		{
 			bAttackNow = true;
 			MovingRatio = 1.f;
 		}
+
+		AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
+		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+	
+		
 	}
 	else
 	{
-		MovingRatio -= DeltaTime;
-
-		AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime,0.f });
-		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-
+		MovingRatio -= DeltaTime * 0.5f;
 		if (MovingRatio <= 0.f)
 		{
 			bOpen = true;
 			MovingRatio = 0.f;
 		}
+	
+		AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
+		SetActorRelativeLocation(PivotPos+FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+	
+		
 	}
 }
 

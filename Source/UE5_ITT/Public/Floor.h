@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ParentShutter.generated.h"
+#include "Floor.generated.h"
 
 UCLASS()
-class UE5_ITT_API AParentShutter : public AActor
+class UE5_ITT_API AFloor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AParentShutter();
+	AFloor();
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,13 +23,4 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-private:
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class ACoreShutter> CoreShutterClass;
-
-	TArray<class ACoreShutter*> ArrayCoreShutter;
-
-	float MovingSize = 170.f;
-
-	bool bOpen = false;
 };
