@@ -82,8 +82,6 @@ private:
 	FVector ShieldDefaultPos = FVector::Zero();
 	FVector ShieldOpenPos = FVector::Zero();
 
-	UPROPERTY(VisibleAnywhere)
-	int intCur = 0;
 
 	EnumState CurState = EnumState::Close;
 	void StateExcute(float DT);

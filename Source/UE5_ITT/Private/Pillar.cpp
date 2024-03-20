@@ -57,11 +57,10 @@ void APillar::Tick(float DeltaTime)
 
 void APillar::StateExcute(float DT)
 {
-	intCur = static_cast<int>(CurState);
 	switch (CurState)
 	{
 	case APillar::EnumState::Close:
-	{
+	{		
 		if (true == bShutterOpen)
 		{
 			ChangeState(EnumState::WaitMove);
@@ -94,6 +93,7 @@ void APillar::StateExcute(float DT)
 	{
 		if (false == bOnPlayer)
 		{
+			bShieldOpen = true;
 			ChangeState(EnumState::MoveDown);
 			return;
 		}
@@ -112,6 +112,7 @@ void APillar::StateExcute(float DT)
 	{
 		if (false == bOnPlayer)
 		{
+			bShieldOpen = true;
 			ChangeState(EnumState::MoveDown);
 			return;
 		}
@@ -129,6 +130,7 @@ void APillar::StateExcute(float DT)
 
 		if (true == bExplode)
 		{
+			//레이저 타격 체크 필요
 			ChangeState(EnumState::Boom);
 			return;
 		}
@@ -144,7 +146,7 @@ void APillar::StateExcute(float DT)
 
 		if (true == bShieldOpen)
 		{
-			ShieldOpenRatio -= DT;
+			ShieldOpenRatio -= DT*3.f;
 			if (ShieldOpenRatio <= 0.f)
 			{
 				ShieldOpenRatio = 0.f;
@@ -165,12 +167,12 @@ void APillar::StateExcute(float DT)
 	break;
 	case APillar::EnumState::Boom:
 	{
-
+		//레이저가 닿으면 폭발
 	}
 	break;
 	case APillar::EnumState::Done:
 	{
-
+		//폭발 완료되면 전부 내리고 none으로 변경하기
 	}
 	break;
 	case APillar::EnumState::None:
