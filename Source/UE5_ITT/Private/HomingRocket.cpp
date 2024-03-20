@@ -28,6 +28,8 @@ void AHomingRocket::BeginPlay()
 
 	// 임시, 수정예정
 	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+
+	RocketMeshComp->OnComponentHit.AddDynamic(this, &AHomingRocket::OnHit);
 }
 
 // Called every frame
@@ -53,5 +55,11 @@ void AHomingRocket::Tick(float DeltaTime)
 	
 	FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DeltaTime;
 	SetActorLocation(NewRocketLocation);
+}
+
+void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// 임시 
+	Destroy();
 }
 
