@@ -27,8 +27,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditDefaultsOnly)
-	class USceneComponent* SceneComp;
+	class USceneComponent* SceneComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
-	class USkeletalMeshComponent* SkeletalMeshComp;
+	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 };

@@ -26,13 +26,41 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// 레이저발사
+	void FireLaserBeam();
+
+	// 유도탄발사
+	void FireHomingRocket();
+
 private:
-	UPROPERTY(EditDefaultsOnly)
-	class USceneComponent* SceneComp;
+	// 컴포넌트 초기화
+	void InitializeComponent();
+
+	// 디버그 관련 함수 
+	void DrawDebugMesh();
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass;
+	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
-	class AEnemyMoonBaboon* EnemyMoonBaboon;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AHomingRocket> AHomingRocketClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* HomingRocketSpawnPointMesh1 = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* HomingRocketSpawnPointMesh2 = nullptr;
+
+	
+
+
 };
