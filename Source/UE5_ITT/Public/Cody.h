@@ -36,4 +36,7 @@ private:
 
 	float UpRotationSpeed = 70.0f;
 	float RightRotationSpeed = 70.0f;
+
+	//Animation
+	UAnimMontage* Cody_Loco_Jog_Montage;
 };
