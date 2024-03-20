@@ -57,9 +57,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* ShieldMesh = nullptr;
 
-	//UPROPERTY(EditAnywhere)
-	//class USphereComponent* TriggerSphere = nullptr;
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* ButtonMesh = nullptr;
 
+
+	UPROPERTY(EditAnywhere)
 	bool bShutterOpen = false;
 	bool bPlayerWait = false;
 	bool bOnPlayer = false;
@@ -67,13 +69,24 @@ private:
 
 	FVector DefaultPos = FVector::Zero();
 	float PlayerWaitRatio = 0.f;
-	float PlayerWaitSize = 60.f;
+	float PlayerWaitSize = 80.f;
+	FVector PlayerWaitPos = FVector::Zero();
 
 	float MoveRatio = 0.f;
 	float MoveSize = 750.f;
+	FVector MovePos = FVector::Zero();
 
-	FVector GlassPos = FVector::Zero();
+	FVector ShieldPos = FVector::Zero();
+
+	UPROPERTY(VisibleAnywhere)
+	int intCur = 0;
 
 	EnumState CurState = EnumState::Close;
 	void StateExcute(float DT);
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

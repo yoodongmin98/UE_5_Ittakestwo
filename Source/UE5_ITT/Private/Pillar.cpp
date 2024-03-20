@@ -3,7 +3,6 @@
 
 #include "Pillar.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/SphereComponent.h"
 
 // Sets default values
 APillar::APillar()
@@ -24,6 +23,9 @@ APillar::APillar()
 	ShieldMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShieldMesh"));
 	ShieldMesh->SetupAttachment(GlassMesh);
 
+	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
+	ButtonMesh->SetupAttachment(PillarMesh);
+
 }
 
 // Called when the game starts or when spawned
@@ -33,8 +35,11 @@ void APillar::BeginPlay()
 
 	DefaultPos = GetActorLocation();
 
-	//test code
-	bShutterOpen = true;
+	PlayerWaitPos = DefaultPos;
+	PlayerWaitPos.Z += PlayerWaitSize;
+
+	MovePos = DefaultPos;
+	MovePos.Z += MoveSize;
 }
 
 // Called every frame
@@ -48,6 +53,7 @@ void APillar::Tick(float DeltaTime)
 
 void APillar::StateExcute(float DT)
 {
+	intCur = static_cast<int>(CurState);
 	switch (CurState)
 	{
 	case APillar::EnumState::Close:
@@ -65,13 +71,15 @@ void APillar::StateExcute(float DT)
 		{
 			PlayerWaitRatio = 1.f;
 			ChangeState(EnumState::Wait);
+			ButtonMesh->OnComponentBeginOverlap.AddDynamic(this, &APillar::OnOverlapBegin);
+			ButtonMesh->OnComponentEndOverlap.AddDynamic(this, &APillar::OnOverlapEnd);
 		}
 
-		SetActorLocation(FMath::Lerp(DefaultPos, DefaultPos + PlayerWaitSize, PlayerWaitRatio));
+		SetActorLocation(FMath::Lerp(DefaultPos, PlayerWaitPos, PlayerWaitRatio));
 	}
 	break;
 	case APillar::EnumState::Wait:
-	{
+	{		
 		if (true == bOnPlayer)
 		{
 			ChangeState(EnumState::MoveUp);
@@ -93,7 +101,7 @@ void APillar::StateExcute(float DT)
 			ChangeState(EnumState::WaitBoom);
 		}
 
-		SetActorLocation(FMath::Lerp(DefaultPos + PlayerWaitSize, DefaultPos + MoveSize, MoveRatio));
+		SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
 	}
 	break;
 	case APillar::EnumState::WaitBoom:
@@ -123,10 +131,10 @@ void APillar::StateExcute(float DT)
 		if (MoveRatio <= 0.f)
 		{
 			MoveRatio = 0.f;
-			ChangeState(EnumState::WaitBoom);
+			ChangeState(EnumState::Wait);
 		}
 
-		SetActorLocation(FMath::Lerp(DefaultPos + PlayerWaitSize, DefaultPos + MoveSize, MoveRatio));
+		SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
 	}
 	break;
 	case APillar::EnumState::Boom:
@@ -144,5 +152,21 @@ void APillar::StateExcute(float DT)
 
 	}
 	break;
+	}
+}
+
+void APillar::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		bOnPlayer = true;
+	}
+}
+
+void APillar::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		bOnPlayer = false;
 	}
 }
