@@ -40,6 +40,10 @@ void APillar::BeginPlay()
 
 	MovePos = DefaultPos;
 	MovePos.Z += MoveSize;
+
+	ShieldDefaultPos = ShieldMesh->GetRelativeLocation();
+	ShieldOpenPos = ShieldDefaultPos;
+	ShieldOpenPos.Z -= ShieldOpenSize;
 }
 
 // Called every frame
@@ -106,15 +110,26 @@ void APillar::StateExcute(float DT)
 	break;
 	case APillar::EnumState::WaitBoom:
 	{
-		//실드 내리기 추가필요
-		if (true == bExplode)
-		{
-			ChangeState(EnumState::Boom);
-			return;
-		}
 		if (false == bOnPlayer)
 		{
 			ChangeState(EnumState::MoveDown);
+			return;
+		}
+
+		if (false == bShieldOpen)
+		{
+			ShieldOpenRatio += DT;
+			if (ShieldOpenRatio >= 1.f)
+			{
+				ShieldOpenRatio = 1.f;
+				bShieldOpen = true;
+			}
+			ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
+		}
+
+		if (true == bExplode)
+		{
+			ChangeState(EnumState::Boom);
 			return;
 		}
 	}
@@ -125,6 +140,17 @@ void APillar::StateExcute(float DT)
 		{
 			ChangeState(EnumState::MoveUp);
 			return;
+		}
+
+		if (true == bShieldOpen)
+		{
+			ShieldOpenRatio -= DT;
+			if (ShieldOpenRatio <= 0.f)
+			{
+				ShieldOpenRatio = 0.f;
+				bShieldOpen = false;
+			}
+			ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
 		}
 
 		MoveRatio -= DT;

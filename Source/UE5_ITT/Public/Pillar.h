@@ -66,6 +66,7 @@ private:
 	bool bPlayerWait = false;
 	bool bOnPlayer = false;
 	bool bExplode = false;
+	bool bShieldOpen = false;
 
 	FVector DefaultPos = FVector::Zero();
 	float PlayerWaitRatio = 0.f;
@@ -76,7 +77,10 @@ private:
 	float MoveSize = 750.f;
 	FVector MovePos = FVector::Zero();
 
-	FVector ShieldPos = FVector::Zero();
+	float ShieldOpenRatio = 0.f;
+	float ShieldOpenSize = 400.f;
+	FVector ShieldDefaultPos = FVector::Zero();
+	FVector ShieldOpenPos = FVector::Zero();
 
 	UPROPERTY(VisibleAnywhere)
 	int intCur = 0;
