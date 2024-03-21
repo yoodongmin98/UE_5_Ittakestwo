@@ -9,6 +9,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
+#include "ArcingProjectile.h"
 
 
 #include "DrawDebugHelpers.h"
@@ -31,14 +32,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
-
-	LaserSpawnPointMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("LaserSpawnPointSocket"));
-	HomingRocketSpawnPointMesh1->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_01"));
-	HomingRocketSpawnPointMesh2->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_02"));
-
-
 	// Test
 	FireHomingRocket();
+	FireArcingProjectile();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -66,7 +62,6 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AEnemyFlyingSaucer::FireLaserBeam()
@@ -76,11 +71,17 @@ void AEnemyFlyingSaucer::FireLaserBeam()
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(AHomingRocketClass);
-	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(AHomingRocketClass);
+	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 
 	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+}
+
+void AEnemyFlyingSaucer::FireArcingProjectile()
+{
+	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass);
+	Projectile->SetActorLocation(ArcingProjectileSpawnPointMesh->GetComponentLocation());
 }
 
 void AEnemyFlyingSaucer::InitializeComponent()
@@ -93,13 +94,16 @@ void AEnemyFlyingSaucer::InitializeComponent()
 	SkeletalMeshComp->SetupAttachment(SceneComp);
 
 	LaserSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserSpawnPointMesh"));
-	LaserSpawnPointMesh->SetupAttachment(SkeletalMeshComp);
+	LaserSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LaserSpawnPointSocket"));
 
 	HomingRocketSpawnPointMesh1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HomingRocketSpawnPointMesh1"));
-	HomingRocketSpawnPointMesh1->SetupAttachment(SkeletalMeshComp);
+	HomingRocketSpawnPointMesh1->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_01"));
 
 	HomingRocketSpawnPointMesh2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HomingRocketSpawnPointMesh2"));
-	HomingRocketSpawnPointMesh2->SetupAttachment(SkeletalMeshComp);
+	HomingRocketSpawnPointMesh2->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_02"));
+
+	ArcingProjectileSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArcingProjectileSpawnPointMesh"));
+	ArcingProjectileSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("ArcingProjectileSpawnPointSocket"));
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -108,8 +112,7 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 
 	float SphereRadius = 50.0f;
 	int32 Segments = 12;
-	FColor SphereColor = FColor::Red;
-	float LifeTime = 0.5f;
+	float LifeTime = 0.1f;
 	float Thickness = 2.0f;
 
 	DrawDebugSphere(
@@ -117,7 +120,7 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 		LaserSpawnPointMeshLocation,
 		SphereRadius,
 		Segments,
-		SphereColor,
+		FColor::Red,
 		false,
 		LifeTime,
 		0,
@@ -131,7 +134,7 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 		HomingRocketSpawnPointMesh1Locaiton,
 		SphereRadius,
 		Segments,
-		SphereColor,
+		FColor::Blue,
 		false,
 		LifeTime,
 		0,
@@ -145,7 +148,21 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 		HomingRocketSpawnPointMesh2Locaiton,
 		SphereRadius,
 		Segments,
-		SphereColor,
+		FColor::Blue,
+		false,
+		LifeTime,
+		0,
+		Thickness
+	);
+
+	FVector ArcingProjectileSpawnPointMeshLocaiton = ArcingProjectileSpawnPointMesh->GetComponentLocation();
+
+	DrawDebugSphere(
+		GetWorld(),
+		ArcingProjectileSpawnPointMeshLocaiton,
+		SphereRadius,
+		Segments,
+		FColor::Green,
 		false,
 		LifeTime,
 		0,

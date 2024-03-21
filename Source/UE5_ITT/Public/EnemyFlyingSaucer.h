@@ -26,11 +26,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// 레이저발사
+	// 각종 발사
 	void FireLaserBeam();
-
-	// 유도탄발사
 	void FireHomingRocket();
+	void FireArcingProjectile();
 
 private:
 	// 컴포넌트 초기화
@@ -46,11 +45,15 @@ private:
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AHomingRocket> AHomingRocketClass = nullptr;
+	TSubclassOf<class AHomingRocket> HomingRocketClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
+	// 들고 있어야 되나 싶음
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
@@ -60,7 +63,6 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh2 = nullptr;
 
-	
-
-
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
 };
