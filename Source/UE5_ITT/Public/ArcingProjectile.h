@@ -22,14 +22,23 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 private:
+	UFUNCTION()
+	void SetupProjectileMovementComponent();
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly)
 	class USceneComponent* SceneComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class UStaticMeshComponent* ProjectileMeshComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UProjectileMovementComponent* ProjectileMovementComp = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	FVector TargetLocation = FVector::ZeroVector;
 };

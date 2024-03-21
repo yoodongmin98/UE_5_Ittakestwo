@@ -75,13 +75,16 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 
 	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
+	HomingRocket1->SetOwner(this);
 	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+	HomingRocket2->SetOwner(this);
 }
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass);
 	Projectile->SetActorLocation(ArcingProjectileSpawnPointMesh->GetComponentLocation());
+	Projectile->SetOwner(this);
 }
 
 void AEnemyFlyingSaucer::InitializeComponent()
