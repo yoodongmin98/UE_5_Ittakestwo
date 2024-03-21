@@ -33,10 +33,11 @@ private:
 	void Cody_MoveLR(float _AxisValue);
 	void Cody_LookUD(float _AxisValue);
 	void Cody_LookLR(float _AxisValue);
+	void Cody_Jump();
 
 	float UpRotationSpeed = 70.0f;
 	float RightRotationSpeed = 70.0f;
 
 	//Animation
-	UAnimMontage* Cody_Loco_Jog_Montage;
+	UAnimInstance* Cody_Loco_Jog;
 };
