@@ -31,6 +31,12 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
+
+	LaserSpawnPointMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("LaserSpawnPointSocket"));
+	HomingRocketSpawnPointMesh1->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_01"));
+	HomingRocketSpawnPointMesh2->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("HomingRocketSpawnPointSocket_02"));
+
+
 	// Test
 	FireHomingRocket();
 
@@ -82,16 +88,18 @@ void AEnemyFlyingSaucer::InitializeComponent()
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);
 	GetArrowComponent()->SetupAttachment(SceneComp);
-	GetMesh()->SetupAttachment(SceneComp);
+
+	USkeletalMeshComponent* SkeletalMeshComp = GetMesh();
+	SkeletalMeshComp->SetupAttachment(SceneComp);
 
 	LaserSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserSpawnPointMesh"));
-	LaserSpawnPointMesh->SetupAttachment(SceneComp);
+	LaserSpawnPointMesh->SetupAttachment(SkeletalMeshComp);
 
 	HomingRocketSpawnPointMesh1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HomingRocketSpawnPointMesh1"));
-	HomingRocketSpawnPointMesh1->SetupAttachment(SceneComp);
+	HomingRocketSpawnPointMesh1->SetupAttachment(SkeletalMeshComp);
 
 	HomingRocketSpawnPointMesh2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HomingRocketSpawnPointMesh2"));
-	HomingRocketSpawnPointMesh2->SetupAttachment(SceneComp);
+	HomingRocketSpawnPointMesh2->SetupAttachment(SkeletalMeshComp);
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
