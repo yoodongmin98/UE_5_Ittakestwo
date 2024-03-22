@@ -34,7 +34,6 @@ AArcingProjectile::AArcingProjectile()
 void AArcingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	SetupProjectileMovementComponent();
 	ProjectileMeshComp->OnComponentHit.AddDynamic(this, &AArcingProjectile::OnHit);
 }
 
@@ -42,12 +41,8 @@ void AArcingProjectile::BeginPlay()
 void AArcingProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if (nullptr != ProjectileMovementComp)
-	{
-		FVector NewLocation = GetActorLocation() + ProjectileMovementComp->Velocity * DeltaTime;
-		SetActorLocation(NewLocation);
-	}
+
+	// 여기서 한번만 호출되게 ? 
 }
 
 void AArcingProjectile::SetupProjectileMovementComponent()
@@ -56,7 +51,8 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 	{
 		TargetLocation = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0))->GetActorLocation();
 		FVector StartLocation = GetActorLocation(); // 시작 위치
-		float ArcValue = 0.25f; // ArcParam (0.0-1.0)
+		StartLocation.Z += 500.0f;
+		float ArcValue = 0.35f; // ArcParam (0.0-1.0)
 		FVector OutVelocity = FVector::ZeroVector;
 		if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, OutVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(), ArcValue))
 		{
