@@ -10,9 +10,20 @@ UCLASS()
 class UE5_ITT_API AFloor : public AActor
 {
 	GENERATED_BODY()
-	
+
+public:
+	enum class EPhase
+	{
+		Phase1_1,
+		Phase1_2,
+		Phase1_3,
+		Phase2,
+		Phase3,
+		None,
+	};
+
 public:	
-	// Sets default values for this actor's properties
+	// Sets default values for this actor's propertiesS
 	AFloor();
 
 protected:
@@ -23,4 +34,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetPhase(EPhase Phase)
+	{
+		CurPhase = Phase;
+	};
+
+
+private:
+	EPhase CurPhase = EPhase::None;
 };
