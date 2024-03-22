@@ -4,6 +4,7 @@
 #include "FlyingSaucerAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Cody.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -15,7 +16,8 @@ void AFlyingSaucerAIController::BeginPlay()
 	Super::BeginPlay();
 
 	// 플레이어 폰 셋팅
-	SetPlayerReference();
+	SetupPlayerReference();
+	SetupBehaviorTree();
 
 
 	// 네트워크 권한을 확인하는 코드
@@ -31,10 +33,9 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (nullptr != AIBehaviorTree)
-	{
-		RunBehaviorTree(AIBehaviorTree);
-	}
+	// test
+	GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
+
 
 	/*if (nullptr != PlayerCody || true == LineOfSightTo(PlayerCody, PlayerCody->GetActorLocation(), false))
 	{
@@ -52,9 +53,19 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 	}
 }
 
-void AFlyingSaucerAIController::SetPlayerReference()
+void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
 	PlayerCody = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+}
+
+void AFlyingSaucerAIController::SetupBehaviorTree()
+{
+	if (nullptr != AIBehaviorTree)
+	{
+		RunBehaviorTree(AIBehaviorTree);
+		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCody->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+	}
 }
 

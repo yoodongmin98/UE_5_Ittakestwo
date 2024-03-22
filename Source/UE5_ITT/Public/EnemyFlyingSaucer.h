@@ -27,6 +27,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// 각종 발사
+	UFUNCTION(BlueprintCallable, Category = "Test")
 	void FireLaserBeam();
 	void FireHomingRocket();
 	void FireArcingProjectile();
