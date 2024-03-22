@@ -5,12 +5,16 @@
 #include <Components/StaticMeshComponent.h>
 
 #include "ParentShutter.h"
+#include "FsmComponent.h"
 
 // Sets default values
 ACoreShutter::ACoreShutter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
+	FsmComp->InitState(Fsm::None);
 }
 	
 // Called when the game starts or when spawned

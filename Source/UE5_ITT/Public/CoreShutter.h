@@ -38,6 +38,15 @@ public:
 		bOpen = bValue;
 	}
 
+	enum class Fsm
+	{
+		Close,
+		Closing,
+		Open,
+		Opening,
+		None,
+	};
+
 private:
 	UPROPERTY(EditAnywhere);
 	bool bOpen = false;
@@ -56,4 +65,5 @@ private:
 
 	UPROPERTY(EditAnywhere);
 	class UStaticMeshComponent* MeshComp = nullptr;
+	class UFsmComponent* FsmComp = nullptr;
 };
