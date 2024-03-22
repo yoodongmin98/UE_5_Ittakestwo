@@ -36,10 +36,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketLifeTime = 7.0f;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketMoveSpeed = 600.0f;
 
 	UPROPERTY(VisibleAnywhere)

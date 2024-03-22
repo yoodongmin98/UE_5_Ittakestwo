@@ -39,12 +39,10 @@ void AHomingRocket::Tick(float DeltaTime)
 
 	if (nullptr == PlayerCodyRef)
 	{
-		// 플레이어가 nullptr 이라면 메모리에서 해제
 		Destroy();
 		return;
 	}
-
-	// 그게 아니라면 유도 로직 
+	
 	FVector RocketLocation = GetActorLocation();
 	FVector TargetLocation = PlayerCodyRef->GetActorLocation();
 

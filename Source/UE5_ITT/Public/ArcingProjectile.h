@@ -35,9 +35,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class UStaticMeshComponent* ProjectileMeshComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	class UProjectileMovementComponent* ProjectileMovementComp = nullptr;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Movement")
 	FVector TargetLocation = FVector::ZeroVector;
 };

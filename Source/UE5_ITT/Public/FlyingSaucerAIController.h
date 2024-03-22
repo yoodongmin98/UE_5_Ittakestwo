@@ -30,7 +30,7 @@ private:
 	void SetupPlayerReference();
 	void SetupBehaviorTree();
 
-	// 처음부터 코디, 메이를 들고 있는걸로 
+	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerCody;
 
@@ -44,5 +44,4 @@ private:
 	// Behavior Tree
 	UPROPERTY(EditDefaultsOnly, Category = "Behavior Tree")
 	class UBehaviorTree* AIBehaviorTree;
-
 };

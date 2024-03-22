@@ -22,7 +22,7 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	InitializeComponent();
+	SetupComponent();
 }
 
 // Called when the game starts or when spawned
@@ -35,8 +35,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->SetOwner(this);
 
 	// Test
-	FireHomingRocket();
-	FireArcingProjectile();
+	/*FireHomingRocket();
+	FireArcingProjectile();*/
+
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -53,6 +54,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	DrawDebugMesh();
+
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -90,17 +92,18 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	Projectile->SetOwner(this);
 }
 
-void AEnemyFlyingSaucer::InitializeComponent()
+void AEnemyFlyingSaucer::SetupComponent()
 {
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
-	SetRootComponent(SceneComp);
-	GetArrowComponent()->SetupAttachment(SceneComp);
-	GetCapsuleComponent()->SetupAttachment(SceneComp);
-
+	//나중에 필요할 때 사용, 일단 캡슐컴포넌트 루트로 
+	//SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
+	
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	SetRootComponent(CapsuleComp);
+	GetArrowComponent()->SetupAttachment(CapsuleComp);
 	GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
 	
 	USkeletalMeshComponent* SkeletalMeshComp = GetMesh();
-	SkeletalMeshComp->SetupAttachment(SceneComp);
+	SkeletalMeshComp->SetupAttachment(CapsuleComp);
 
 	LaserSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserSpawnPointMesh"));
 	LaserSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("LaserSpawnPointSocket"));

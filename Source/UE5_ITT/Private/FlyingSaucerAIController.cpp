@@ -19,7 +19,6 @@ void AFlyingSaucerAIController::BeginPlay()
 	SetupPlayerReference();
 	SetupBehaviorTree();
 
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -32,19 +31,6 @@ void AFlyingSaucerAIController::BeginPlay()
 void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// test
-	GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
-
-
-	/*if (nullptr != PlayerCody || true == LineOfSightTo(PlayerCody, PlayerCody->GetActorLocation(), false))
-	{
-		SetFocus(PlayerCody);
-	}
-	else
-	{
-		ClearFocus(EAIFocusPriority::Gameplay);
-	}*/
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -66,6 +52,7 @@ void AFlyingSaucerAIController::SetupBehaviorTree()
 		RunBehaviorTree(AIBehaviorTree);
 		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCody->GetActorLocation());
 		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
 	}
 }
 
