@@ -34,14 +34,12 @@ public:
 
 private:
 	// 컴포넌트 초기화
-	void InitializeComponent();
+	void SetupComponent();
 
 	// 디버그 관련 함수 
 	void DrawDebugMesh();
-
-	UPROPERTY(EditDefaultsOnly)
-	class USceneComponent* SceneComp = nullptr;
-
+	
+	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
 
@@ -51,6 +49,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
+	// 원숭이 
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
