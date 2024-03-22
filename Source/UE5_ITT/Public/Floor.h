@@ -12,8 +12,9 @@ class UE5_ITT_API AFloor : public AActor
 	GENERATED_BODY()
 
 public:
-	enum class EPhase
+	enum class Fsm
 	{
+		Wait,
 		Phase1_1,
 		Phase1_2,
 		Phase1_3,
@@ -34,19 +35,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetPhase(EPhase Phase)
-	{
-		CurPhase = Phase;
-	};
+	void SetPhase(Fsm Phase);
 
 private:
-	void PhaseExcute(float DeltaTime);
+	void SetupFsm();
 
 private:
-	EPhase CurPhase = EPhase::None;
 
 	float MoveTime = 20.f;
 	float MoveSize = 4995.f;
+	float PillarSecond = 0.f;
 
 	UPROPERTY(EditAnywhere,Category = "Pointer")
 	class AParentShutter* ParentShutter0 = nullptr;
@@ -65,4 +63,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class ALaser* MainLaser = nullptr;
+
+	class UFsmComponent* FsmComp = nullptr;
 };

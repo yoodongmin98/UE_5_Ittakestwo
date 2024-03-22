@@ -24,8 +24,12 @@ void UFsmComponent::BeginPlay()
 }
 
 
-void UFsmComponent::FsmTick()
-{
+void UFsmComponent::FsmTick(float DT)
+{	
+	if (true == MapState[CurState].Update.IsBound())
+	{
+		MapState[CurState].Update.Execute(DT);
+	}
 }
 
 // Called every frame
@@ -33,6 +37,20 @@ void UFsmComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	FsmTick(DeltaTime);
 	// ...
 }
 
+void UFsmComponent::ChangeState(int32 Index)
+{
+	if (CurState!=-1&&true == MapState[CurState].End.IsBound())
+	{
+		MapState[CurState].End.Execute();
+	}
+	CurState = Index;
+
+	if (true == MapState[CurState].Start.IsBound())
+	{
+		MapState[CurState].Start.Execute();
+	}
+}

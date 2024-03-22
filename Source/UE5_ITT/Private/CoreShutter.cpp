@@ -13,8 +13,7 @@ ACoreShutter::ACoreShutter()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
-	FsmComp->InitState(Fsm::None);
+	SetupFsm();
 }
 	
 // Called when the game starts or when spawned
@@ -35,36 +34,73 @@ void ACoreShutter::BeginPlay()
 void ACoreShutter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (true == HasAuthority())
-	{
-		if (true == bAttackNow)
+}
+
+void ACoreShutter::SetupFsm()
+{
+	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
+	FsmComp->InitFsm(Fsm::None);
+	FsmComp->ChangeState(Fsm::Close);
+
+	UFsmComponent::StateFunction CloseState;
+
+	CloseState.Start.BindLambda([this]
 		{
-			OpenTime -= DeltaTime;
 
-			if (OpenTime <= 0.f)
-			{
-				OpenTime = 3.f;
-				bAttackNow = false;
-				bOpen = false;
-			}
-			return;
-		}
-		if (true == bOpen)
+		});
+	CloseState.Update.BindLambda([this](float DeltaTime)
 		{
-			MovingRatio += DeltaTime * 0.5f;
-
-			if (MovingRatio >= 1.f)
+			if (true == bOpen)
 			{
-				bAttackNow = true;
-				MovingRatio = 1.f;
+				MovingRatio += DeltaTime * 0.5f;
+
+				if (MovingRatio >= 1.f)
+				{
+					FsmComp->ChangeState(Fsm::Open);
+					MovingRatio = 1.f;
+				}
+
+				AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
+				SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
 			}
+		});
+	CloseState.End.BindLambda( [this]
+		{
 
-			AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
-			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+		});
 
+	FsmComp->CreateState(Fsm::Close, CloseState);
 
-		}
-		else
+	UFsmComponent::StateFunction OpenState;
+
+	OpenState.Start.BindLambda([this]
+		{
+
+		});
+
+	OpenState.Update.BindLambda([this](float DeltaTime)
+		{
+			if (true == bDone)
+			{
+				FsmComp->ChangeState(Fsm::Done);
+			}
+		});
+
+	OpenState.End.BindLambda([this]
+		{
+
+		});
+
+	FsmComp->CreateState(Fsm::Open, OpenState);
+
+	UFsmComponent::StateFunction DoneState;
+
+	DoneState.Start.BindLambda([this]
+		{
+
+		});
+
+	DoneState.Update.BindLambda([this](float DeltaTime)
 		{
 			MovingRatio -= DeltaTime * 0.5f;
 			if (MovingRatio <= 0.f)
@@ -74,9 +110,13 @@ void ACoreShutter::Tick(float DeltaTime)
 
 			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
 			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+		});
 
+	DoneState.End.BindLambda([this]
+		{
 
-		}
-	}
+		});
+
+	FsmComp->CreateState(Fsm::Done, DoneState);
 }
 

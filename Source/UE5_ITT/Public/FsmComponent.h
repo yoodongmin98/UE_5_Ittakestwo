@@ -6,32 +6,57 @@
 #include "Components/ActorComponent.h"
 #include "FsmComponent.generated.h"
 
-DECLARE_DELEGATE(StateFunction);
+DECLARE_DELEGATE(StartFunction)
+DECLARE_DELEGATE_OneParam(UpdateFunction,float)
+DECLARE_DELEGATE(EndFunction)
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE5_ITT_API UFsmComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
-	UFsmComponent();
+	UFsmComponent();	
 
-	class State
+public:
+	class StateFunction
 	{
 	public:
-		StateFunction Start;
-		StateFunction Update;
-		StateFunction End;
+		StartFunction Start = nullptr;
+		UpdateFunction Update = nullptr;
+		EndFunction End = nullptr;
 	};
 
-	template<class T> 
-	void InitState(T Index)
+	template<class T>
+	void InitFsm(T Index)
 	{
-		StateArray.SetNum(static_cast<int32>(Index));
+		int32 CastIndex = static_cast<int32>(Index);
+		for (int32 i = 0; i < CastIndex; i++)
+		{
+			MapState.Add(i);
+		}
+	}
+	template<class T>
+	void CreateState(T Index, StateFunction& StateFunc)
+	{
+		CreateState(static_cast<int32>(Index), StateFunc);
 	};
 
-	void FsmTick();
+	void CreateState(int Index, StateFunction& StateFunc)
+	{
+		MapState[Index]= StateFunc;
+	};
+
+	template<class T>
+	void ChangeState(T Index)
+	{
+		ChangeState(static_cast<int32>(Index));
+	};
+
+	void ChangeState(int32 Index);
+
+	void FsmTick(float DT);
 
 protected:
 	// Called when the game starts
@@ -41,7 +66,44 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	TArray<State> StateArray;
+	TMap<int32,StateFunction> MapState;
+
 	int32 CurState = -1;
-	int32 PrevState = -1;
 };
+
+/*
+ 
+///////FsmState생성하기///////
+
+enum class FSM
+{
+	Example0,
+	Example1,
+	None, // None필수
+}
+
+//Fsm컴포넌트 받아오고
+FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
+
+UFsmComponent::StateFunction ExampleState0;
+
+ExampleState0.Start.BindLambda(
+	[this]
+	{
+
+	});
+
+ExampleState0.Update.BindLambda(
+	[this](float DeltaTime)
+	{
+
+	});
+
+ExampleState0.End.BindLambda(
+	[this]
+	{
+
+	});
+
+FsmComp->CreateState(Fsm::First, ExampleState0);
+*/

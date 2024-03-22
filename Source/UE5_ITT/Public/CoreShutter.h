@@ -41,11 +41,14 @@ public:
 	enum class Fsm
 	{
 		Close,
-		Closing,
 		Open,
-		Opening,
+		Done,
 		None,
 	};
+
+
+private:
+	void SetupFsm();
 
 private:
 	UPROPERTY(EditAnywhere);
@@ -53,7 +56,7 @@ private:
 
 	float OpenTime = 3.f;
 
-	bool bAttackNow = false;
+	bool bDone = false;
 
 	float MovingRatio = 0.f;
 
