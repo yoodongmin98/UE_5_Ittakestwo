@@ -15,14 +15,12 @@ ACody::ACody()
 void ACody::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -35,7 +33,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis(TEXT("Player_LookUD"), this, &ACody::Cody_LookUD);
 	PlayerInputComponent->BindAxis(TEXT("Player_LookLR"), this, &ACody::Cody_LookLR);
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-	/*GetMesh()->GetAnimInstance()->OnMontageEnded*/
 }
 
 
@@ -57,4 +54,10 @@ void ACody::Cody_LookUD(float _AxisValue)
 void ACody::Cody_LookLR(float _AxisValue)
 {
 	AddControllerYawInput(_AxisValue * RightRotationSpeed * GetWorld()->GetDeltaSeconds());
+}
+
+//////////////FSM//////////
+void ACody::ChangeState(Cody_State _State)
+{
+	CodyState = _State;
 }

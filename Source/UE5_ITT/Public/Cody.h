@@ -6,6 +6,16 @@
 #include "GameFramework/Character.h"
 #include "Cody.generated.h"
 
+UENUM(BlueprintType)
+enum class Cody_State : uint8
+{
+	IDLE,
+	MOVE,
+	TURN,
+	JUMP,
+	DASH
+};
+
 UCLASS()
 class UE5_ITT_API ACody : public ACharacter
 {
@@ -29,13 +39,27 @@ public:
 
 //캐릭터 이동
 private:
-	void Cody_MoveFB(float _AxisValue);
-	void Cody_MoveLR(float _AxisValue);
+
+	//Mouse
 	void Cody_LookUD(float _AxisValue);
 	void Cody_LookLR(float _AxisValue);
+
+	Cody_State CodyState = Cody_State::IDLE;
 
 	float UpRotationSpeed = 70.0f;
 	float RightRotationSpeed = 70.0f;
 
-	//Animation
+public:
+
+	//Cody관련Function
+	UFUNCTION(BlueprintCallable)
+	inline Cody_State GetCodyState() const
+	{
+		return CodyState;
+	}
+	//FSM
+	void ChangeState(Cody_State _State);
+
+	void Cody_MoveFB(float _AxisValue);
+	void Cody_MoveLR(float _AxisValue);
 };
