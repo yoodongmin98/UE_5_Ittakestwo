@@ -33,7 +33,13 @@ public:
 		PivotPos = Pivot;
 	}
 
+	void OpenShutter(bool bValue)
+	{
+		bOpen = bValue;
+	}
+
 private:
+	UPROPERTY(EditAnywhere);
 	bool bOpen = false;
 
 	float OpenTime = 3.f;

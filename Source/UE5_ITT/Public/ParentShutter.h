@@ -23,6 +23,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	//각 셔터 날개에게 오픈 전달
+	void SetShutterOpen(bool bValue);
+
 private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACoreShutter> CoreShutterClass;
@@ -31,5 +35,4 @@ private:
 
 	float MovingSize = 170.f;
 
-	bool bOpen = false;
 };

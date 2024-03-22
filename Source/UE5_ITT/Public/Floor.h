@@ -39,7 +39,30 @@ public:
 		CurPhase = Phase;
 	};
 
+private:
+	void PhaseExcute(float DeltaTime);
 
 private:
 	EPhase CurPhase = EPhase::None;
+
+	float MoveTime = 20.f;
+	float MoveSize = 4995.f;
+
+	UPROPERTY(EditAnywhere,Category = "Pointer")
+	class AParentShutter* ParentShutter0 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class AParentShutter* ParentShutter1 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class AParentShutter* ParentShutter2 = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class APillar* Pillar0 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class APillar* Pillar1 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class APillar* Pillar2 = nullptr;
+
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* MainLaser = nullptr;
 };

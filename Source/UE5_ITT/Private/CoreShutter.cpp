@@ -18,8 +18,6 @@ void ACoreShutter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	bOpen = true;
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -67,7 +65,6 @@ void ACoreShutter::Tick(float DeltaTime)
 			MovingRatio -= DeltaTime * 0.5f;
 			if (MovingRatio <= 0.f)
 			{
-				bOpen = true;
 				MovingRatio = 0.f;
 			}
 

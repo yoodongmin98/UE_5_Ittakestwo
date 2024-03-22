@@ -2,6 +2,8 @@
 
 
 #include "Floor.h"
+#include "ParentShutter.h"
+#include "Pillar.h"
 
 // Sets default values
 AFloor::AFloor()
@@ -30,5 +32,42 @@ void AFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	PhaseExcute(DeltaTime);
 }
 
+void AFloor::PhaseExcute(float DeltaTime)
+{
+	switch (CurPhase)
+	{
+	case AFloor::EPhase::Phase1_1:
+	{
+		ParentShutter1->SetShutterOpen(true);
+	}
+	break;
+	case AFloor::EPhase::Phase1_2:
+	{
+		ParentShutter2->SetShutterOpen(true);
+	}
+	break;
+	case AFloor::EPhase::Phase1_3:
+	{
+		ParentShutter0->SetShutterOpen(true);
+	}
+	break;
+	case AFloor::EPhase::Phase2:
+	{
+
+	}
+	break;
+	case AFloor::EPhase::Phase3:
+	{
+
+	}
+	break;
+	case AFloor::EPhase::None:
+	{
+
+	}
+	break;
+	}
+}
