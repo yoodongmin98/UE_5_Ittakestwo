@@ -7,9 +7,11 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
+
 
 
 #include "DrawDebugHelpers.h"
@@ -93,7 +95,10 @@ void AEnemyFlyingSaucer::InitializeComponent()
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);
 	GetArrowComponent()->SetupAttachment(SceneComp);
+	GetCapsuleComponent()->SetupAttachment(SceneComp);
 
+	GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
+	
 	USkeletalMeshComponent* SkeletalMeshComp = GetMesh();
 	SkeletalMeshComp->SetupAttachment(SceneComp);
 

@@ -27,7 +27,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	void SetPlayerReference();
+	void SetupPlayerReference();
+	void SetupBehaviorTree();
 
 	// 처음부터 코디, 메이를 들고 있는걸로 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
