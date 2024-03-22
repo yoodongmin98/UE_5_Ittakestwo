@@ -8,19 +8,21 @@ ACody::ACody()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 }
 
 // Called when the game starts or when spawned
 void ACody::BeginPlay()
 {
 	Super::BeginPlay();
+	
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	IsMoveEnd = false;
 }
 
 // Called to bind functionality to input
@@ -39,7 +41,8 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 //////////////////////////////캐릭터 이동관련///////////////////////////
 void ACody::Cody_MoveFB(float _AxisValue)
 {
-	AddMovementInput(GetActorForwardVector() * _AxisValue);
+	if(!IsMoveEnd)
+		AddMovementInput(GetActorForwardVector() * _AxisValue);
 }
 void ACody::Cody_MoveLR(float _AxisValue)
 {
