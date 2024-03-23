@@ -32,7 +32,6 @@ public:
 		EndFunction End = nullptr;
 	};
 
-
 	template<class T>
 	void CreateState(T Index, 
 		std::function<void()> BindStart,
@@ -47,7 +46,7 @@ public:
 		std::function<void(float)> BindUpdate,
 		std::function<void()> BindEnd)
 	{
-		MapState.Add(Index);
+		MapState.FindOrAdd(Index);
 		MapState[Index].Start.BindLambda(BindStart);
 		MapState[Index].Update.BindLambda(BindUpdate);
 		MapState[Index].End.BindLambda(BindEnd);

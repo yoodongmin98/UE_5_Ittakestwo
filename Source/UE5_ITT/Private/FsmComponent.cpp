@@ -51,6 +51,6 @@ void UFsmComponent::ChangeState(int32 Index)
 
 	if (true == MapState[CurState].Start.IsBound())
 	{
-		MapState[CurState].Start.Execute();
+		MapState[CurState].Start.ExecuteIfBound();
 	}
 }

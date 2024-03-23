@@ -12,13 +12,14 @@ AFloor::AFloor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetupFsm();
-	FsmComp->ChangeState(Fsm::Phase1_1);
 }
 
 // Called when the game starts or when spawned
 void AFloor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FsmComp->ChangeState(Fsm::Phase1_1);
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -43,6 +44,20 @@ void AFloor::SetPhase(Fsm Phase)
 void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
+
+	FsmComp->CreateState(Fsm::Wait,
+		[this]
+		{
+		},
+
+		[this](float DeltaTime)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
 
 	FsmComp->CreateState(Fsm::Phase1_1,		
 		[this]

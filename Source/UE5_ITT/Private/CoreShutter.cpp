@@ -14,13 +14,14 @@ ACoreShutter::ACoreShutter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetupFsm();
-	FsmComp->ChangeState(Fsm::Close);
 }
 	
 // Called when the game starts or when spawned
 void ACoreShutter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FsmComp->ChangeState(Fsm::Close);
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -41,8 +42,7 @@ void ACoreShutter::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Close,
-		
+	FsmComp->CreateState(Fsm::Close,		
 	[this]
 		{
 
@@ -70,7 +70,7 @@ void ACoreShutter::SetupFsm()
 		);
 
 
-	FsmComp->CreateState(Fsm::Close,
+	FsmComp->CreateState(Fsm::Open,
 		[this]
 		{
 
@@ -90,7 +90,7 @@ void ACoreShutter::SetupFsm()
 		} 
 		);
 
-	FsmComp->CreateState(Fsm::Open,		
+	FsmComp->CreateState(Fsm::Done,		
 	[this]
 		{
 
