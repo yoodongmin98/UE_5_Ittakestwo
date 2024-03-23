@@ -19,7 +19,7 @@ void AParentShutter::BeginPlay()
 
 	ArrayCoreShutter.SetNum(4);
 
-	for (int i = 0; i < 4; i++)
+	for (int32 i = 0; i < 4; i++)
 	{
 		ArrayCoreShutter[i] = GetWorld()->SpawnActor<ACoreShutter>(CoreShutterClass);
 		ArrayCoreShutter[i]->AttachToActor(this,FAttachmentTransformRules::KeepRelativeTransform);
@@ -42,7 +42,7 @@ void AParentShutter::Tick(float DeltaTime)
 
 void AParentShutter::SetShutterOpen(bool bValue)
 {
-	for (size_t i = 0; i < ArrayCoreShutter.Num(); i++)
+	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
 	{
 		ArrayCoreShutter[i]->OpenShutter(bValue);
 	}

@@ -44,12 +44,12 @@ void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Phase1_1,
-		{
-			[this]
+	FsmComp->CreateState(Fsm::Phase1_1,		
+		[this]
 		{
 			ParentShutter1->SetShutterOpen(true);
 		},
+
 		[this](float DeltaTime)
 		{
 			PillarSecond += DeltaTime;
@@ -59,10 +59,11 @@ void AFloor::SetupFsm()
 				FsmComp->ChangeState(Fsm::Wait);
 			}
 		},
+
 		[this]
 		{
 			PillarSecond = 0.f;
 		}
-		});
+		);
 
 }

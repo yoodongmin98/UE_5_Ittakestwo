@@ -14,16 +14,6 @@ DECLARE_DELEGATE(StartFunction)
 DECLARE_DELEGATE_OneParam(UpdateFunction,float)
 DECLARE_DELEGATE(EndFunction)
 
-USTRUCT(Atomic)
-struct FBindParam
-{
-	GENERATED_USTRUCT_BODY()
-
-	std::function<void()> BindStart = nullptr;
-	std::function<void(float)> BindUpdate = nullptr;
-	std::function<void()> BindEnd = nullptr;
-};
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE5_ITT_API UFsmComponent : public UActorComponent
 {
@@ -44,17 +34,23 @@ public:
 
 
 	template<class T>
-	void CreateState(T Index, FBindParam BindParam)
+	void CreateState(T Index, 
+		std::function<void()> BindStart,
+		std::function<void(float)> BindUpdate,
+		std::function<void()> BindEnd)
 	{
-		CreateState(static_cast<int32>(Index), BindParam);
+		CreateState(static_cast<int32>(Index), BindStart, BindUpdate, BindEnd);
 	};
 
-	void CreateState(int Index, FBindParam BindParam)
+	void CreateState(int Index,
+		std::function<void()> BindStart,
+		std::function<void(float)> BindUpdate,
+		std::function<void()> BindEnd)
 	{
-		FStateParam StateParam = MapState.FindOrAdd(Index);
-		StateParam.Start.BindLambda(BindParam.BindStart);
-		StateParam.Update.BindLambda(BindParam.BindUpdate);
-		StateParam.End.BindLambda(BindParam.BindEnd);
+		MapState.Add(Index);
+		MapState[Index].Start.BindLambda(BindStart);
+		MapState[Index].Update.BindLambda(BindUpdate);
+		MapState[Index].End.BindLambda(BindEnd);
 	};
 
 	template<class T>
