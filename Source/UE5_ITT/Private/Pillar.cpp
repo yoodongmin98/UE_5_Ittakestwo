@@ -3,6 +3,7 @@
 
 #include "Pillar.h"
 #include "Components/StaticMeshComponent.h"
+#include "FsmComponent.h"
 
 // Sets default values
 APillar::APillar()
@@ -25,7 +26,7 @@ APillar::APillar()
 
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
-
+	SetupFsm();
 }
 
 // Called when the game starts or when spawned
@@ -33,154 +34,242 @@ void APillar::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DefaultPos = GetActorLocation();
+	FsmComp->ChangeState(Fsm::Close);
 
-	PlayerWaitPos = DefaultPos;
-	PlayerWaitPos.Z += PlayerWaitSize;
-
-	MovePos = DefaultPos;
-	MovePos.Z += MoveSize;
-
-	ShieldDefaultPos = ShieldMesh->GetRelativeLocation();
-	ShieldOpenPos = ShieldDefaultPos;
-	ShieldOpenPos.Z -= ShieldOpenSize;
 }
 
 // Called every frame
 void APillar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	StateExcute(DeltaTime);	
-
 }
 
-void APillar::StateExcute(float DT)
+void APillar::ChangeState(Fsm State)
 {
-	switch (CurState)
-	{
-	case APillar::EnumState::Close:
-	{		
-		if (true == bShutterOpen)
-		{
-			ChangeState(EnumState::WaitMove);
-		}
-	}
-	break;
-	case APillar::EnumState::WaitMove:
-	{
-		PlayerWaitRatio += DT;
-		if (PlayerWaitRatio >= 1.f)
-		{
-			PlayerWaitRatio = 1.f;
-			ChangeState(EnumState::Wait);
-			ButtonMesh->OnComponentBeginOverlap.AddDynamic(this, &APillar::OnOverlapBegin);
-			ButtonMesh->OnComponentEndOverlap.AddDynamic(this, &APillar::OnOverlapEnd);
-		}
+	FsmComp->ChangeState(State);
+}
 
-		SetActorLocation(FMath::Lerp(DefaultPos, PlayerWaitPos, PlayerWaitRatio));
-	}
-	break;
-	case APillar::EnumState::Wait:
-	{		
-		if (true == bOnPlayer)
+void APillar::SetupFsm()
+{
+	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
+	FsmComp->CreateState(Fsm::Close,
+		[this]
 		{
-			ChangeState(EnumState::MoveUp);
-		}
-	}
-	break;
-	case APillar::EnumState::MoveUp:
-	{
-		if (false == bOnPlayer)
-		{
-			bShieldOpen = true;
-			ChangeState(EnumState::MoveDown);
-			return;
-		}
 
-		MoveRatio += DT;
-		if (MoveRatio >= 1.f)
-		{
-			MoveRatio = 1.f;
-			ChangeState(EnumState::WaitBoom);
-		}
+		},
 
-		SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
-	}
-	break;
-	case APillar::EnumState::WaitBoom:
-	{
-		if (false == bOnPlayer)
+		[this](float DT)
 		{
-			bShieldOpen = true;
-			ChangeState(EnumState::MoveDown);
-			return;
-		}
+		},
 
-		if (false == bShieldOpen)
+		[this]
 		{
-			ShieldOpenRatio += DT;
-			if (ShieldOpenRatio >= 1.f)
+
+		});
+
+	FsmComp->CreateState(Fsm::WaitMove,
+		[this]
+		{
+			DefaultPos = GetActorLocation();
+
+			PlayerWaitPos = DefaultPos;
+			PlayerWaitPos.Z += PlayerWaitSize;
+
+			MovePos = DefaultPos;
+			MovePos.Z += MoveSize;
+
+			ShieldDefaultPos = ShieldMesh->GetRelativeLocation();
+			ShieldOpenPos = ShieldDefaultPos;
+			ShieldOpenPos.Z -= ShieldOpenSize;
+		},
+
+		[this](float DT)
+		{
+			PlayerWaitRatio += DT;
+			if (PlayerWaitRatio >= 1.f)
 			{
-				ShieldOpenRatio = 1.f;
+				PlayerWaitRatio = 1.f;
+				FsmComp->ChangeState(Fsm::Wait);
+				ButtonMesh->OnComponentBeginOverlap.AddDynamic(this, &APillar::OnOverlapBegin);
+				ButtonMesh->OnComponentEndOverlap.AddDynamic(this, &APillar::OnOverlapEnd);
+			}
+
+			SetActorLocation(FMath::Lerp(DefaultPos, PlayerWaitPos, PlayerWaitRatio));
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(Fsm::Wait,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+			if (true == bOnPlayer)
+			{
+				FsmComp->ChangeState(Fsm::MoveUp);
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(Fsm::MoveUp,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+			if (false == bOnPlayer)
+			{
 				bShieldOpen = true;
+				FsmComp->ChangeState(Fsm::MoveDown);
+				return;
 			}
-			ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
-		}
 
-		if (true == bExplode)
-		{
-			//레이저 타격 체크 필요
-			ChangeState(EnumState::Boom);
-			return;
-		}
-	}
-	break;
-	case APillar::EnumState::MoveDown:
-	{
-		if (true == bOnPlayer)
-		{
-			ChangeState(EnumState::MoveUp);
-			return;
-		}
-
-		if (true == bShieldOpen)
-		{
-			ShieldOpenRatio -= DT*3.f;
-			if (ShieldOpenRatio <= 0.f)
+			MoveRatio += DT;
+			if (MoveRatio >= 1.f)
 			{
-				ShieldOpenRatio = 0.f;
-				bShieldOpen = false;
+				MoveRatio = 1.f;
+				FsmComp->ChangeState(Fsm::WaitBoom);
 			}
-			ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
-		}
 
-		MoveRatio -= DT;
-		if (MoveRatio <= 0.f)
+			SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
+		},
+
+		[this]
 		{
-			MoveRatio = 0.f;
-			ChangeState(EnumState::Wait);
-		}
 
-		SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
-	}
-	break;
-	case APillar::EnumState::Boom:
-	{
-		//레이저가 닿으면 폭발
-	}
-	break;
-	case APillar::EnumState::Done:
-	{
-		//폭발 완료되면 전부 내리고 none으로 변경하기
-	}
-	break;
-	case APillar::EnumState::None:
-	{
+		});
 
-	}
-	break;
-	}
+	FsmComp->CreateState(Fsm::WaitBoom,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+			if (false == bOnPlayer)
+			{
+				bShieldOpen = true;
+				ChangeState(Fsm::MoveDown);
+				return;
+			}
+
+			if (false == bShieldOpen)
+			{
+				ShieldOpenRatio += DT;
+				if (ShieldOpenRatio >= 1.f)
+				{
+					ShieldOpenRatio = 1.f;
+					bShieldOpen = true;
+				}
+				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
+			}
+
+			if (true == bExplode)
+			{
+				//레이저 타격 체크 필요
+				ChangeState(Fsm::Boom);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+	FsmComp->CreateState(Fsm::MoveDown,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+
+			if (true == bOnPlayer)
+			{
+				ChangeState(Fsm::MoveUp);
+				return;
+			}
+
+			if (true == bShieldOpen)
+			{
+				ShieldOpenRatio -= DT * 3.f;
+				if (ShieldOpenRatio <= 0.f)
+				{
+					ShieldOpenRatio = 0.f;
+					bShieldOpen = false;
+				}
+				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
+			}
+
+			MoveRatio -= DT;
+			if (MoveRatio <= 0.f)
+			{
+				MoveRatio = 0.f;
+				FsmComp->ChangeState(Fsm::Wait);
+			}
+
+			SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(Fsm::Boom,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+			FsmComp->ChangeState(Fsm::Done);
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(Fsm::Done,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+			//폭발 완료되면 전부 내리고 none으로 변경하기
+			MoveRatio -= DT;
+			if (MoveRatio <= 0.f)
+			{
+				MoveRatio = 0.f;
+				bDone = true;
+				FsmComp->ChangeState(Fsm::Close);
+			}
+
+			SetActorLocation(FMath::Lerp(DefaultPos, MovePos, MoveRatio));
+		},
+
+		[this]
+		{
+
+		});
 }
 
 void APillar::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

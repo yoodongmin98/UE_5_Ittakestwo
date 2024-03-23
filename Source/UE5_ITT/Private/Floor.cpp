@@ -20,7 +20,6 @@ void AFloor::BeginPlay()
 	Super::BeginPlay();
 
 	FsmComp->ChangeState(Fsm::Phase1_1);
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -45,20 +44,6 @@ void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Wait,
-		[this]
-		{
-		},
-
-		[this](float DeltaTime)
-		{
-		},
-
-		[this]
-		{
-		}
-	);
-
 	FsmComp->CreateState(Fsm::Phase1_1,		
 		[this]
 		{
@@ -70,8 +55,8 @@ void AFloor::SetupFsm()
 			PillarSecond += DeltaTime;
 			if (PillarSecond >= 1.f)
 			{
-				Pillar1->ChangeState(APillar::EnumState::WaitMove);
-				FsmComp->ChangeState(Fsm::Wait);
+				Pillar1->ChangeState(APillar::Fsm::WaitMove);
+				FsmComp->ChangeState(Fsm::Phase1_1Wait);
 			}
 		},
 
@@ -81,4 +66,143 @@ void AFloor::SetupFsm()
 		}
 		);
 
+	FsmComp->CreateState(Fsm::Phase1_1Wait,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+		},
+
+		[this](float DT)
+		{
+			if (true == Pillar1->IsDone())
+			{
+				MoveRatio += DT/MoveTime;
+				if (MoveRatio >= 1.f)
+				{
+					MoveRatio = 1.f;
+					FsmComp->ChangeState(Fsm::Phase1_2);
+				}
+
+				SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase1_2,
+		[this]
+		{
+			ParentShutter2->SetShutterOpen(true);
+		},
+
+		[this](float DeltaTime)
+		{
+			PillarSecond += DeltaTime;
+			if (PillarSecond >= 1.f)
+			{
+				Pillar2->ChangeState(APillar::Fsm::WaitMove);
+				FsmComp->ChangeState(Fsm::Phase1_2Wait);
+			}
+		},
+
+		[this]
+		{
+			PillarSecond = 0.f;
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase1_2Wait,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+		},
+
+		[this](float DT)
+		{
+			if (true == Pillar2->IsDone())
+			{
+				MoveRatio += DT / MoveTime;
+				if (MoveRatio >= 1.f)
+				{
+					MoveRatio = 1.f;
+					FsmComp->ChangeState(Fsm::Phase1_3);
+				}
+
+				SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+
+	FsmComp->CreateState(Fsm::Phase1_3,
+		[this]
+		{
+			ParentShutter0->SetShutterOpen(true);
+		},
+
+		[this](float DeltaTime)
+		{
+			PillarSecond += DeltaTime;
+			if (PillarSecond >= 1.f)
+			{
+				Pillar0->ChangeState(APillar::Fsm::WaitMove);
+				FsmComp->ChangeState(Fsm::Phase1_3Wait);
+			}
+		},
+
+		[this]
+		{
+			PillarSecond = 0.f;
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase1_3Wait,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+		},
+
+		[this](float DT)
+		{
+			if (true == Pillar0->IsDone())
+			{
+				FsmComp->ChangeState(Fsm::Phase2);				
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+
+	FsmComp->CreateState(Fsm::Phase2,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
 }

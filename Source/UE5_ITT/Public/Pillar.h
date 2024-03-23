@@ -24,7 +24,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	enum class EnumState
+	enum class Fsm
 	{
 		Close,
 		WaitMove,
@@ -37,11 +37,12 @@ public:
 		None,
 	};
 
-	void ChangeState(EnumState NextState)
+	bool IsDone()
 	{
-		CurState = NextState;
+		return bDone;
 	}
 
+	void ChangeState(Fsm State);
 
 
 private:
@@ -61,12 +62,19 @@ private:
 	class UStaticMeshComponent* ButtonMesh = nullptr;
 
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bShutterOpen = false;
+	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bPlayerWait = false;
+	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bOnPlayer = false;
+
+	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bExplode = false;
+	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bShieldOpen = false;
+	UPROPERTY(EditAnywhere, Category = "Bool")
+	bool bDone = false;
 
 	FVector DefaultPos = FVector::Zero();
 	float PlayerWaitRatio = 0.f;
@@ -81,10 +89,10 @@ private:
 	float ShieldOpenSize = 400.f;
 	FVector ShieldDefaultPos = FVector::Zero();
 	FVector ShieldOpenPos = FVector::Zero();
+	
+	class UFsmComponent* FsmComp = nullptr;
 
-
-	EnumState CurState = EnumState::Close;
-	void StateExcute(float DT);
+	void SetupFsm();
 
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

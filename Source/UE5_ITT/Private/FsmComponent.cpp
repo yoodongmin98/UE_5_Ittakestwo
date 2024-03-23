@@ -43,10 +43,16 @@ void UFsmComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 
 void UFsmComponent::ChangeState(int32 Index)
 {
+	if (false == MapState.Contains(Index))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Fsm key not exist"));
+		return;
+	}
 	if (CurState!=-1&&true == MapState[CurState].End.IsBound())
 	{
 		MapState[CurState].End.Execute();
 	}
+
 	CurState = Index;
 
 	if (true == MapState[CurState].Start.IsBound())

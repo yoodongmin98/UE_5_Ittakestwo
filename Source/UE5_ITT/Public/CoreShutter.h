@@ -52,7 +52,6 @@ private:
 private:
 	UPROPERTY(EditAnywhere);
 	bool bOpen = false;
-
 	float OpenTime = 3.f;
 
 	bool bDone = false;

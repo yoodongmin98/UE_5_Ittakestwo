@@ -14,10 +14,12 @@ class UE5_ITT_API AFloor : public AActor
 public:
 	enum class Fsm
 	{
-		Wait,
 		Phase1_1,
+		Phase1_1Wait,
 		Phase1_2,
+		Phase1_2Wait,
 		Phase1_3,
+		Phase1_3Wait,
 		Phase2,
 		Phase3,
 	};
@@ -43,7 +45,11 @@ private:
 
 	float MoveTime = 20.f;
 	float MoveSize = 4995.f;
+	float MoveRatio = 0.f;
 	float PillarSecond = 0.f;
+
+	FVector CurPos = FVector::Zero();
+	FVector NextPos = FVector::Zero();
 
 	UPROPERTY(EditAnywhere,Category = "Pointer")
 	class AParentShutter* ParentShutter0 = nullptr;
