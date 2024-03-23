@@ -14,6 +14,7 @@ ACoreShutter::ACoreShutter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetupFsm();
+	FsmComp->ChangeState(Fsm::Close);
 }
 	
 // Called when the game starts or when spawned
@@ -39,16 +40,14 @@ void ACoreShutter::Tick(float DeltaTime)
 void ACoreShutter::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
-	FsmComp->InitFsm(Fsm::None);
-	FsmComp->ChangeState(Fsm::Close);
 
-	UFsmComponent::StateFunction CloseState;
-
-	CloseState.Start.BindLambda([this]
+	FsmComp->CreateState(Fsm::Close,
+		{
+	[this]
 		{
 
-		});
-	CloseState.Update.BindLambda([this](float DeltaTime)
+		},
+	[this](float DeltaTime)
 		{
 			if (true == bOpen)
 			{
@@ -63,44 +62,41 @@ void ACoreShutter::SetupFsm()
 				AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
 				SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
 			}
-		});
-	CloseState.End.BindLambda( [this]
+		},
+	[this]
 		{
 
+		}
 		});
 
-	FsmComp->CreateState(Fsm::Close, CloseState);
 
-	UFsmComponent::StateFunction OpenState;
-
-	OpenState.Start.BindLambda([this]
+	FsmComp->CreateState(Fsm::Close,
+		{ [this]
 		{
 
-		});
+		},
 
-	OpenState.Update.BindLambda([this](float DeltaTime)
+	[this](float DeltaTime)
 		{
 			if (true == bDone)
 			{
 				FsmComp->ChangeState(Fsm::Done);
 			}
-		});
+		},
 
-	OpenState.End.BindLambda([this]
+	[this]
 		{
 
+		} 
 		});
 
-	FsmComp->CreateState(Fsm::Open, OpenState);
-
-	UFsmComponent::StateFunction DoneState;
-
-	DoneState.Start.BindLambda([this]
+	FsmComp->CreateState(Fsm::Open,
+		{
+	[this]
 		{
 
-		});
-
-	DoneState.Update.BindLambda([this](float DeltaTime)
+		},
+	[this](float DeltaTime)
 		{
 			MovingRatio -= DeltaTime * 0.5f;
 			if (MovingRatio <= 0.f)
@@ -110,13 +106,12 @@ void ACoreShutter::SetupFsm()
 
 			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
 			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-		});
-
-	DoneState.End.BindLambda([this]
+		},
+	[this]
 		{
 
+		} 
 		});
 
-	FsmComp->CreateState(Fsm::Done, DoneState);
 }
 

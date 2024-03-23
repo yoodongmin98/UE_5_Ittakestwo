@@ -20,7 +20,6 @@ public:
 		Phase1_3,
 		Phase2,
 		Phase3,
-		None,
 	};
 
 public:	

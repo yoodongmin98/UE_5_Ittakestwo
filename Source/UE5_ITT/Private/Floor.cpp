@@ -12,6 +12,7 @@ AFloor::AFloor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetupFsm();
+	FsmComp->ChangeState(Fsm::Phase1_1);
 }
 
 // Called when the game starts or when spawned
@@ -42,28 +43,26 @@ void AFloor::SetPhase(Fsm Phase)
 void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
-	FsmComp->InitFsm(Fsm::None);
-	FsmComp->ChangeState(Fsm::Phase1_1);
 
-	UFsmComponent::StateFunction State;
-
-	State.Start.BindLambda([this]
+	FsmComp->CreateState(Fsm::Phase1_1,
+		{
+			[this]
 		{
 			ParentShutter1->SetShutterOpen(true);
-		});
-	State.Update.BindLambda([this](float DeltaTime)
+		},
+		[this](float DeltaTime)
 		{
 			PillarSecond += DeltaTime;
-			if (PillarSecond>=1.f)
+			if (PillarSecond >= 1.f)
 			{
 				Pillar1->ChangeState(APillar::EnumState::WaitMove);
 				FsmComp->ChangeState(Fsm::Wait);
 			}
-		});
-	State.End.BindLambda([this]
+		},
+		[this]
 		{
 			PillarSecond = 0.f;
+		}
 		});
 
-	FsmComp->CreateState(Fsm::Phase1_1, State);
 }

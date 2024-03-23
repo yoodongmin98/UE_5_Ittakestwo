@@ -43,7 +43,6 @@ public:
 		Close,
 		Open,
 		Done,
-		None,
 	};
 
 
