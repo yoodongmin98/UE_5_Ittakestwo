@@ -4,11 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+
+#include <functional>
+
 #include "FsmComponent.generated.h"
+
 
 DECLARE_DELEGATE(StartFunction)
 DECLARE_DELEGATE_OneParam(UpdateFunction,float)
 DECLARE_DELEGATE(EndFunction)
+
+USTRUCT(Atomic)
+struct FBindParam
+{
+	GENERATED_USTRUCT_BODY()
+
+	std::function<void()> BindStart = nullptr;
+	std::function<void(float)> BindUpdate = nullptr;
+	std::function<void()> BindEnd = nullptr;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UE5_ITT_API UFsmComponent : public UActorComponent
@@ -19,8 +33,8 @@ public:
 	// Sets default values for this component's properties
 	UFsmComponent();	
 
-public:
-	class StateFunction
+public:	
+	class FStateParam
 	{
 	public:
 		StartFunction Start = nullptr;
@@ -28,24 +42,19 @@ public:
 		EndFunction End = nullptr;
 	};
 
+
 	template<class T>
-	void InitFsm(T Index)
+	void CreateState(T Index, FBindParam BindParam)
 	{
-		int32 CastIndex = static_cast<int32>(Index);
-		for (int32 i = 0; i < CastIndex; i++)
-		{
-			MapState.Add(i);
-		}
-	}
-	template<class T>
-	void CreateState(T Index, StateFunction& StateFunc)
-	{
-		CreateState(static_cast<int32>(Index), StateFunc);
+		CreateState(static_cast<int32>(Index), BindParam);
 	};
 
-	void CreateState(int Index, StateFunction& StateFunc)
+	void CreateState(int Index, FBindParam BindParam)
 	{
-		MapState[Index]= StateFunc;
+		FStateParam StateParam = MapState.FindOrAdd(Index);
+		StateParam.Start.BindLambda(BindParam.BindStart);
+		StateParam.Update.BindLambda(BindParam.BindUpdate);
+		StateParam.End.BindLambda(BindParam.BindEnd);
 	};
 
 	template<class T>
@@ -66,44 +75,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	TMap<int32,StateFunction> MapState;
+private:
+	TMap<int32, FStateParam> MapState;
 
 	int32 CurState = -1;
 };
-
-/*
- 
-///////FsmState생성하기///////
-
-enum class FSM
-{
-	Example0,
-	Example1,
-	None, // None필수
-}
-
-//Fsm컴포넌트 받아오고
-FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
-
-UFsmComponent::StateFunction ExampleState0;
-
-ExampleState0.Start.BindLambda(
-	[this]
-	{
-
-	});
-
-ExampleState0.Update.BindLambda(
-	[this](float DeltaTime)
-	{
-
-	});
-
-ExampleState0.End.BindLambda(
-	[this]
-	{
-
-	});
-
-FsmComp->CreateState(Fsm::First, ExampleState0);
-*/
