@@ -28,7 +28,6 @@ APillar::APillar()
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
 
-	ParentShutter = CreateDefaultSubobject<AParentShutter>(TEXT("ParentShutter"));
 	SetupFsm();
 }
 
