@@ -41,15 +41,34 @@ void ACoreShutter::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Close,		
-	[this]
+	FsmComp->CreateState(Fsm::Close,
+		[this]
 		{
 
 		},
-	[this](float DeltaTime)
+
+		[this](float DeltaTime)
 		{
 			if (true == bOpen)
 			{
+				FsmComp->ChangeState(Fsm::Opening);
+			}
+		},
+
+		[this]
+		{
+
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Opening,		
+	[this]
+		{
+			DefaultPos = GetActorLocation();
+			PivotPos = DefaultPos + OpenPos;
+		},
+	[this](float DeltaTime)
+		{
 				MovingRatio += DeltaTime * 0.5f;
 
 				if (MovingRatio >= 1.f)
@@ -59,8 +78,8 @@ void ACoreShutter::SetupFsm()
 				}
 
 				AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
-				SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-			}
+				SetActorLocation(FMath::Lerp(DefaultPos, PivotPos, MovingRatio));
+			
 		},
 	[this]
 		{

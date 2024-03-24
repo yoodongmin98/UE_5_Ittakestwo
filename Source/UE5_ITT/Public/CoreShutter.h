@@ -41,6 +41,7 @@ public:
 	enum class Fsm
 	{
 		Close,
+		Opening,
 		Open,
 		Done,
 	};

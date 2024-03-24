@@ -53,7 +53,7 @@ void AFloor::SetupFsm()
 		[this](float DeltaTime)
 		{
 			PillarSecond += DeltaTime;
-			if (PillarSecond >= 1.f)
+			if (PillarSecond >= 2.f)
 			{
 				Pillar1->ChangeState(APillar::Fsm::WaitMove);
 				FsmComp->ChangeState(Fsm::Phase1_1Wait);
