@@ -46,10 +46,6 @@ void APillar::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APillar::ChangeState(Fsm State)
-{
-	FsmComp->ChangeState(State);
-}
 
 void APillar::SetupFsm()
 {
@@ -62,12 +58,16 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			if (bShutterOpen == true)
+			{
+				FsmComp->ChangeState(Fsm::ShutterOpen);
+			}
 		},
 
 		[this]
 		{
-
 		});
+
 	FsmComp->CreateState(Fsm::ShutterOpen,
 		[this]
 		{
@@ -182,7 +182,7 @@ void APillar::SetupFsm()
 			if (false == bOnPlayer)
 			{
 				bShieldOpen = true;
-				ChangeState(Fsm::MoveDown);
+				FsmComp->ChangeState(Fsm::MoveDown);
 				return;
 			}
 
@@ -200,7 +200,7 @@ void APillar::SetupFsm()
 			if (true == bExplode)
 			{
 				//레이저 타격 체크 필요
-				ChangeState(Fsm::Boom);
+				FsmComp->ChangeState(Fsm::Boom);
 				return;
 			}
 		},
@@ -220,7 +220,7 @@ void APillar::SetupFsm()
 
 			if (true == bOnPlayer)
 			{
-				ChangeState(Fsm::MoveUp);
+				FsmComp->ChangeState(Fsm::MoveUp);
 				return;
 			}
 
@@ -283,6 +283,7 @@ void APillar::SetupFsm()
 
 		[this]
 		{
+			bShutterOpen = false;
 			bDone = true;
 		});
 

@@ -48,7 +48,7 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_1,
 		[this]
 		{
-			Pillar1->ChangeState(APillar::Fsm::ShutterOpen);
+			Pillar1->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -78,7 +78,7 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_2,
 		[this]
 		{
-			Pillar2->ChangeState(APillar::Fsm::ShutterOpen);
+			Pillar2->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -108,7 +108,7 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_3,
 		[this]
 		{
-			Pillar0->ChangeState(APillar::Fsm::ShutterOpen);
+			Pillar0->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;

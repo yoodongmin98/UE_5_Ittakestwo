@@ -43,7 +43,10 @@ public:
 		return bDone;
 	}
 
-	void ChangeState(Fsm State);
+	void ShutterOpen()
+	{
+		bShutterOpen = true;
+	}
 
 
 private:
