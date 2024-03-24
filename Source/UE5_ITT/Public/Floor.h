@@ -15,7 +15,6 @@ public:
 	enum class Fsm
 	{
 		Phase1_1,
-		Phase1_1Wait,
 		Phase1_2,
 		Phase1_2Wait,
 		Phase1_3,
@@ -51,12 +50,12 @@ private:
 	FVector CurPos = FVector::Zero();
 	FVector NextPos = FVector::Zero();
 
-	UPROPERTY(EditAnywhere,Category = "Pointer")
-	class AParentShutter* ParentShutter0 = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Pointer")
-	class AParentShutter* ParentShutter1 = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Pointer")
-	class AParentShutter* ParentShutter2 = nullptr;
+	//UPROPERTY(EditAnywhere,Category = "Pointer")
+	//class AParentShutter* ParentShutter0 = nullptr;
+	//UPROPERTY(EditAnywhere, Category = "Pointer")
+	//class AParentShutter* ParentShutter1 = nullptr;
+	//UPROPERTY(EditAnywhere, Category = "Pointer")
+	//class AParentShutter* ParentShutter2 = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class APillar* Pillar0 = nullptr;

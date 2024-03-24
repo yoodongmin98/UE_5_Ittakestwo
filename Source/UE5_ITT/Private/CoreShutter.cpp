@@ -19,7 +19,7 @@ ACoreShutter::ACoreShutter()
 void ACoreShutter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	FsmComp->ChangeState(Fsm::Close);
 
 	// 네트워크 권한을 확인하는 코드
@@ -37,19 +37,44 @@ void ACoreShutter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ACoreShutter::OpenShutter()
+{
+	FsmComp->ChangeState(Fsm::Opening);
+}
+
+void ACoreShutter::SetDone()
+{
+	FsmComp->ChangeState(Fsm::Done);
+}
+
 void ACoreShutter::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Close,		
-	[this]
+	FsmComp->CreateState(Fsm::Close,
+		[this]
 		{
 
 		},
+
+		[this](float DeltaTime)
+		{
+		},
+
+		[this]
+		{
+
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Opening,		
+	[this]
+		{
+			//DefaultPos = GetActorLocation();
+			//PivotPos = DefaultPos + OpenPos;
+		},
 	[this](float DeltaTime)
 		{
-			if (true == bOpen)
-			{
 				MovingRatio += DeltaTime * 0.5f;
 
 				if (MovingRatio >= 1.f)
@@ -59,8 +84,8 @@ void ACoreShutter::SetupFsm()
 				}
 
 				AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
-				SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-			}
+				SetActorRelativeLocation(FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+			
 		},
 	[this]
 		{
@@ -77,10 +102,7 @@ void ACoreShutter::SetupFsm()
 
 	[this](float DeltaTime)
 		{
-			if (true == bDone)
-			{
-				FsmComp->ChangeState(Fsm::Done);
-			}
+			
 		},
 
 	[this]
@@ -101,15 +123,15 @@ void ACoreShutter::SetupFsm()
 			if (MovingRatio <= 0.f)
 			{
 				MovingRatio = 0.f;
+				FsmComp->ChangeState(Fsm::Close);
 			}
 
 			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
-			SetActorLocation(PivotPos + FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
+			SetActorRelativeLocation(FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
 		},
 
 	[this]
 		{
-
 		} 
 		);
 

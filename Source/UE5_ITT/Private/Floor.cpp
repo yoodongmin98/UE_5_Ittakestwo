@@ -44,31 +44,11 @@ void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Phase1_1,		
+
+	FsmComp->CreateState(Fsm::Phase1_1,
 		[this]
 		{
-			ParentShutter1->SetShutterOpen(true);
-		},
-
-		[this](float DeltaTime)
-		{
-			PillarSecond += DeltaTime;
-			if (PillarSecond >= 1.f)
-			{
-				Pillar1->ChangeState(APillar::Fsm::WaitMove);
-				FsmComp->ChangeState(Fsm::Phase1_1Wait);
-			}
-		},
-
-		[this]
-		{
-			PillarSecond = 0.f;
-		}
-		);
-
-	FsmComp->CreateState(Fsm::Phase1_1Wait,
-		[this]
-		{
+			Pillar1->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -98,28 +78,7 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_2,
 		[this]
 		{
-			ParentShutter2->SetShutterOpen(true);
-		},
-
-		[this](float DeltaTime)
-		{
-			PillarSecond += DeltaTime;
-			if (PillarSecond >= 1.f)
-			{
-				Pillar2->ChangeState(APillar::Fsm::WaitMove);
-				FsmComp->ChangeState(Fsm::Phase1_2Wait);
-			}
-		},
-
-		[this]
-		{
-			PillarSecond = 0.f;
-		}
-	);
-
-	FsmComp->CreateState(Fsm::Phase1_2Wait,
-		[this]
-		{
+			Pillar2->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -146,32 +105,10 @@ void AFloor::SetupFsm()
 		}
 	);
 
-
 	FsmComp->CreateState(Fsm::Phase1_3,
 		[this]
 		{
-			ParentShutter0->SetShutterOpen(true);
-		},
-
-		[this](float DeltaTime)
-		{
-			PillarSecond += DeltaTime;
-			if (PillarSecond >= 1.f)
-			{
-				Pillar0->ChangeState(APillar::Fsm::WaitMove);
-				FsmComp->ChangeState(Fsm::Phase1_3Wait);
-			}
-		},
-
-		[this]
-		{
-			PillarSecond = 0.f;
-		}
-	);
-
-	FsmComp->CreateState(Fsm::Phase1_3Wait,
-		[this]
-		{
+			Pillar0->ShutterOpen();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -182,7 +119,12 @@ void AFloor::SetupFsm()
 		{
 			if (true == Pillar0->IsDone())
 			{
-				FsmComp->ChangeState(Fsm::Phase2);				
+				MoveRatio += DT / MoveTime;
+				if (MoveRatio >= 1.f)
+				{
+					MoveRatio = 1.f;
+					FsmComp->ChangeState(Fsm::Phase2);
+				}
 			}
 		},
 

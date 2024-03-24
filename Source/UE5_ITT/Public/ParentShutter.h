@@ -25,7 +25,8 @@ public:
 
 public:
 	//각 셔터 날개에게 오픈 전달
-	void SetShutterOpen(bool bValue);
+	void SetShutterOpen();
+	void SetDone();
 
 private:
 	UPROPERTY(EditAnywhere)
@@ -34,5 +35,4 @@ private:
 	TArray<class ACoreShutter*> ArrayCoreShutter;
 
 	float MovingSize = 170.f;
-
 };

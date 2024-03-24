@@ -4,6 +4,7 @@
 #include "Pillar.h"
 #include "Components/StaticMeshComponent.h"
 #include "FsmComponent.h"
+#include "ParentShutter.h"
 
 // Sets default values
 APillar::APillar()
@@ -26,6 +27,7 @@ APillar::APillar()
 
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
+
 	SetupFsm();
 }
 
@@ -44,10 +46,6 @@ void APillar::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APillar::ChangeState(Fsm State)
-{
-	FsmComp->ChangeState(State);
-}
 
 void APillar::SetupFsm()
 {
@@ -60,6 +58,28 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			if (bShutterOpen == true)
+			{
+				FsmComp->ChangeState(Fsm::ShutterOpen);
+			}
+		},
+
+		[this]
+		{
+		});
+
+	FsmComp->CreateState(Fsm::ShutterOpen,
+		[this]
+		{
+			ParentShutter->SetShutterOpen();
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime()>2.f)
+			{
+				FsmComp->ChangeState(Fsm::WaitMove);
+			}
 		},
 
 		[this]
@@ -162,7 +182,7 @@ void APillar::SetupFsm()
 			if (false == bOnPlayer)
 			{
 				bShieldOpen = true;
-				ChangeState(Fsm::MoveDown);
+				FsmComp->ChangeState(Fsm::MoveDown);
 				return;
 			}
 
@@ -180,7 +200,7 @@ void APillar::SetupFsm()
 			if (true == bExplode)
 			{
 				//레이저 타격 체크 필요
-				ChangeState(Fsm::Boom);
+				FsmComp->ChangeState(Fsm::Boom);
 				return;
 			}
 		},
@@ -200,7 +220,7 @@ void APillar::SetupFsm()
 
 			if (true == bOnPlayer)
 			{
-				ChangeState(Fsm::MoveUp);
+				FsmComp->ChangeState(Fsm::MoveUp);
 				return;
 			}
 
@@ -246,6 +266,27 @@ void APillar::SetupFsm()
 
 		});
 
+
+	FsmComp->CreateState(Fsm::ShutterClose,
+		[this]
+		{
+			ParentShutter->SetDone();
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime() > 2.f)
+			{
+				FsmComp->ChangeState(Fsm::Close);
+			}
+		},
+
+		[this]
+		{
+			bShutterOpen = false;
+			bDone = true;
+		});
+
 	FsmComp->CreateState(Fsm::Done,
 		[this]
 		{
@@ -254,13 +295,12 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
-			//폭발 완료되면 전부 내리고 none으로 변경하기
+			//폭발 완료되면 전부 내리고 close으로 변경하기
 			MoveRatio -= DT;
 			if (MoveRatio <= 0.f)
 			{
 				MoveRatio = 0.f;
-				bDone = true;
-				FsmComp->ChangeState(Fsm::Close);
+				FsmComp->ChangeState(Fsm::ShutterClose);
 			}
 
 			SetActorLocation(FMath::Lerp(DefaultPos, MovePos, MoveRatio));
@@ -268,7 +308,6 @@ void APillar::SetupFsm()
 
 		[this]
 		{
-
 		});
 }
 
