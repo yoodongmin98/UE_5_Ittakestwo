@@ -40,11 +40,20 @@ void AParentShutter::Tick(float DeltaTime)
 	
 }
 
-void AParentShutter::SetShutterOpen(bool bValue)
+void AParentShutter::SetShutterOpen()
 {
 	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
 	{
-		ArrayCoreShutter[i]->OpenShutter(bValue);
+		ArrayCoreShutter[i]->OpenShutter();
 	}
 }
+
+void AParentShutter::SetDone()
+{
+	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
+	{
+		ArrayCoreShutter[i]->SetDone();
+	}
+}
+
 

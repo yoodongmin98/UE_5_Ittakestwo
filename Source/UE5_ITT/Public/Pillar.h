@@ -27,14 +27,15 @@ public:
 	enum class Fsm
 	{
 		Close,
+		ShutterOpen,
 		WaitMove,
 		Wait,
 		MoveUp,
 		WaitBoom,
 		MoveDown,
 		Boom,
+		ShutterClose,
 		Done,
-		None,
 	};
 
 	bool IsDone()
@@ -91,6 +92,9 @@ private:
 	FVector ShieldOpenPos = FVector::Zero();
 	
 	class UFsmComponent* FsmComp = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class AParentShutter* ParentShutter = nullptr;
 
 	void SetupFsm();
 

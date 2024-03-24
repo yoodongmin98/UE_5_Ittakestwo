@@ -26,6 +26,7 @@ void UFsmComponent::BeginPlay()
 
 void UFsmComponent::FsmTick(float DT)
 {	
+	StateLiveTime += DT;
 	if (true == MapState[CurState].Update.IsBound())
 	{
 		MapState[CurState].Update.Execute(DT);
@@ -48,12 +49,16 @@ void UFsmComponent::ChangeState(int32 Index)
 		UE_LOG(LogTemp, Error, TEXT("Fsm key not exist"));
 		return;
 	}
+	if (Index == CurState)
+	{
+		return;
+	}
 	if (CurState!=-1&&true == MapState[CurState].End.IsBound())
 	{
 		MapState[CurState].End.Execute();
 	}
-
 	CurState = Index;
+	StateLiveTime = 0.f;
 
 	if (true == MapState[CurState].Start.IsBound())
 	{

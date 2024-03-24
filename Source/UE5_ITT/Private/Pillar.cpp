@@ -4,6 +4,7 @@
 #include "Pillar.h"
 #include "Components/StaticMeshComponent.h"
 #include "FsmComponent.h"
+#include "ParentShutter.h"
 
 // Sets default values
 APillar::APillar()
@@ -26,6 +27,8 @@ APillar::APillar()
 
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
+
+	ParentShutter = CreateDefaultSubobject<AParentShutter>(TEXT("ParentShutter"));
 	SetupFsm();
 }
 
@@ -60,6 +63,24 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+		},
+
+		[this]
+		{
+
+		});
+	FsmComp->CreateState(Fsm::ShutterOpen,
+		[this]
+		{
+			ParentShutter->SetShutterOpen();
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime()>2.f)
+			{
+				FsmComp->ChangeState(Fsm::WaitMove);
+			}
 		},
 
 		[this]
@@ -246,6 +267,26 @@ void APillar::SetupFsm()
 
 		});
 
+
+	FsmComp->CreateState(Fsm::ShutterClose,
+		[this]
+		{
+			ParentShutter->SetDone();
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime() > 2.f)
+			{
+				FsmComp->ChangeState(Fsm::Close);
+			}
+		},
+
+		[this]
+		{
+			bDone = true;
+		});
+
 	FsmComp->CreateState(Fsm::Done,
 		[this]
 		{
@@ -254,13 +295,12 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
-			//폭발 완료되면 전부 내리고 none으로 변경하기
+			//폭발 완료되면 전부 내리고 close으로 변경하기
 			MoveRatio -= DT;
 			if (MoveRatio <= 0.f)
 			{
 				MoveRatio = 0.f;
-				bDone = true;
-				FsmComp->ChangeState(Fsm::Close);
+				FsmComp->ChangeState(Fsm::ShutterClose);
 			}
 
 			SetActorLocation(FMath::Lerp(DefaultPos, MovePos, MoveRatio));
@@ -268,7 +308,6 @@ void APillar::SetupFsm()
 
 		[this]
 		{
-
 		});
 }
 

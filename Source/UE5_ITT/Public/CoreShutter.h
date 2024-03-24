@@ -33,10 +33,10 @@ public:
 		PivotPos = Pivot;
 	}
 
-	void OpenShutter(bool bValue)
-	{
-		bOpen = bValue;
-	}
+	void OpenShutter();
+	
+
+	void SetDone();
 
 	enum class Fsm
 	{
@@ -52,7 +52,6 @@ private:
 
 private:
 	UPROPERTY(EditAnywhere);
-	bool bOpen = false;
 	float OpenTime = 3.f;
 
 	bool bDone = false;

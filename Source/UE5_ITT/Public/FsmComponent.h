@@ -62,6 +62,11 @@ public:
 
 	void FsmTick(float DT);
 
+	float GetStateLiveTime()
+	{
+		return StateLiveTime;
+	}
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -74,4 +79,6 @@ private:
 	TMap<int32, FStateParam> MapState;
 
 	int32 CurState = -1;
+
+	float StateLiveTime = 0.f;
 };
