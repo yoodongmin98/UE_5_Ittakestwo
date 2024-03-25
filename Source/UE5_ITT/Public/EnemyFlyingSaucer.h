@@ -34,7 +34,7 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	float SetCurrentHp(float HpValue)
+	void SetCurrentHp(float HpValue)
 	{
 		CurrentHp = HpValue;
 	}
