@@ -15,11 +15,6 @@ public:
 	// Sets default values for this character's properties
 	AEnemyFlyingSaucer();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -31,6 +26,10 @@ public:
 	void FireLaserBeam();
 	void FireHomingRocket();
 	void FireArcingProjectile();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	// 컴포넌트 초기화
