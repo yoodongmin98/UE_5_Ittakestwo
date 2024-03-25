@@ -15,10 +15,6 @@ public:
 	// Sets default values for this actor's properties
 	APillar();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -48,6 +44,10 @@ public:
 		bShutterOpen = true;
 	}
 
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(EditAnywhere)

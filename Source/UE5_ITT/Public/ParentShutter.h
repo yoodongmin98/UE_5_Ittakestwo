@@ -15,10 +15,6 @@ public:
 	// Sets default values for this actor's properties
 	AParentShutter();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -27,6 +23,10 @@ public:
 	//각 셔터 날개에게 오픈 전달
 	void SetShutterOpen();
 	void SetDone();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(EditAnywhere)
