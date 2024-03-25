@@ -27,9 +27,16 @@ public:
 	void FireHomingRocket();
 	void FireArcingProjectile();
 
+	UFUNCTION(BlueprintCallable)
 	float GetCurrentHp() const
 	{
 		return CurrentHp;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	float SetCurrentHp(float HpValue)
+	{
+		CurrentHp = HpValue;
 	}
 
 protected:
@@ -43,7 +50,7 @@ private:
 	// 디버그 관련 함수 
 	void DrawDebugMesh();
 
-	// hp
+	UPROPERTY(EditAnywhere)
 	float CurrentHp = 100.0f;
 	
 	//tsubclass 
