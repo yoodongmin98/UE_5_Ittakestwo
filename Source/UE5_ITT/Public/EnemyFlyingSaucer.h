@@ -27,6 +27,11 @@ public:
 	void FireHomingRocket();
 	void FireArcingProjectile();
 
+	float GetCurrentHp() const
+	{
+		return CurrentHp;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -37,6 +42,9 @@ private:
 
 	// 디버그 관련 함수 
 	void DrawDebugMesh();
+
+	// hp
+	float CurrentHp = 100.0f;
 	
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
