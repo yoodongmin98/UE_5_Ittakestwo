@@ -64,12 +64,15 @@ void AFlyingSaucerAIController::SetupBehaviorTree()
 	if (nullptr != AIBehaviorTree)
 	{
 		RunBehaviorTree(AIBehaviorTree);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("SelfActor"), GetPawn());
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
-		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
-		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
-		GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
-		GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentBossPhase"), static_cast<uint8>(CurrentBossPhase));
+		if (nullptr != PlayerCodyRef)
+		{
+			GetBlackboardComponent()->SetValueAsObject(TEXT("SelfActor"), GetPawn());
+			GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
+			GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
+			GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+			GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
+			GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentBossPhase"), static_cast<uint8>(CurrentBossPhase));
+		}
 	}
 }
 
