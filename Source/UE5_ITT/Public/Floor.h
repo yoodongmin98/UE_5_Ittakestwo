@@ -11,6 +11,14 @@ class UE5_ITT_API AFloor : public AActor
 {
 	GENERATED_BODY()
 
+public:	
+	// Sets default values for this actor's propertiesS
+	AFloor();
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 public:
 	enum class Fsm
 	{
@@ -22,23 +30,11 @@ public:
 		Phase2,
 		Phase3,
 	};
-
-public:	
-	// Sets default values for this actor's propertiesS
-	AFloor();
+	void SetPhase(Fsm Phase);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	void SetPhase(Fsm Phase);
-
-private:
-	void SetupFsm();
 
 private:
 
@@ -69,4 +65,6 @@ private:
 	class ALaser* MainLaser = nullptr;
 
 	class UFsmComponent* FsmComp = nullptr;
+
+	void SetupFsm();
 };
