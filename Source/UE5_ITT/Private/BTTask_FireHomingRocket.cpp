@@ -15,17 +15,14 @@ EBTNodeResult::Type UBTTask_FireHomingRocket::ExecuteTask(UBehaviorTreeComponent
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	AEnemyFlyingSaucer* Boss = Cast<AEnemyFlyingSaucer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("SelfActor"));
-
-	if (nullptr != Boss)
-	{
-		Boss->FireHomingRocket();
-	}
-
-	else if (nullptr == Boss)
+	
+	if (nullptr == Boss)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("The Boss is nullptr"));
 		return EBTNodeResult::Failed;
 	}
+	
+	Boss->FireHomingRocket();
 
 	return EBTNodeResult::Succeeded;
 }

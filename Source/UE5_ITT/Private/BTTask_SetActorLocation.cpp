@@ -15,16 +15,14 @@ EBTNodeResult::Type UBTTask_SetActorLocation::ExecuteTask(UBehaviorTreeComponent
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	ACody* PlayerRef = Cast<ACody>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("PlayerCodyRef"));
-	if (nullptr != PlayerRef)
+
+	if (nullptr == PlayerRef)
 	{
-		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerRef->GetActorLocation());
-	}
-	
-	else
-	{
+		UE_LOG(LogTemp, Warning, TEXT("The PlayerCody is nullptr"));
 		return EBTNodeResult::Failed;
 	}
-
 	
+	OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerRef->GetActorLocation());
+
 	return EBTNodeResult::Succeeded;
 }
