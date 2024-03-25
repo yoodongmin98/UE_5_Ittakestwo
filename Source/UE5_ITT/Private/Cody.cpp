@@ -32,7 +32,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis(TEXT("Player_LookUD"), this, &ACody::Cody_LookUD);
 	PlayerInputComponent->BindAxis(TEXT("Player_LookLR"), this, &ACody::Cody_LookLR);
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-	//헤이 모두들 안녕 내가 누군지 아니>?
 }
 
 
