@@ -32,6 +32,20 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (nullptr != PlayerCodyRef)
+	{
+		if (LineOfSightTo(PlayerCodyRef))
+		{
+			//GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
+		}
+
+		else
+		{
+			//GetBlackboardComponent()->ClearValue("PlayerLocation");
+		}
+	}
+
+
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -42,7 +56,7 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
-	PlayerCody = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 }
 
 void AFlyingSaucerAIController::SetupBehaviorTree()
@@ -50,9 +64,11 @@ void AFlyingSaucerAIController::SetupBehaviorTree()
 	if (nullptr != AIBehaviorTree)
 	{
 		RunBehaviorTree(AIBehaviorTree);
-		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCody->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
+		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
 		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
 		GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentBossPhase"), static_cast<uint8>(CurrentBossPhase));
 	}
 }
 

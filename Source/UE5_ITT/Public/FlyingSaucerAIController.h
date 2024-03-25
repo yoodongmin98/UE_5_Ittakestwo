@@ -26,21 +26,33 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	enum class EBossPhase
+	{
+		None,
+		Phase_1,
+		Phase_2,
+		Phase_3,
+		Death,
+		Max
+	};
+
 	void SetupPlayerReference();
 	void SetupBehaviorTree();
 
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
-	class APawn* PlayerCody;
+	class APawn* PlayerCodyRef;
 
-	// Focus
-	UPROPERTY(EditDefaultsOnly, Category = "Focus")
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	bool bFocus = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Focus")
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float FocusRange = 300;
 
 	// Behavior Tree
-	UPROPERTY(EditDefaultsOnly, Category = "Behavior Tree")
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	class UBehaviorTree* AIBehaviorTree;
+
+	// phase
+	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
 };
