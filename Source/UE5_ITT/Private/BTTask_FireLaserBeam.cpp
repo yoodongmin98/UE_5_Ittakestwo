@@ -22,7 +22,7 @@ EBTNodeResult::Type UBTTask_FireLaserBeam::ExecuteTask(UBehaviorTreeComponent& O
 		return EBTNodeResult::Failed;
 	}
 
-	Boss->FireHomingRocket();
+	Boss->FireLaserBeam();
 
 	return EBTNodeResult::Succeeded;
 	
