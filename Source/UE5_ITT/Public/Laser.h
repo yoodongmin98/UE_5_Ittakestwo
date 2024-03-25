@@ -19,20 +19,42 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	enum class Fsm
+	{
+		Wait,
+		MoveUp,
+		LaserOn,
+		Attack,
+		LaserOff,
+		MoveDown,
+	};
+
+	void SetAttack(bool bValue)
+	{
+		bAttackStart = bValue;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:	
-	bool bAttackNow = false;
+	bool bAttackStart = false;
 
 	bool bPhaseEnd = false;	
 
-	FVector DefaultPos = { 0.f,0.f,-300.f };
-
-	FVector AttackPos = { 0.f,0.f,200.f };
+	FVector DefaultPos = FVector::Zero();
+	FVector AttackPos = FVector::Zero();
+	float AttackMoveSize = 500.f;
 
 	float MovingRatio = 0.f;
 
 	float RotateTime = 15.f;
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class UStaticMeshComponent* LaserMesh = nullptr;
+	class UFsmComponent* FsmComp = nullptr;
+
+	void SetupFsm();
 };
