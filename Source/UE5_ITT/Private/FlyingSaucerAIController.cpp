@@ -64,6 +64,7 @@ void AFlyingSaucerAIController::SetupBehaviorTree()
 	if (nullptr != AIBehaviorTree)
 	{
 		RunBehaviorTree(AIBehaviorTree);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("SelfActor"), GetPawn());
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
 		GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
 		GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
