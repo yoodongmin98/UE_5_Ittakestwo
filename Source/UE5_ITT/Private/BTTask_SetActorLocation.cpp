@@ -23,6 +23,7 @@ EBTNodeResult::Type UBTTask_SetActorLocation::ExecuteTask(UBehaviorTreeComponent
 	}
 	
 	OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerRef->GetActorLocation());
+	UE_LOG(LogTemp, Warning, TEXT("Setting Player Location"));
 
 	return EBTNodeResult::Succeeded;
 }
