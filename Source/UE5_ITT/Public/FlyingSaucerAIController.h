@@ -37,6 +37,7 @@ private:
 	};
 
 	void SetupPlayerReference();
+	void SetupStartBehaviorTree();
 	void UpdatePhaseFromHealth(float DeltaTime);
 	void ChangePhase(EBossPhase Phase);
 
@@ -61,5 +62,5 @@ private:
 	class UBehaviorTree* AIBehaviorTreePhase3;
 
 	// phase
-	EBossPhase CurrentBossPhase = EBossPhase::None;
+	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
 };
