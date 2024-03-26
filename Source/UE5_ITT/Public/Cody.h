@@ -4,17 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "CodyAnimNotify_Dash.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "Cody.generated.h"
+
+
 
 UENUM(BlueprintType)
 enum class Cody_State : uint8
 {
-	IDLE,
-	MOVE,
-	TURN,
-	JUMP,
-	DASH
+	IDLE UMETA(DisPlayName = "IDLE"),
+	MOVE UMETA(DisPlayName = "MOVE"),
+	SIT UMETA(DisPlayName = "SIT"),
+	JUMP UMETA(DisPlayName = "JUMP"),
+	DASH UMETA(DisPlayName = "DASH"),
 };
+
 
 UCLASS()
 class UE5_ITT_API ACody : public ACharacter
@@ -22,9 +29,13 @@ class UE5_ITT_API ACody : public ACharacter
 	GENERATED_BODY()
 
 public:
+	//basic
 	ACody();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	//friend
+	friend class UCodyAnimNotify_Dash;
 
 
 	//Cody관련Function
@@ -33,42 +44,97 @@ public:
 	{
 		return CodyState;
 	}
-	//FSM
-	void ChangeState(Cody_State _State);
-
-	void Cody_MoveFB(float _AxisValue);
-	void Cody_MoveLR(float _AxisValue);
-
-	//Animation Set
 	UFUNCTION(BlueprintCallable)
-	bool GetIsMoveEnd()
+	bool GetIsMoveEnd() const
 	{
 		return IsMoveEnd;
 	}
-	UFUNCTION(BlueprintCallable)
 	void SetIsMoveEndT()
 	{
 		IsMoveEnd = true;
 	}
 	UFUNCTION(BlueprintCallable)
-	void SetIsMoveEndF()
+	bool GetbIsDashing()
 	{
-		IsMoveEnd = false;
+		return bIsDashing;
 	}
+
+	//Input
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputMappingContext* CodyMappingContext;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* MoveAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* LeftMAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* RightMAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SitAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* DashAction;
+
+
+
+
+	//Test
+	void ChangeState(Cody_State _State);
+
+
+	
 protected:
 	virtual void BeginPlay() override;
+	//Key Bind Function
+	void Idle(const FInputActionInstance& _Instance);
+	void Move(const FInputActionInstance& _Instance);
+	void Look(const FInputActionInstance& _Instance);
+	void Dash(const FInputActionInstance& _Instance);
+	void DashEnd();
 
 private:
-	//Mouse
-	void Cody_LookUD(float _AxisValue);
-	void Cody_LookLR(float _AxisValue);
-
+	/////////////////Controller///////////////////
+	APlayerController* CodyController = nullptr;
+	//////////////////////////////////////////////
+	 
+	///////////////////State/////////////////////
+	UPROPERTY(EditAnywhere, Category = State)
 	Cody_State CodyState = Cody_State::IDLE;
+	//////////////////////////////////////////////
+public:
+	///////////////////Player/////////////////////
+	UPROPERTY(EditAnywhere,BlueprintReadWrite ,Category = Player)
+	int32 PlayerHP = 0;
+	//////////////////////////////////////////////
 
+	//////////////////Movement////////////////////
+	 // 대쉬 속도
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
+	float DashSpeed = 4000.0f;
 
-	float UpRotationSpeed = 70.0f;
-	float RightRotationSpeed = 70.0f;
+	// 대쉬 지속 시간
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
+	float DashDuration = 0.5f;
+	// 기본 이동 속도
+	float DefaultWalkSpeed;
+	float DashStartTime;
+	bool bIsDashing;
+	bool bIsMove;
+	
+	
 
-	//Animation Bool
-	bool IsMoveEnd = false;
+private:
+	//Test
+	bool IsMoveEnd = true;
+	UPROPERTY(EditAnywhere, Category = Player)
+	float RotationInterpSpeed = 2.0f;
 };
