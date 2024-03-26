@@ -7,7 +7,7 @@
 
 UBTTask_FireHomingRocket::UBTTask_FireHomingRocket()
 {
-	NodeName = TEXT("Fire Homing Rocket");
+	NodeName = TEXT("BTT_FireHomingRocket");
 }
 
 EBTNodeResult::Type UBTTask_FireHomingRocket::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

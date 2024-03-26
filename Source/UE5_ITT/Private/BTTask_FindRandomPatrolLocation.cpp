@@ -6,14 +6,16 @@
 
 UBTTask_FindRandomPatrolLocation::UBTTask_FindRandomPatrolLocation()
 {
-	NodeName = TEXT("Find Random Patrol Location");
+	NodeName = TEXT("BTT_FindRandomPatrolLocation");
 }
 
 EBTNodeResult::Type UBTTask_FindRandomPatrolLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// 랜덤한 위치를 지정하는 로직 작성 후 블랙보드 키에 세팅
-
+	// 랜덤한 위치를 지정하는 로직 작성 후 블랙보드 키에 세팅, test vector 
 	OwnerComp.GetBlackboardComponent()->SetValueAsVector("PatrolLocation", FVector::ZeroVector);
+
+	// 범위를 어떻게? ? ? 
+
 
 	return EBTNodeResult::Type();
 }

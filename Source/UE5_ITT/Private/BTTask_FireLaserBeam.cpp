@@ -7,7 +7,7 @@
 
 UBTTask_FireLaserBeam::UBTTask_FireLaserBeam()
 {
-	NodeName = TEXT("Fire Laser Beam");
+	NodeName = TEXT("BTT_FireLaserBeam");
 }
 
 EBTNodeResult::Type UBTTask_FireLaserBeam::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

@@ -37,7 +37,8 @@ private:
 	};
 
 	void SetupPlayerReference();
-	void SetupBehaviorTree();
+	void UpdatePhaseFromHealth(float DeltaTime);
+	void ChangePhase(EBossPhase Phase);
 
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
@@ -51,8 +52,14 @@ private:
 
 	// Behavior Tree
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTree;
+	class UBehaviorTree* AIBehaviorTreePhase1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTree* AIBehaviorTreePhase2;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTree* AIBehaviorTreePhase3;
 
 	// phase
-	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
+	EBossPhase CurrentBossPhase = EBossPhase::None;
 };

@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Cody.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "EnemyFlyingSaucer.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -15,9 +16,8 @@ void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 플레이어 폰 셋팅
+	ChangePhase(EBossPhase::Phase_1);
 	SetupPlayerReference();
-	SetupBehaviorTree();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -32,19 +32,8 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (nullptr != PlayerCodyRef)
-	{
-		if (LineOfSightTo(PlayerCodyRef))
-		{
-			//GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
-		}
-
-		else
-		{
-			//GetBlackboardComponent()->ClearValue("PlayerLocation");
-		}
-	}
-
+	// 체력을 체크해서 페이즈 전환
+	UpdatePhaseFromHealth(DeltaTime);
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -59,20 +48,51 @@ void AFlyingSaucerAIController::SetupPlayerReference()
 	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 }
 
-void AFlyingSaucerAIController::SetupBehaviorTree()
+void AFlyingSaucerAIController::UpdatePhaseFromHealth(float DeltaTime)
 {
-	if (nullptr != AIBehaviorTree)
+	// 체력체크
+	AEnemyFlyingSaucer* Boss = Cast<AEnemyFlyingSaucer>(GetPawn());
+}
+
+void AFlyingSaucerAIController::ChangePhase(EBossPhase Phase)
+{
+	// 변경될 페이즈의 값이 더 클때만 변경, 그게 아니라면 변경하지 않음
+	if (CurrentBossPhase < Phase)
 	{
-		RunBehaviorTree(AIBehaviorTree);
-		if (nullptr != PlayerCodyRef)
+		switch (Phase)
 		{
-			GetBlackboardComponent()->SetValueAsObject(TEXT("SelfActor"), GetPawn());
-			GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
-			GetBlackboardComponent()->SetValueAsVector(TEXT("PlayerLocation"), PlayerCodyRef->GetActorLocation());
-			GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
-			GetBlackboardComponent()->SetValueAsVector(TEXT("CurrentActorLocation"), GetPawn()->GetActorLocation());
-			GetBlackboardComponent()->SetValueAsEnum(TEXT("CurrentBossPhase"), static_cast<uint8>(CurrentBossPhase));
+		case AFlyingSaucerAIController::EBossPhase::Phase_1:
+		{
+			if (nullptr != AIBehaviorTreePhase1)
+			{
+				RunBehaviorTree(AIBehaviorTreePhase1);
+			}
+		}
+			break;
+		case AFlyingSaucerAIController::EBossPhase::Phase_2:
+		{
+			if (nullptr != AIBehaviorTreePhase2)
+			{
+				RunBehaviorTree(AIBehaviorTreePhase2);
+			}
+		}
+			break;
+		case AFlyingSaucerAIController::EBossPhase::Phase_3:
+		{
+			if (nullptr != AIBehaviorTreePhase3)
+			{
+				RunBehaviorTree(AIBehaviorTreePhase3);
+			}
+		}
+			break;
+		case AFlyingSaucerAIController::EBossPhase::Death:
+			break;
+		case AFlyingSaucerAIController::EBossPhase::Max:
+			break;
+		default:
+			break;
 		}
 	}
+	
 }
 

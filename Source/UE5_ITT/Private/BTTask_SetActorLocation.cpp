@@ -7,7 +7,7 @@
 
 UBTTask_SetActorLocation::UBTTask_SetActorLocation()
 {
-	NodeName = TEXT("Set Actor Location");
+	NodeName = TEXT("BTT_SetActorLocation");
 }
 
 EBTNodeResult::Type UBTTask_SetActorLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
