@@ -37,13 +37,17 @@ private:
 	};
 
 	void SetupPlayerReference();
-	void SetupStartBehaviorTree();
+	void SetupStartBehaviorTreePhase1();
 	void UpdatePhaseFromHealth(float DeltaTime);
 	void ChangePhase(EBossPhase Phase);
 
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerCodyRef;
+
+	// Player Ref Test
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
+	class APawn* PlayerMayRef;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	bool bFocus = false;

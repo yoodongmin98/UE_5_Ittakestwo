@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EnemyFlyingSaucer.h"
 #include "TimerManager.h"
+#include "EnemyMoonBaboon.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -17,8 +18,8 @@ void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetupStartBehaviorTree();
 	SetupPlayerReference();
+	SetupStartBehaviorTreePhase1();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -47,13 +48,16 @@ void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
 	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	PlayerMayRef = Cast<AEnemyMoonBaboon>(UGameplayStatics::GetPlayerPawn(GetWorld(), 1));
 }
 
-void AFlyingSaucerAIController::SetupStartBehaviorTree()
+void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 {
 	if (nullptr != AIBehaviorTreePhase1)
 	{
 		RunBehaviorTree(AIBehaviorTreePhase1);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMayRef"), PlayerMayRef);
 	}
 	
 }
