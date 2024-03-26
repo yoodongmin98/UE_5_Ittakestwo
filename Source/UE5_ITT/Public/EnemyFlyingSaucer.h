@@ -52,6 +52,13 @@ private:
 	// 디버그 관련 함수 
 	void DrawDebugMesh();
 
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsStartMotion = true;
+
+	void StartMotionUpdate(float DeltaTime);
+
+	FVector StartMotionTargetLocation = FVector(0, 0, 650);
+
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 100.0f;
 	
@@ -69,6 +76,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
+	// --------------------------------- spawnpointmesh ---------------------------------- 
 	// 들고 있어야 되나 싶음
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;

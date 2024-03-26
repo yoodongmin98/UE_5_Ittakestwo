@@ -6,6 +6,7 @@
 #include "Cody.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EnemyFlyingSaucer.h"
+#include "TimerManager.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -82,6 +83,7 @@ void AFlyingSaucerAIController::UpdatePhaseFromHealth(float DeltaTime)
 
 void AFlyingSaucerAIController::ChangePhase(EBossPhase Phase)
 {
+	// 페이즈 1은 beginplay
 	switch (Phase)
 	{
 	case AFlyingSaucerAIController::EBossPhase::Phase_2:
@@ -115,4 +117,3 @@ void AFlyingSaucerAIController::ChangePhase(EBossPhase Phase)
 	}
 	
 }
-

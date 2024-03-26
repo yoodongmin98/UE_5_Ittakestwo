@@ -11,9 +11,6 @@
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
-
-
-
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -47,6 +44,11 @@ void AEnemyFlyingSaucer::BeginPlay()
 void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (true == bIsStartMotion)
+	{
+		StartMotionUpdate(DeltaTime);
+	}
 
 	DrawDebugMesh();
 
@@ -172,8 +174,21 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 		0,
 		Thickness
 	);
+}
 
+void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
+{
+	FVector CurrentLocation = GetMesh()->GetRelativeLocation();
+	if (CurrentLocation.Z >= StartMotionTargetLocation.Z)
+	{
+		bIsStartMotion = false;
+		return;
+	}
 
+	float MoveSpeed = 150.0f;
+	FVector DeltaMovement = FVector(0.0f, 0.0f, MoveSpeed * DeltaTime);
+	FVector NewLocaiton = CurrentLocation + DeltaMovement;
 
+	GetMesh()->SetRelativeLocation(NewLocaiton);
 }
 
