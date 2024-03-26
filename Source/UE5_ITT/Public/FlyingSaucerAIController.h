@@ -37,12 +37,17 @@ private:
 	};
 
 	void SetupPlayerReference();
+	void SetupStartBehaviorTreePhase1();
 	void UpdatePhaseFromHealth(float DeltaTime);
 	void ChangePhase(EBossPhase Phase);
 
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerCodyRef;
+
+	// Player Ref Test
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
+	class APawn* PlayerMayRef;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	bool bFocus = false;
@@ -61,5 +66,5 @@ private:
 	class UBehaviorTree* AIBehaviorTreePhase3;
 
 	// phase
-	EBossPhase CurrentBossPhase = EBossPhase::None;
+	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
 };

@@ -6,6 +6,8 @@
 #include "Cody.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EnemyFlyingSaucer.h"
+#include "TimerManager.h"
+#include "EnemyMoonBaboon.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -15,9 +17,9 @@ AFlyingSaucerAIController::AFlyingSaucerAIController()
 void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ChangePhase(EBossPhase::Phase_1);
+	
 	SetupPlayerReference();
+	SetupStartBehaviorTreePhase1();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -46,53 +48,76 @@ void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
 	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	PlayerMayRef = Cast<AEnemyMoonBaboon>(UGameplayStatics::GetPlayerPawn(GetWorld(), 1));
+}
+
+void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
+{
+	if (nullptr != AIBehaviorTreePhase1)
+	{
+		RunBehaviorTree(AIBehaviorTreePhase1);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMayRef"), PlayerMayRef);
+	}
+	
 }
 
 void AFlyingSaucerAIController::UpdatePhaseFromHealth(float DeltaTime)
 {
 	// 체력체크
 	AEnemyFlyingSaucer* Boss = Cast<AEnemyFlyingSaucer>(GetPawn());
+	if (nullptr != Boss)
+	{
+		float BossCurrentHp = Boss->GetCurrentHp();
+		if (EBossPhase::Phase_1 == CurrentBossPhase && BossCurrentHp < 70)
+		{
+			ChangePhase(EBossPhase::Phase_2);
+		}
+		else if (EBossPhase::Phase_2 == CurrentBossPhase && BossCurrentHp < 30)
+		{
+			ChangePhase(EBossPhase::Phase_3);
+		}
+		else if (EBossPhase::Phase_3 == CurrentBossPhase && BossCurrentHp <= 0)
+		{
+			Boss->SetCurrentHp(0);
+			ChangePhase(EBossPhase::Death);
+		}
+	}
 }
 
 void AFlyingSaucerAIController::ChangePhase(EBossPhase Phase)
 {
-	// 변경될 페이즈의 값이 더 클때만 변경, 그게 아니라면 변경하지 않음
-	if (CurrentBossPhase < Phase)
+	// 페이즈 1은 beginplay
+	switch (Phase)
 	{
-		switch (Phase)
+	case AFlyingSaucerAIController::EBossPhase::Phase_2:
+	{
+		if (nullptr != AIBehaviorTreePhase2)
 		{
-		case AFlyingSaucerAIController::EBossPhase::Phase_1:
+			CurrentBossPhase = EBossPhase::Phase_2;
+			RunBehaviorTree(AIBehaviorTreePhase2);
+		}
+	}
+	break;
+	case AFlyingSaucerAIController::EBossPhase::Phase_3:
+	{
+		if (nullptr != AIBehaviorTreePhase3)
 		{
-			if (nullptr != AIBehaviorTreePhase1)
-			{
-				RunBehaviorTree(AIBehaviorTreePhase1);
-			}
+			CurrentBossPhase = EBossPhase::Phase_3;
+			RunBehaviorTree(AIBehaviorTreePhase3);
 		}
-			break;
-		case AFlyingSaucerAIController::EBossPhase::Phase_2:
-		{
-			if (nullptr != AIBehaviorTreePhase2)
-			{
-				RunBehaviorTree(AIBehaviorTreePhase2);
-			}
-		}
-			break;
-		case AFlyingSaucerAIController::EBossPhase::Phase_3:
-		{
-			if (nullptr != AIBehaviorTreePhase3)
-			{
-				RunBehaviorTree(AIBehaviorTreePhase3);
-			}
-		}
-			break;
-		case AFlyingSaucerAIController::EBossPhase::Death:
-			break;
-		case AFlyingSaucerAIController::EBossPhase::Max:
-			break;
-		default:
-			break;
-		}
+	}
+	break;
+	case AFlyingSaucerAIController::EBossPhase::Death:
+	{
+		CurrentBossPhase = EBossPhase::Phase_3;
+	}
+	break;
+	default:
+	{
+		UE_LOG(LogTemp, Warning, TEXT("The boss phase has not been set"));
+	}
+	break;
 	}
 	
 }
-
