@@ -40,6 +40,12 @@ public:
 	{
 		CurrentHp = HpValue;
 	}
+	
+	UFUNCTION(BlueprintCallable)
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const
+	{
+		return LaserSpawnPointMesh;
+	}
 
 protected:
 	// Called when the game starts or when spawned

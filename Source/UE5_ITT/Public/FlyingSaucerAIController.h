@@ -21,6 +21,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	APawn* GetPlayerPawn() const
+	{
+		return PlayerCodyRef;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,6 +50,8 @@ private:
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerCodyRef;
+
+	
 
 	// Player Ref Test
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
