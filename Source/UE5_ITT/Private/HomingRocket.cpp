@@ -30,6 +30,14 @@ void AHomingRocket::BeginPlay()
 	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 
 	RocketMeshComp->OnComponentHit.AddDynamic(this, &AHomingRocket::OnHit);
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 }
 
 // Called every frame
@@ -53,6 +61,12 @@ void AHomingRocket::Tick(float DeltaTime)
 	
 	FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DeltaTime;
 	SetActorLocation(NewRocketLocation);
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		
+	}
 }
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
