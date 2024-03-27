@@ -40,6 +40,7 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 	{
 		// 체력을 체크해서 페이즈 전환
 		UpdatePhaseFromHealth(DeltaTime);
+		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
 
@@ -66,12 +67,48 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 
 void AFlyingSaucerAIController::SetupTimerManager()
 {
-	//GetWorldTimerManager().SetTimer();
+	GetWorldTimerManager().SetTimer(TargetLocationCheckHandle,
+														 this, 
+	   &AFlyingSaucerAIController::SavePreviousTargetLocation,
+														 0.01f,
+														 true
+															);
 }
 
 void AFlyingSaucerAIController::SavePreviousTargetLocation()
 {
+	APawn* TargetPawn = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("LaserBeamTarget")));
 	
+	if (nullptr != TargetPawn)
+	{
+		FVector CurrentTargetLocation = TargetPawn->GetActorLocation();
+
+		if (true == bPrevTargetLocationValid)
+		{
+			PrevTargetLocation = PrevTargetLocationBuffer;
+			bPrevTargetLocationValid = false;
+		}
+
+		else
+		{
+			PrevTargetLocation = CurrentTargetLocation;
+		}
+
+		PrevTargetLocationBuffer = CurrentTargetLocation;
+		bPrevTargetLocationValid = true;
+	}
+
+}
+
+void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
+{
+	LaserLerpRatio += DeltaTime / 20;
+	if (1.0f <= LaserLerpRatio)
+	{
+		LaserLerpRatio = 1.0f;
+	}
+
+	GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);
 }
 
 void AFlyingSaucerAIController::UpdatePhaseFromHealth(float DeltaTime)
