@@ -19,12 +19,12 @@ public:
 	AFlyingSaucerAIController();
 
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override; º¯¼ö
 
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayerPawn() const
 	{
-		return PlayerCodyRef;
+		return PlayerRef1;
 	}
 
 protected:
