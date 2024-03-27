@@ -35,6 +35,9 @@ public:
 		bAttackStart = bValue;
 	}
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")
+	class UStaticMeshComponent* LaserMesh = nullptr;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,8 +55,6 @@ private:
 
 	float RotateTime = 15.f;
 
-	UPROPERTY(EditAnywhere, Category = "Pointer")
-	class UStaticMeshComponent* LaserMesh = nullptr;
 	class UFsmComponent* FsmComp = nullptr;
 
 	void SetupFsm();
