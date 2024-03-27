@@ -24,7 +24,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayerPawn() const
 	{
-		return PlayerCodyRef;
+		return PlayerRef1;
 	}
 
 protected:
