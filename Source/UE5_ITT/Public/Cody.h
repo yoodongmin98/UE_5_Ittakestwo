@@ -125,7 +125,9 @@ protected:
 	void Idle(const FInputActionInstance& _Instance);
 	void Move(const FInputActionInstance& _Instance);
 	void Look(const FInputActionInstance& _Instance);
-	void Dash();
+	void DashInput();
+	void GroundDash();
+	void JumpDash();
 	void DashEnd();
 
 private:
@@ -153,6 +155,7 @@ public:
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
+	float DefaultGravityScale;
 
 private:
 	//Test
