@@ -44,6 +44,11 @@ public:
 		bShutterOpen = true;
 	}
 
+	void SetLongPillar()
+	{
+		MoveSize = 1620.f;
+	}
+
 
 protected:
 	// Called when the game starts or when spawned
