@@ -145,6 +145,7 @@ void AFloor::SetupFsm()
 		[this]
 		{
 			Pillar0->ShutterOpen();
+			Pillar0->SetLongPillar();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;

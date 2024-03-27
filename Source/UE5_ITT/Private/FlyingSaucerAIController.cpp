@@ -47,17 +47,18 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
-	PlayerCodyRef = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-	PlayerMayRef = Cast<AEnemyMoonBaboon>(UGameplayStatics::GetPlayerPawn(GetWorld(), 1));
+	PlayerRef1 = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	PlayerRef2 = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
 }
 
 void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 {
 	if (nullptr != AIBehaviorTreePhase1)
 	{
+		// 플레이어 위치 세팅해주는 bbt 다시 만들거임. 
 		RunBehaviorTree(AIBehaviorTreePhase1);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerCodyRef);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMayRef"), PlayerMayRef);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerRef1);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMayRef"), PlayerRef2);
 	}
 	
 }

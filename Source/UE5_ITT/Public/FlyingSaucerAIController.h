@@ -24,7 +24,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayerPawn() const
 	{
-		return PlayerCodyRef;
+		return PlayerRef1;
 	}
 
 protected:
@@ -49,13 +49,11 @@ private:
 
 	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
-	class APawn* PlayerCodyRef;
-
-	
+	class APawn* PlayerRef1;
 
 	// Player Ref Test
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
-	class APawn* PlayerMayRef;
+	class APawn* PlayerRef2;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	bool bFocus = false;
