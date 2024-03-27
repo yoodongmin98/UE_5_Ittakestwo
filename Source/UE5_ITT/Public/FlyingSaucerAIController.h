@@ -44,6 +44,8 @@ private:
 
 	void SetupPlayerReference();
 	void SetupStartBehaviorTreePhase1();
+	void SetupTimerManager();
+	void SavePreviousTargetLocation();
 	void UpdatePhaseFromHealth(float DeltaTime);
 	void ChangePhase(EBossPhase Phase);
 
@@ -70,6 +72,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	class UBehaviorTree* AIBehaviorTreePhase3;
+
+	FTimerManager TargetLocationCheckManager;
+	FVector PrevTargetLocation = FVector::ZeroVector;
 
 	// phase
 	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;

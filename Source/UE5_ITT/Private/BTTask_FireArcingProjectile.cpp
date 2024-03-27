@@ -7,7 +7,7 @@
 
 UBTTask_FireArcingProjectile::UBTTask_FireArcingProjectile()
 {
-	NodeName = TEXT("BTT_FireArcingProjectile");
+	NodeName = TEXT("BTTask_FireArcingProjectile");
 }
 
 EBTNodeResult::Type UBTTask_FireArcingProjectile::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

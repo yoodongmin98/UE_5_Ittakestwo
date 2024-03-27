@@ -19,6 +19,7 @@ void AFlyingSaucerAIController::BeginPlay()
 	Super::BeginPlay();
 	
 	SetupPlayerReference();
+	SetupTimerManager();
 	SetupStartBehaviorTreePhase1();
 
 	// 네트워크 권한을 확인하는 코드
@@ -34,13 +35,11 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 체력을 체크해서 페이즈 전환
-	UpdatePhaseFromHealth(DeltaTime);
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-
+		// 체력을 체크해서 페이즈 전환
+		UpdatePhaseFromHealth(DeltaTime);
 	}
 }
 
@@ -57,11 +56,21 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 {
 	if (nullptr != AIBehaviorTreePhase1)
 	{
-		// 플레이어 위치 세팅해주는 bbt 다시 만들거임. 
 		RunBehaviorTree(AIBehaviorTreePhase1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef1"), PlayerRef1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef2"), PlayerRef2);
+		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
 	}
+	
+}
+
+void AFlyingSaucerAIController::SetupTimerManager()
+{
+	//GetWorldTimerManager().SetTimer();
+}
+
+void AFlyingSaucerAIController::SavePreviousTargetLocation()
+{
 	
 }
 
