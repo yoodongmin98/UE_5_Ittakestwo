@@ -14,8 +14,7 @@ ACody::ACody()
 void ACody::BeginPlay()
 {
 	Super::BeginPlay();
-	//Set
-	PlayerHP = 12; //Player기본 Hp설정
+
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)
 	{
@@ -26,28 +25,27 @@ void ACody::BeginPlay()
 			Subsystem->AddMappingContext(CodyMappingContext, 0);
 		}
 	}
+
+
+	//Set
+	PlayerHP = 12; //Player기본 Hp설정
+	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!bIsDashing)
-	{
-		bIsDashing = true;
-		DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-		GetCharacterMovement()->MaxWalkSpeed = DashSpeed; 
-
-		DashStartTime = GetWorld()->GetTimeSeconds();
-	}
+	
 }
 
 // Called to bind functionality to input
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
+	Input = PlayerInputComponent;
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+
 
 	UEnhancedInputComponent* CodyInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (CodyInput != nullptr)
@@ -56,7 +54,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		CodyInput->BindAction(MoveAction, ETriggerEvent::None, this, &ACody::Idle);
 		CodyInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACody::Look);
 		CodyInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &ACody::Dash);
-		CodyInput->BindAction(DashAction, ETriggerEvent::None, this, &ACody::DashEnd);
 	}
 }
 
@@ -65,31 +62,30 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 //새로운 입력 Action
 void ACody::Idle(const FInputActionInstance& _Instance)
 {
+	IsMoveEnd = false;
 	ChangeState(Cody_State::IDLE);
 }
 void ACody::Move(const FInputActionInstance& _Instance)
 {
+	IsMoveEnd = true;
 	ChangeState(Cody_State::MOVE);
-	if (CodyState == Cody_State::MOVE && !bIsMove)
+	FVector2D MoveVector = _Instance.GetValue().Get<FVector2D>();
+	if (Controller != nullptr)
 	{
-		FVector2D MoveVector = _Instance.GetValue().Get<FVector2D>();
-		if (Controller != nullptr)
-		{
-			// 이동
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-			const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-			const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		// 이동
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-			// 회전 각도 계산
-			float Yaw = FMath::RadiansToDegrees(FMath::Atan2(MoveVector.Y, MoveVector.X));
-			const float InterpolatedYaw = FMath::FInterpTo(Rotation.Yaw, Yaw, GetWorld()->GetDeltaSeconds(), RotationInterpSpeed);
-			const FRotator InterpolatedRotation(0, InterpolatedYaw, 0);
-			SetActorRotation(InterpolatedRotation);
+		// 회전 각도 계산
+		float Yaw = FMath::RadiansToDegrees(FMath::Atan2(MoveVector.Y, MoveVector.X));
+		const float InterpolatedYaw = FMath::FInterpTo(Rotation.Yaw, Yaw, GetWorld()->GetDeltaSeconds(), RotationInterpSpeed);
+		const FRotator InterpolatedRotation(0, InterpolatedYaw, 0);
+		SetActorRotation(InterpolatedRotation);
 
-			AddMovementInput(ForwardVector, MoveVector.X);
-			AddMovementInput(RightVector, MoveVector.Y);
-		}
+		AddMovementInput(ForwardVector, MoveVector.X);
+		AddMovementInput(RightVector, MoveVector.Y);
 	}
 }
 
@@ -103,25 +99,30 @@ void ACody::Look(const FInputActionInstance& _Instance)
 	}
 }
 
-void ACody::Dash(const FInputActionInstance& _Instance)
+void ACody::Dash()
 {
-	bIsMove = false;
+	ChangeState(Cody_State::DASH);
 	if (!bIsDashing)
 	{
+		GetCharacterMovement()->GroundFriction = 0.0f;
+
+		FVector DashDirection = GetActorForwardVector(); // 전방벡터
+		DashDirection.Normalize(); // 방향벡터normalize
+
+		FVector DashVelocity = DashDirection * DashDistance; //거리x방향
+		GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
+
 		bIsDashing = true;
-		DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-		GetCharacterMovement()->MaxWalkSpeed = DashSpeed; 
-		GetCharacterMovement()->GroundFriction = 0;
-		// 대쉬 시작 시간 저장
-		DashStartTime = GetWorld()->GetTimeSeconds();
+		bIsDashingStart = false;
+		// 시간지나면 end호출
+		GetWorldTimerManager().SetTimer(DashTimerHandle, this, &ACody::DashEnd, DashDuration, false);
 	}
 }
 
 void ACody::DashEnd()
 {
+	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
 	bIsDashing = false;
-	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
-	GetCharacterMovement()->GroundFriction = 50.0f;
 }
 
 //////////////FSM//////////

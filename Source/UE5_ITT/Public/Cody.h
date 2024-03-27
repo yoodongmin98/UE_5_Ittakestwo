@@ -34,71 +34,98 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UInputComponent* Input;
 	//friend
 	friend class UCodyAnimNotify_Dash;
 
 
-	//Cody관련Function
-	UFUNCTION(BlueprintCallable)
+	//Cody의 현재 state를 반환합니다.
+	UFUNCTION(BlueprintCallable) 
 	inline Cody_State GetCodyState() const
 	{
 		return CodyState;
 	}
+	//플레이어의 이동이 끝났는지를 반환합니다.
 	UFUNCTION(BlueprintCallable)
-	bool GetIsMoveEnd() const
+	inline bool GetIsMoveEnd() const
 	{
 		return IsMoveEnd;
 	}
-	void SetIsMoveEndT()
+	//이동이 끝났을때 호출됩니다(CodyAnimNotify.cpp)
+	inline void SetIsMoveEndT()
 	{
 		IsMoveEnd = true;
 	}
+	//대쉬 키를 눌렀는지를 반환합니다.
 	UFUNCTION(BlueprintCallable)
-	bool GetbIsDashing()
+	inline bool GetbIsDashing() const
 	{
 		return bIsDashing;
 	}
+	//대쉬시작 애니메이션이 끝났는지를 확인합니다
+	UFUNCTION(BlueprintCallable)
+	inline bool GetbIsDashingStart() const
+	{
+		return bIsDashingStart;
+	}
+	//대쉬 시작 애니메이션이 끝났을 때 호출됩니다(CodyNotify_DashStart.cpp)
+	inline void SetbIsDashingStart()
+	{
+		bIsDashingStart = true;
+	}
 
-	//Input
+	///////////////////Input///////////////////
+
+	//키가 매핑된 Context입니다
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* CodyMappingContext;
 
+	//IA_Jump
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* JumpAction;
-
+	//IA_Move
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* MoveAction;
-
+	//IA_Look
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* LookAction;
-
+	//IA_LeftM
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* LeftMAction;
-
+	//IA_RightM
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* RightMAction;
-
+	//IA_Sit
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* SitAction;
-
+	//IA_Dash
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DashAction;
 
 
 
 
-	//Test
+	///////////////////Test///////////////////
 	void ChangeState(Cody_State _State);
 
 
-	
+
+
+
+
+
+
+	//////////////////////////////////////////
+
 protected:
+	
 	virtual void BeginPlay() override;
-	//Key Bind Function
+
+	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
 	void Move(const FInputActionInstance& _Instance);
 	void Look(const FInputActionInstance& _Instance);
-	void Dash(const FInputActionInstance& _Instance);
+	void Dash();
 	void DashEnd();
 
 private:
@@ -117,20 +144,15 @@ public:
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
-	 // 대쉬 속도
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
-	float DashSpeed = 4000.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
+	float DashDistance = 2000.0f; // 앞구르기 거리
+	UPROPERTY(EditDefaultsOnly, Category = "Dash")
+	float DashDuration = 0.7f; // 앞구르기 지속 시간
 
-	// 대쉬 지속 시간
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Dash")
-	float DashDuration = 0.5f;
-	// 기본 이동 속도
-	float DefaultWalkSpeed;
-	float DashStartTime;
-	bool bIsDashing;
-	bool bIsMove;
-	
-	
+	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
+	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
+	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
+	float DefaultGroundFriction; // 기본 지면 마찰력
 
 private:
 	//Test
