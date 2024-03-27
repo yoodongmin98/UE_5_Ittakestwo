@@ -19,7 +19,7 @@ public:
 	AFlyingSaucerAIController();
 
 	// Called every frame
-	virtual void Tick(float DeltaTime) override; º¯¼ö
+	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayerPawn() const
