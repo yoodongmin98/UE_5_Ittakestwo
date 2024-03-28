@@ -45,17 +45,15 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (true == bIsStartMotion)
-	{
-		StartMotionUpdate(DeltaTime);
-	}
-
-	DrawDebugMesh();
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
+		if (true == bIsStartMotion)
+		{
+			StartMotionUpdate(DeltaTime);
+		}
+
+		DrawDebugMesh();
 	}
 }
 

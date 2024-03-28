@@ -14,8 +14,8 @@ AEnemyMoonBaboon::AEnemyMoonBaboon()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	GetCapsuleComponent()->DestroyComponent();
-	GetCharacterMovement()->DestroyComponent();
+	/*GetCapsuleComponent()->DestroyComponent();
+	GetCharacterMovement()->DestroyComponent();*/
 
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);

@@ -22,10 +22,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	APawn* GetPlayerPawn() const
-	{
-		return PlayerRef1;
-	}
+	APawn* GetPlayerPawn() const { return PlayerRef1; }
+	
+	UFUNCTION(BlueprintCallable)
+	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,6 +44,9 @@ private:
 
 	void SetupPlayerReference();
 	void SetupStartBehaviorTreePhase1();
+	void SetupTimerManager();
+	void SavePreviousTargetLocation();
+	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 	void UpdatePhaseFromHealth(float DeltaTime);
 	void ChangePhase(EBossPhase Phase);
 
@@ -70,6 +73,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	class UBehaviorTree* AIBehaviorTreePhase3;
+
+	FTimerHandle TargetLocationCheckHandle;
+	FVector PrevTargetLocation = FVector::ZeroVector;
+	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
+	bool bPrevTargetLocationValid = false;
+	float LaserLerpRatio = 0.0f;
 
 	// phase
 	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;

@@ -19,6 +19,7 @@ void AFlyingSaucerAIController::BeginPlay()
 	Super::BeginPlay();
 	
 	SetupPlayerReference();
+	SetupTimerManager();
 	SetupStartBehaviorTreePhase1();
 
 	// 네트워크 권한을 확인하는 코드
@@ -34,13 +35,12 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 체력을 체크해서 페이즈 전환
-	UpdatePhaseFromHealth(DeltaTime);
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-
+		// 체력을 체크해서 페이즈 전환
+		UpdatePhaseFromHealth(DeltaTime);
+		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
 
@@ -48,6 +48,8 @@ void AFlyingSaucerAIController::SetupPlayerReference()
 {
 	// 폰의 위치를 받아온다. 
 	PlayerRef1 = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	
 	PlayerRef2 = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
 }
 
@@ -55,12 +57,58 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 {
 	if (nullptr != AIBehaviorTreePhase1)
 	{
-		// 플레이어 위치 세팅해주는 bbt 다시 만들거임. 
 		RunBehaviorTree(AIBehaviorTreePhase1);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCodyRef"), PlayerRef1);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMayRef"), PlayerRef2);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef1"), PlayerRef1);
+		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef2"), PlayerRef2);
+		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
 	}
 	
+}
+
+void AFlyingSaucerAIController::SetupTimerManager()
+{
+	GetWorldTimerManager().SetTimer(TargetLocationCheckHandle,
+														 this, 
+	   &AFlyingSaucerAIController::SavePreviousTargetLocation,
+														 0.01f,
+														 true
+															);
+}
+
+void AFlyingSaucerAIController::SavePreviousTargetLocation()
+{
+	APawn* TargetPawn = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("LaserBeamTarget")));
+	
+	if (nullptr != TargetPawn)
+	{
+		FVector CurrentTargetLocation = TargetPawn->GetActorLocation();
+
+		if (true == bPrevTargetLocationValid)
+		{
+			PrevTargetLocation = PrevTargetLocationBuffer;
+			bPrevTargetLocationValid = false;
+		}
+
+		else
+		{
+			PrevTargetLocation = CurrentTargetLocation;
+		}
+
+		PrevTargetLocationBuffer = CurrentTargetLocation;
+		bPrevTargetLocationValid = true;
+	}
+
+}
+
+void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
+{
+	LaserLerpRatio += DeltaTime / 20;
+	if (1.0f <= LaserLerpRatio)
+	{
+		LaserLerpRatio = 1.0f;
+	}
+
+	GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);
 }
 
 void AFlyingSaucerAIController::UpdatePhaseFromHealth(float DeltaTime)
