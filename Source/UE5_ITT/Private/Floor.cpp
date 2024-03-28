@@ -5,6 +5,7 @@
 #include "ParentShutter.h"
 #include "Pillar.h"
 #include "FsmComponent.h"
+#include "Laser.h"
 
 // Sets default values
 AFloor::AFloor()
@@ -49,25 +50,42 @@ void AFloor::SetupFsm()
 		[this]
 		{
 			Pillar1->ShutterOpen();
-			MoveRatio = 0.f;
-			CurPos = GetActorLocation();
-			NextPos = CurPos;
-			NextPos.Z += MoveSize;
 		},
 
 		[this](float DT)
 		{
 			if (true == Pillar1->IsDone())
 			{
-				MoveRatio += DT/MoveTime;
-				if (MoveRatio >= 1.f)
-				{
-					MoveRatio = 1.f;
-					FsmComp->ChangeState(Fsm::Phase1_2);
-				}
-
-				SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+				FsmComp->ChangeState(Fsm::Phase1_1Attack);
 			}
+		},
+
+		[this]
+		{
+		}
+	);
+	FsmComp->CreateState(Fsm::Phase1_1Attack,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+			MainLaser->SetAttack(true);
+		},
+
+		[this](float DT)
+		{
+
+			MoveRatio += DT / MoveTime;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				MainLaser->SetAttack(false);
+				FsmComp->ChangeState(Fsm::Phase1_2);
+			}
+
+			SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
 		},
 
 		[this]
@@ -79,25 +97,43 @@ void AFloor::SetupFsm()
 		[this]
 		{
 			Pillar2->ShutterOpen();
-			MoveRatio = 0.f;
-			CurPos = GetActorLocation();
-			NextPos = CurPos;
-			NextPos.Z += MoveSize;
 		},
 
 		[this](float DT)
 		{
 			if (true == Pillar2->IsDone())
 			{
-				MoveRatio += DT / MoveTime;
-				if (MoveRatio >= 1.f)
-				{
-					MoveRatio = 1.f;
-					FsmComp->ChangeState(Fsm::Phase1_3);
-				}
-
-				SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+				FsmComp->ChangeState(Fsm::Phase1_2Attack);
 			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase1_2Attack,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+			MainLaser->SetAttack(true);
+		},
+
+		[this](float DT)
+		{	
+
+			MoveRatio += DT / MoveTime;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				MainLaser->SetAttack(false);
+				FsmComp->ChangeState(Fsm::Phase1_3);
+			}
+
+			SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
 		},
 
 		[this]
@@ -109,6 +145,7 @@ void AFloor::SetupFsm()
 		[this]
 		{
 			Pillar0->ShutterOpen();
+			Pillar0->SetLongPillar();
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -123,7 +160,7 @@ void AFloor::SetupFsm()
 				if (MoveRatio >= 1.f)
 				{
 					MoveRatio = 1.f;
-					FsmComp->ChangeState(Fsm::Phase2);
+					FsmComp->ChangeState(Fsm::Phase1End);
 				}
 			}
 		},
@@ -132,9 +169,9 @@ void AFloor::SetupFsm()
 		{
 		}
 	);
+		
 
-
-	FsmComp->CreateState(Fsm::Phase2,
+	FsmComp->CreateState(Fsm::Phase1End,
 		[this]
 		{
 		},

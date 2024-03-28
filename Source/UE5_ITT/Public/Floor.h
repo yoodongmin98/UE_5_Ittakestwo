@@ -23,12 +23,11 @@ public:
 	enum class Fsm
 	{
 		Phase1_1,
+		Phase1_1Attack,
 		Phase1_2,
-		Phase1_2Wait,
+		Phase1_2Attack,
 		Phase1_3,
-		Phase1_3Wait,
-		Phase2,
-		Phase3,
+		Phase1End,
 	};
 	void SetPhase(Fsm Phase);
 

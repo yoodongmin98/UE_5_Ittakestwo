@@ -11,9 +11,6 @@
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
-
-
-
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -34,11 +31,6 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
-	// Test
-	/*FireHomingRocket();
-	FireArcingProjectile();*/
-
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -53,12 +45,15 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrawDebugMesh();
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
+		if (true == bIsStartMotion)
+		{
+			StartMotionUpdate(DeltaTime);
+		}
+
+		DrawDebugMesh();
 	}
 }
 
@@ -94,9 +89,6 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 
 void AEnemyFlyingSaucer::SetupComponent()
 {
-	//나중에 필요할 때 사용, 일단 캡슐컴포넌트 루트로 
-	//SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
-	
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	SetRootComponent(CapsuleComp);
 	GetArrowComponent()->SetupAttachment(CapsuleComp);
@@ -180,8 +172,21 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 		0,
 		Thickness
 	);
+}
 
+void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
+{
+	FVector CurrentLocation = GetMesh()->GetRelativeLocation();
+	if (CurrentLocation.Z >= StartMotionTargetLocation.Z)
+	{
+		bIsStartMotion = false;
+		return;
+	}
 
+	float MoveSpeed = 150.0f;
+	FVector DeltaMovement = FVector(0.0f, 0.0f, MoveSpeed * DeltaTime);
+	FVector NewLocaiton = CurrentLocation + DeltaMovement;
 
+	GetMesh()->SetRelativeLocation(NewLocaiton);
 }
 

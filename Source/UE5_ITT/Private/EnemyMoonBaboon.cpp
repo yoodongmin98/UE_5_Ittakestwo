@@ -14,8 +14,8 @@ AEnemyMoonBaboon::AEnemyMoonBaboon()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	GetCapsuleComponent()->DestroyComponent();
-	GetCharacterMovement()->DestroyComponent();
+	/*GetCapsuleComponent()->DestroyComponent();
+	GetCharacterMovement()->DestroyComponent();*/
 
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);
@@ -29,12 +29,12 @@ void AEnemyMoonBaboon::BeginPlay()
 	Super::BeginPlay();
 
 	// 네트워크 권한을 확인하는 코드
-	//if (true == HasAuthority())
-	//{
-	//	// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-	//	SetReplicates(true);
-	//	SetReplicateMovement(true);
-	//}
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
 }
 
 // Called every frame
@@ -43,10 +43,10 @@ void AEnemyMoonBaboon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// 네트워크 권한을 확인하는 코드
-	/*if (true == HasAuthority())
+	if (true == HasAuthority())
 	{
 		
-	}*/
+	}
 }
 
 // Called to bind functionality to input

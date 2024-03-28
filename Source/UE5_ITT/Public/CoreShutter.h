@@ -15,10 +15,6 @@ public:
 	// Sets default values for this actor's properties
 	ACoreShutter();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -46,6 +42,9 @@ public:
 		Done,
 	};
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	void SetupFsm();
@@ -54,6 +53,7 @@ private:
 	UPROPERTY(EditAnywhere);
 	float OpenTime = 3.f;
 
+	bool bOpen = false;
 	bool bDone = false;
 
 	float MovingRatio = 0.f;

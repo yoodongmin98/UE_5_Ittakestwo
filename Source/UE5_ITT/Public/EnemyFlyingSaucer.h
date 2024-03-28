@@ -15,11 +15,6 @@ public:
 	// Sets default values for this character's properties
 	AEnemyFlyingSaucer();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -27,10 +22,34 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// 각종 발사
-	UFUNCTION(BlueprintCallable, Category = "Test")
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void FireLaserBeam();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void FireHomingRocket();
+	UFUNCTION(BlueprintCallable, Category = "Battle")
 	void FireArcingProjectile();
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHp() const
+	{
+		return CurrentHp;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentHp(float HpValue)
+	{
+		CurrentHp = HpValue;
+	}
+	
+	UFUNCTION(BlueprintCallable)
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const
+	{
+		return LaserSpawnPointMesh;
+	}
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 private:
 	// 컴포넌트 초기화
@@ -38,6 +57,16 @@ private:
 
 	// 디버그 관련 함수 
 	void DrawDebugMesh();
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsStartMotion = true;
+
+	void StartMotionUpdate(float DeltaTime);
+
+	FVector StartMotionTargetLocation = FVector(0, 0, 650);
+
+	UPROPERTY(EditAnywhere)
+	float CurrentHp = 100.0f;
 	
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
@@ -53,6 +82,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
+	// --------------------------------- spawnpointmesh ---------------------------------- 
 	// 들고 있어야 되나 싶음
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;

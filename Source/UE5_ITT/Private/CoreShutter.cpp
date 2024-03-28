@@ -39,7 +39,7 @@ void ACoreShutter::Tick(float DeltaTime)
 
 void ACoreShutter::OpenShutter()
 {
-	FsmComp->ChangeState(Fsm::Opening);
+	bOpen = true;
 }
 
 void ACoreShutter::SetDone()
@@ -59,11 +59,15 @@ void ACoreShutter::SetupFsm()
 
 		[this](float DeltaTime)
 		{
+			if (true == bOpen)
+			{
+				FsmComp->ChangeState(Fsm::Opening);
+			}
 		},
 
 		[this]
 		{
-
+			bOpen = false;
 		}
 	);
 
@@ -84,8 +88,7 @@ void ACoreShutter::SetupFsm()
 				}
 
 				AddActorLocalRotation({ 0.f,RotateSize * DeltaTime * 0.5f,0.f });
-				SetActorRelativeLocation(FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
-			
+				SetActorRelativeLocation(FMath::Lerp(DefaultPos, OpenPos, MovingRatio));			
 		},
 	[this]
 		{
