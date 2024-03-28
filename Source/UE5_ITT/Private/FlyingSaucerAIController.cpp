@@ -70,7 +70,7 @@ void AFlyingSaucerAIController::SetupTimerManager()
 	GetWorldTimerManager().SetTimer(TargetLocationCheckHandle,
 														 this, 
 	   &AFlyingSaucerAIController::SavePreviousTargetLocation,
-														 0.01f,
+														 0.035f,
 														 true
 															);
 }
@@ -102,7 +102,7 @@ void AFlyingSaucerAIController::SavePreviousTargetLocation()
 
 void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
-	LaserLerpRatio += DeltaTime / 20;
+	LaserLerpRatio += DeltaTime / 5;
 	if (1.0f <= LaserLerpRatio)
 	{
 		LaserLerpRatio = 1.0f;
