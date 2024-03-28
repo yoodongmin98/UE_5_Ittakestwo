@@ -40,4 +40,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	FVector TargetLocation = FVector::ZeroVector;
+
+	// ÆÄÆ¼Å¬
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TrailEffectComp = nullptr;
 };

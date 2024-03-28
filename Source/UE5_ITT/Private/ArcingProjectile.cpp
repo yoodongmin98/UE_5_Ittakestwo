@@ -4,6 +4,7 @@
 #include "ArcingProjectile.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -28,6 +29,10 @@ AArcingProjectile::AArcingProjectile()
 	ProjectileMovementComp->InitialSpeed = 400.0f; // Initial speed (will be set based on suggested velocity)
 	ProjectileMovementComp->ProjectileGravityScale = 1.0f; // Gravity scale (if you want to override global gravity)
 	ProjectileMovementComp->bShouldBounce = false; // Set to true if you want the projectile to bounce
+
+	TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffectComponent"));
+	TrailEffectComp->SetupAttachment(SceneComp);
+
 }
 
 // Called when the game starts or when spawned
