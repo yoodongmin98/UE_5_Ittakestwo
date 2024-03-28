@@ -319,10 +319,26 @@ void APillar::SetupFsm()
 }
 
 void APillar::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && (OtherActor != this) && OtherComp)
+{	
+	ECollisionChannel OtherChannel = OtherComp->GetCollisionObjectType();
+
+	ECollisionChannel ThisChannel = OverlappedComp->GetCollisionObjectType();
+
+	//Pawn과 Obstacle이 충돌 했을때
+	if (OtherActor != this && 
+		OtherChannel == ECollisionChannel::ECC_Pawn&& 
+		ThisChannel == ECollisionChannel::ECC_GameTraceChannel1)
 	{
 		bOnPlayer = true;
+	}
+	//Laser와 GlassMesh가 충돌했을때 가아니라 그냥 액터를 새로 만들어서 배치하는게 정상적인듯 하다
+	// 코어 액터를 만들고 글래스가 타격을 받게 한뒤 코어가 폭발하는식으로 fsm을 만든뒤 
+	// Pillar가 해당 액터를 소유하고 상태를 받는게 편함
+	else if(OtherActor != this &&
+		OverlappedComp->GetName() == "GlassMesh"  &&
+		ThisChannel == ECollisionChannel::ECC_GameTraceChannel2)
+	{
+		bExplode = true;
 	}
 }
 
