@@ -7,6 +7,7 @@
 #include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "FireBurstEffect.h"
 
 // test
 #include "Cody.h"
@@ -82,9 +83,9 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 
 void AArcingProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 여기서 충돌했을 때 원형으로 커지는 구체 생성. 
-
-
-
+	// 충돌했다면
+	AFireBurstEffect* Effect = GetWorld()->SpawnActor<AFireBurstEffect>();
+	Effect->SetActorLocation(GetActorLocation());
+	Destroy();
 }
 
