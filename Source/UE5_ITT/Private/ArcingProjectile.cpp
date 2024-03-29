@@ -65,12 +65,13 @@ void AArcingProjectile::Tick(float DeltaTime)
 
 void AArcingProjectile::SetupProjectileMovementComponent()
 {
+	// 이후에 플레이어 두명되면 변경해야함 
 	if (nullptr != ProjectileMovementComp)
 	{
 		TargetLocation = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0))->GetActorLocation();
 		FVector StartLocation = GetActorLocation(); // 시작 위치
 		StartLocation.Z += 500.0f;
-		float ArcValue = 0.35f; // ArcParam (0.0-1.0)
+		float ArcValue = 0.62f; // ArcParam (0.0-1.0)
 		FVector OutVelocity = FVector::ZeroVector;
 		if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, OutVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(), ArcValue))
 		{
@@ -81,6 +82,9 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 
 void AArcingProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	int a = 0; 
+	// 여기서 충돌했을 때 원형으로 커지는 구체 생성. 
+
+
+
 }
 
