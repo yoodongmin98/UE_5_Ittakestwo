@@ -29,15 +29,23 @@ void ACody::BeginPlay()
 
 	//Set
 	PlayerHP = 12; //Player기본 Hp설정
+	DashDuration = 3.0f;
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
-	DefaultGravityScale = GetCharacterMovement()->GravityScale;
+	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+	if (bIsDashing && bCanDash)
+	{
+		float CurrentTime = GetWorld()->GetTimeSeconds();
+		if (CurrentTime >= DashStartTime + DashDuration)
+		{
+			DashEnd(); // 대시 지속 시간이 지나면 대시 종료
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -46,6 +54,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	Input = PlayerInputComponent;
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Player_Sit"), EInputEvent::IE_Pressed, this, &ACody::Sit);
 
 
 	UEnhancedInputComponent* CodyInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
@@ -88,6 +97,7 @@ void ACody::Move(const FInputActionInstance& _Instance)
 		AddMovementInput(ForwardVector, MoveVector.X);
 		AddMovementInput(RightVector, MoveVector.Y);
 	}
+	
 }
 
 void ACody::Look(const FInputActionInstance& _Instance)
@@ -102,9 +112,10 @@ void ACody::Look(const FInputActionInstance& _Instance)
 
 void ACody::DashInput()
 {
-	ChangeState(Cody_State::DASH);
 	if (!bIsDashing)
 	{
+		ChangeState(Cody_State::DASH);
+		DashStartTime = GetWorld()->GetTimeSeconds();
 		if (!GetCharacterMovement()->IsFalling())
 		{
 			GroundDash();
@@ -113,6 +124,8 @@ void ACody::DashInput()
 		{
 			JumpDash();
 		}
+		bIsDashing = true;
+		bCanDash = true;
 	}
 }
 
@@ -125,11 +138,6 @@ void ACody::GroundDash()
 
 	FVector DashVelocity = DashDirection * DashDistance; //거리x방향
 	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
-
-	bIsDashing = true;
-	bIsDashingStart = false;
-	// 시간지나면 end호출
-	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &ACody::DashEnd, DashDuration, false);
 }
 
 void ACody::JumpDash()
@@ -142,10 +150,6 @@ void ACody::JumpDash()
 	FVector DashVelocity = DashDirection * DashDistance * 0.75f; //거리x방향
 	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
 
-	bIsDashing = true;
-	bIsDashingStart = false;
-	// 시간지나면 end호출
-	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &ACody::DashEnd, DashDuration, false);
 }
 
 void ACody::DashEnd()
@@ -153,6 +157,23 @@ void ACody::DashEnd()
 	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	bIsDashing = false;
+	bIsDashingStart = false;
+	ChangeState(Cody_State::IDLE);
+	bCanDash = false;
+}
+
+void ACody::Sit()
+{
+	ChangeState(Cody_State::SIT);
+	if (GetCharacterMovement()->IsFalling())
+	{
+		GetCharacterMovement()->GravityScale = 10.0f;
+	}
+	else
+	{
+		GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	}
+	//작성중
 }
 
 //////////////FSM//////////

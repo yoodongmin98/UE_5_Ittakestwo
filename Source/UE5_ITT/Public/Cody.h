@@ -20,6 +20,7 @@ enum class Cody_State : uint8
 	SIT UMETA(DisPlayName = "SIT"),
 	JUMP UMETA(DisPlayName = "JUMP"),
 	DASH UMETA(DisPlayName = "DASH"),
+	DASHEND UMETA(DisPlayName = "DASHEND"),
 };
 
 
@@ -72,6 +73,12 @@ public:
 	inline void SetbIsDashingStart()
 	{
 		bIsDashingStart = true;
+	}
+	// 대쉬가 다시 입력가능한 상태인지를 확인합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetbCanDash() const
+	{
+		return bCanDash;
 	}
 
 	///////////////////Input///////////////////
@@ -129,6 +136,7 @@ protected:
 	void GroundDash();
 	void JumpDash();
 	void DashEnd();
+	void Sit();
 
 private:
 	/////////////////Controller///////////////////
@@ -146,13 +154,14 @@ public:
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
-	UPROPERTY(EditDefaultsOnly, Category = "Dash")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
 	float DashDistance = 2000.0f; // 앞구르기 거리
-	UPROPERTY(EditDefaultsOnly, Category = "Dash")
-	float DashDuration = 0.7f; // 앞구르기 지속 시간
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float DashDuration; // 앞구르기 지속 시간
+	float DashStartTime;
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
+	bool bCanDash;
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale;
@@ -160,6 +169,5 @@ public:
 private:
 	//Test
 	bool IsMoveEnd = true;
-	UPROPERTY(EditAnywhere, Category = Player)
 	float RotationInterpSpeed = 2.0f;
 };
