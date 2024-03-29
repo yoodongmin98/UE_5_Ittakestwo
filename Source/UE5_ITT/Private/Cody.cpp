@@ -29,7 +29,7 @@ void ACody::BeginPlay()
 
 	//Set
 	PlayerHP = 12; //Player기본 Hp설정
-	DashDuration = 3.0f;
+	DashDuration = 2.0f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 }
@@ -167,11 +167,11 @@ void ACody::Sit()
 	ChangeState(Cody_State::SIT);
 	if (GetCharacterMovement()->IsFalling())
 	{
-		GetCharacterMovement()->GravityScale = 10.0f;
+		//GetCharacterMovement()->GravityScale = 10.0f;
 	}
 	else
 	{
-		GetCharacterMovement()->GravityScale = DefaultGravityScale;
+		//GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	}
 	//작성중
 }
