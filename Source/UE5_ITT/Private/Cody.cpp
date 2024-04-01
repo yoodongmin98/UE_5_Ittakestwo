@@ -4,6 +4,7 @@
 #include "Cody.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Logging/LogMacros.h"
 
 // Sets default values
 ACody::ACody()
@@ -27,7 +28,7 @@ ACody::ACody()
 	//朝五虞 持失
 	CodyCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CodyCamera"));
 	CodyCameraComponent->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	CodyCameraComponent->bUsePawnControlRotation = false;
+	CodyCameraComponent->bUsePawnControlRotation = true;
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
@@ -133,8 +134,10 @@ void ACody::Move(const FInputActionInstance& _Instance)
 	}
 }
 
+
 void ACody::Look(const FInputActionInstance& _Instance)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
 		FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
