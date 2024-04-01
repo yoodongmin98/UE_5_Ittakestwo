@@ -8,27 +8,26 @@
 // Sets default values
 ACody::ACody()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+	// 캐릭터이동
+	GetCharacterMovement()->bOrientRotationToMovement = true; 
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
-	// Create a camera boom...
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
-	CameraBoom->TargetArmLength = 800.f;
-	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
+	//스프링 암
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetUsingAbsoluteRotation(true); 
+	SpringArm->TargetArmLength = 1000.f;
+	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
+	SpringArm->bDoCollisionTest = false; 
 
 	//카메라 생성
-	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CodyCamera"));
-	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	TopDownCameraComponent->bUsePawnControlRotation = false; 
+	CodyCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CodyCamera"));
+	CodyCameraComponent->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	CodyCameraComponent->bUsePawnControlRotation = false;
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
