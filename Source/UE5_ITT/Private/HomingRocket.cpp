@@ -4,8 +4,10 @@
 #include "HomingRocket.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
+#include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Cody.h"
+
 
 
 // Sets default values
@@ -19,6 +21,9 @@ AHomingRocket::AHomingRocket()
 
 	RocketMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
 	RocketMeshComp->SetupAttachment(SceneComp);
+
+	FireEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
+	FireEffectComp->SetupAttachment(SceneComp);
 }
 
 // Called when the game starts or when spawned
@@ -45,27 +50,33 @@ void AHomingRocket::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (nullptr == PlayerCodyRef)
-	{
-		Destroy();
-		return;
-	}
-	
-	FVector RocketLocation = GetActorLocation();
-	FVector TargetLocation = PlayerCodyRef->GetActorLocation();
-
-	FVector Dir = TargetLocation - RocketLocation;
-	Dir.Normalize();
-
-	SetActorRotation(Dir.Rotation());
-	
-	FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DeltaTime;
-	SetActorLocation(NewRocketLocation);
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
+		// 일단 액티브 상태가 아니면 리턴하게
+		if (false == bIsActive)
+		{
+			return;
+		}
+
+		if (nullptr == PlayerCodyRef || 0.0f >= RocketLifeTime)
+		{
+			// 테스트코드. 비활성 함수를 만들고, 비활성 상태로 변경한다. 
+			bIsActive = false;
+			return;
+		}
+
+		RocketLifeTime -= DeltaTime;
+		FVector RocketLocation = GetActorLocation();
+		FVector TargetLocation = PlayerCodyRef->GetActorLocation();
+
+		FVector Dir = TargetLocation - RocketLocation;
+		Dir.Normalize();
+
+		SetActorRotation(Dir.Rotation());
+
+		FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DeltaTime;
+		SetActorLocation(NewRocketLocation);
 	}
 }
 

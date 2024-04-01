@@ -23,6 +23,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void InActive()
+	{
+		bIsActive = false;
+	}
+	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -41,4 +46,10 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class ACody* PlayerCodyRef = nullptr;
 
+	UPROPERTY(VisibleAnywhere)
+	bool bIsActive = true;
+
+	// ÆÄÆ¼Å¬
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* FireEffectComp = nullptr;
 };

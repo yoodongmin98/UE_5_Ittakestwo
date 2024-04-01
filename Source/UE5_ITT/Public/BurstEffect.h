@@ -28,8 +28,6 @@ private:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* StaticMeshComp = nullptr;
 
-
-
 	UPROPERTY(EditAnywhere)
 	float MaxScale = 10.0f;
 
