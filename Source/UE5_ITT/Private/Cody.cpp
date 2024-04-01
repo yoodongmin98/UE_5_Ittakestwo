@@ -3,13 +3,34 @@
 
 #include "Cody.h"
 #include "Camera/CameraComponent.h"
-
+#include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
 ACody::ACody()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
+	GetCharacterMovement()->bConstrainToPlane = true;
+	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+
+	// Create a camera boom...
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
+	CameraBoom->TargetArmLength = 800.f;
+	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
+
+	//朝五虞 持失
+	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CodyCamera"));
+	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	TopDownCameraComponent->bUsePawnControlRotation = false; 
+
+	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
 // Called when the game starts or when spawned
@@ -115,7 +136,6 @@ void ACody::Move(const FInputActionInstance& _Instance)
 
 void ACody::Look(const FInputActionInstance& _Instance)
 {
-	
 	if (Controller != nullptr)
 	{
 		FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();

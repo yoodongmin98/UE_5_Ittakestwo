@@ -37,12 +37,13 @@ class UE5_ITT_API ACody : public ACharacter
 public:
 	//basic
 	ACody();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UInputComponent* Input;
-	//friend
-	friend class UCodyAnimNotify_Dash;
+	//friend class
+
 
 
 	//Cody의 현재 state를 반환합니다.
@@ -85,6 +86,16 @@ public:
 	{
 		return bCanDash;
 	}
+	//캐릭터 스프링암에 포합된 카메라 컴포넌트를 반환합니다.
+	FORCEINLINE class UCameraComponent* GetCodyCameraComponent() const 
+	{ 
+		return CodyCameraComponent;
+	}
+	//캐릭터의 스프링암을 반환합니다.
+	FORCEINLINE class USpringArmComponent* GetSpringArm() const 
+	{ 
+		return SpringArm;
+	}
 
 	///////////////////Input///////////////////
 
@@ -119,8 +130,10 @@ public:
 
 	///////////////////Test///////////////////
 	void ChangeState(Cody_State _State);
-
-
+	//Test
+	bool IsMoveEnd = true;
+	float RotationInterpSpeed = 2.0f;
+	FRotator NewRotation;
 
 
 
@@ -129,9 +142,8 @@ public:
 
 	//////////////////////////////////////////
 
-protected:
 	
-	virtual void BeginPlay() override;
+	
 
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
@@ -153,10 +165,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = State)
 	Cody_State CodyState = Cody_State::IDLE;
 	//////////////////////////////////////////////
-public:
+
 	///////////////////Player/////////////////////
 	UPROPERTY(EditAnywhere,BlueprintReadWrite ,Category = Player)
 	int32 PlayerHP = 0;
+	//////////////////////////////////////////////
+
+	//////////////////Camera////////////////////
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* CodyCameraComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* SpringArm;
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
@@ -172,10 +191,4 @@ public:
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale;
-
-
-	//Test
-	bool IsMoveEnd = true;
-	float RotationInterpSpeed = 2.0f;
-	FRotator NewRotation;
 };
