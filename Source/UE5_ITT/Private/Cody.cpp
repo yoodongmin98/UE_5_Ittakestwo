@@ -2,6 +2,8 @@
 
 
 #include "Cody.h"
+#include "Camera/CameraComponent.h"
+
 
 // Sets default values
 ACody::ACody()
@@ -14,7 +16,7 @@ ACody::ACody()
 void ACody::BeginPlay()
 {
 	Super::BeginPlay();
-
+	//입력
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)
 	{
@@ -26,12 +28,16 @@ void ACody::BeginPlay()
 		}
 	}
 
-
 	//Set
 	PlayerHP = 12; //Player기본 Hp설정
-	DashDuration = 2.0f; //Dash 시간
+	DashDuration = 1.0f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
+
+	bIsDashing = false;
+	bIsDashingStart = false;
+	bCanDash = false;
+	PressDashKey = false;
 }
 
 // Called every frame
@@ -64,6 +70,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		CodyInput->BindAction(MoveAction, ETriggerEvent::None, this, &ACody::Idle);
 		CodyInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACody::Look);
 		CodyInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &ACody::DashInput);
+		CodyInput->BindAction(DashAction, ETriggerEvent::None, this, &ACody::DashNoneInput);
 	}
 }
 
@@ -73,38 +80,45 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ACody::Idle(const FInputActionInstance& _Instance)
 {
 	IsMoveEnd = false;
-	ChangeState(Cody_State::IDLE);
+	if(bCanDash==false)
+		ChangeState(Cody_State::IDLE);
 }
 void ACody::Move(const FInputActionInstance& _Instance)
 {
 	IsMoveEnd = true;
-	ChangeState(Cody_State::MOVE);
-	FVector2D MoveVector = _Instance.GetValue().Get<FVector2D>();
-	if (Controller != nullptr)
+	if (bCanDash == false)
 	{
-		// 이동
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		ChangeState(Cody_State::MOVE);
 
-		// 회전 각도 계산
-		float Yaw = FMath::RadiansToDegrees(FMath::Atan2(MoveVector.Y, MoveVector.X));
-		const float InterpolatedYaw = FMath::FInterpTo(Rotation.Yaw, Yaw, GetWorld()->GetDeltaSeconds(), RotationInterpSpeed);
-		const FRotator InterpolatedRotation(0, InterpolatedYaw, 0);
-		SetActorRotation(InterpolatedRotation);
+		// 캐릭터의 이동 입력 값을 가져옴
+		FVector2D MoveInput = _Instance.GetValue().Get<FVector2D>();
+		if (!MoveInput.IsNearlyZero())
+		{
+			// 입력 방향 노말라이즈
+			MoveInput = MoveInput.GetSafeNormal();
+			// 입력 방향 벡터
+			FVector ForwardVector = FVector(MoveInput.X, MoveInput.Y, 0.0f);
 
-		AddMovementInput(ForwardVector, MoveVector.X);
-		AddMovementInput(RightVector, MoveVector.Y);
+			// 입력 방향으로 캐릭터를 이동시킴
+			AddMovementInput(ForwardVector);
+
+			// 입력 방향으로 캐릭터를 회전시킴
+			if (!ForwardVector.IsNearlyZero())
+			{
+				// 입력 방향 벡터를 사용하여 캐릭터를 회전시킴
+				FRotator TargetRotation = ForwardVector.Rotation();
+				SetActorRotation(TargetRotation);
+			}
+		}
 	}
-	
 }
 
 void ACody::Look(const FInputActionInstance& _Instance)
 {
-	FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
+	
 	if (Controller != nullptr)
 	{
+		FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
 		AddControllerYawInput(LookVector.X);
 		AddControllerPitchInput(LookVector.Y);
 	}
@@ -112,7 +126,7 @@ void ACody::Look(const FInputActionInstance& _Instance)
 
 void ACody::DashInput()
 {
-	if (!bIsDashing)
+	if (!bIsDashing && !bCanDash)
 	{
 		ChangeState(Cody_State::DASH);
 		DashStartTime = GetWorld()->GetTimeSeconds();
@@ -127,6 +141,11 @@ void ACody::DashInput()
 		bIsDashing = true;
 		bCanDash = true;
 	}
+}
+
+void ACody::DashNoneInput()
+{
+	
 }
 
 void ACody::GroundDash()
@@ -149,7 +168,6 @@ void ACody::JumpDash()
 
 	FVector DashVelocity = DashDirection * DashDistance * 0.75f; //거리x방향
 	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
-
 }
 
 void ACody::DashEnd()
@@ -158,7 +176,6 @@ void ACody::DashEnd()
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	bIsDashing = false;
 	bIsDashingStart = false;
-	ChangeState(Cody_State::IDLE);
 	bCanDash = false;
 }
 

@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "Camera/CameraComponent.h"
+
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -9,6 +12,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Cody.generated.h"
+
+
 
 
 
@@ -136,9 +141,10 @@ protected:
 	void GroundDash();
 	void JumpDash();
 	void DashEnd();
+	void DashNoneInput();
 	void Sit();
 
-private:
+
 	/////////////////Controller///////////////////
 	APlayerController* CodyController = nullptr;
 	//////////////////////////////////////////////
@@ -162,12 +168,14 @@ public:
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
 	bool bCanDash;
+	bool PressDashKey;
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale;
 
-private:
+
 	//Test
 	bool IsMoveEnd = true;
 	float RotationInterpSpeed = 2.0f;
+	FRotator NewRotation;
 };
