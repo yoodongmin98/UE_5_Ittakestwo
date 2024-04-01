@@ -5,7 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "FsmComponent.h"
 #include "ParentShutter.h"
-
+#include "EnergyCore.h"
 // Sets default values
 APillar::APillar()
 {
@@ -14,20 +14,14 @@ APillar::APillar()
 
 	PillarMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
 	RootComponent = PillarMesh;
-
-	GlassMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GlassMesh"));
-	
-	GlassMesh->SetupAttachment(PillarMesh);
-
-	CoreMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CoreMesh"));
-	CoreMesh->SetupAttachment(GlassMesh);
 	
 	ShieldMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShieldMesh"));
-	ShieldMesh->SetupAttachment(GlassMesh);
+	ShieldMesh->SetupAttachment(PillarMesh);
 
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
 
+	EnergyCoreActor = CreateDefaultSubobject<AEnergyCore>(TEXT("EnergyCoreActor"));
 	SetupFsm();
 }
 
