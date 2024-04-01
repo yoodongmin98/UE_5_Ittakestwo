@@ -7,10 +7,12 @@
 #include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "BurstEffect.h"
 
 // test
 #include "Cody.h"
 
+static int TestCount = 1;
 
 // Sets default values
 AArcingProjectile::AArcingProjectile()
@@ -39,6 +41,8 @@ AArcingProjectile::AArcingProjectile()
 void AArcingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+	ProjectileMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapBegin);
+	ProjectileMeshComp->OnComponentEndOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapEnd);
 	ProjectileMeshComp->OnComponentHit.AddDynamic(this, &AArcingProjectile::OnHit);
 
 	// 네트워크 권한을 확인하는 코드
@@ -48,6 +52,22 @@ void AArcingProjectile::BeginPlay()
 		SetReplicates(true);
 		SetReplicateMovement(true);
 	}
+}
+
+void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	++TestCount;
+
+	// 오버랩시작시 버스트이펙트생성
+	ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass);
+	if (Effect != nullptr)
+	{
+		Effect->SetActorLocation(GetActorLocation());
+	}
+}
+
+void AArcingProjectile::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
 }
 
 // Called every frame
@@ -82,9 +102,8 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 
 void AArcingProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 여기서 충돌했을 때 원형으로 커지는 구체 생성. 
-
-
-
+	// 여기서 충돌했을 때 원형으로 커지는 구체 생성.
+	ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(ABurstEffect::StaticClass());
+	Effect->SetActorLocation(GetActorLocation());
 }
 
