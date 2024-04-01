@@ -133,7 +133,6 @@ public:
 	//Test
 	bool IsMoveEnd = true;
 	float RotationInterpSpeed = 2.0f;
-	FRotator NewRotation;
 
 
 

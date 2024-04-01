@@ -104,10 +104,12 @@ void ACody::Idle(const FInputActionInstance& _Instance)
 	if(bCanDash==false)
 		ChangeState(Cody_State::IDLE);
 }
+
 void ACody::Move(const FInputActionInstance& _Instance)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
+	
 	if (bCanDash == false)
 	{
 		ChangeState(Cody_State::MOVE);
@@ -141,9 +143,22 @@ void ACody::Look(const FInputActionInstance& _Instance)
 	UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
+		// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함
+		// 2. Move가 입력중일땐 미적용-> Move가 끝난 시점에 적용되어야함(idle)
+		// 3. Move중에도 벡터는 유지되고, 보는 방향은 달라져야함
+		// 4. 보는 방향 -> 피치,요 둘다 적용
+		// 5. 방향벡터 -> 요만 적용
+
 		FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
+
+		
 		AddControllerYawInput(LookVector.X);
-		AddControllerPitchInput(LookVector.Y);
+		// 카메라의 피치 각도 제한
+		float CurrentPitch = GetControlRotation().Pitch;
+		float NewPitch = FMath::ClampAngle(CurrentPitch + LookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
+		FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
+		Controller->SetControlRotation(NewRotation);
+		//AddControllerPitchInput(LookVector.Y);
 	}
 }
 
