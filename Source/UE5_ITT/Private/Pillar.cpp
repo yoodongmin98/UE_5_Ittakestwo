@@ -6,6 +6,7 @@
 #include "FsmComponent.h"
 #include "ParentShutter.h"
 #include "EnergyCore.h"
+
 // Sets default values
 APillar::APillar()
 {
@@ -21,7 +22,7 @@ APillar::APillar()
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
 
-	EnergyCoreActor = CreateDefaultSubobject<AEnergyCore>(TEXT("EnergyCoreActor"));
+
 	SetupFsm();
 }
 
@@ -30,6 +31,7 @@ void APillar::BeginPlay()
 {
 	Super::BeginPlay();
 
+	EnergyCoreActor = GetWorld()->SpawnActorAbsolute<AEnergyCore>(FVector(0.f, 0.f, -400.f), FRotator::ZeroRotator);
 	FsmComp->ChangeState(Fsm::Close);
 
 	// 네트워크 권한을 확인하는 코드
