@@ -28,7 +28,7 @@ ACody::ACody()
 	//朝五虞 持失
 	CodyCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CodyCamera"));
 	CodyCameraComponent->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	CodyCameraComponent->bUsePawnControlRotation = true;
+	CodyCameraComponent->bUsePawnControlRotation = false;
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
@@ -106,6 +106,7 @@ void ACody::Idle(const FInputActionInstance& _Instance)
 }
 void ACody::Move(const FInputActionInstance& _Instance)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
 	if (bCanDash == false)
 	{
