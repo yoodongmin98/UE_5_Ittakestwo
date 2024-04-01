@@ -12,7 +12,7 @@
 // test
 #include "Cody.h"
 
-static int TestCount = 1;
+static int TestCount = 0;
 
 // Sets default values
 AArcingProjectile::AArcingProjectile()
@@ -41,6 +41,10 @@ AArcingProjectile::AArcingProjectile()
 void AArcingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// test
+	TestCount = 0;
+
 	ProjectileMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapBegin);
 	ProjectileMeshComp->OnComponentEndOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapEnd);
 	ProjectileMeshComp->OnComponentHit.AddDynamic(this, &AArcingProjectile::OnHit);
@@ -58,11 +62,16 @@ void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 {
 	++TestCount;
 
-	// 오버랩시작시 버스트이펙트생성
-	ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass);
-	if (Effect != nullptr)
+	if (OtherActor != this)
 	{
-		Effect->SetActorLocation(GetActorLocation());
+		FVector SettingLocation = GetActorLocation();
+
+		// 오버랩시작시 버스트이펙트생성
+		ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass, SettingLocation, FRotator::ZeroRotator);
+		if (Effect != nullptr)
+		{
+			Effect->SetActorLocation(SettingLocation);
+		}
 	}
 }
 
@@ -74,6 +83,10 @@ void AArcingProjectile::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor
 void AArcingProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// 타이머설정해두고 0.2초 이후에 
+	// 오버랩세팅 하게 해두면 해결되지 않을까?
+
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())

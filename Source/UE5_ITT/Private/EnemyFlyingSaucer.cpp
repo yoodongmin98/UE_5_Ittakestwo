@@ -81,8 +81,7 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
-	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass);
-	Projectile->SetActorLocation(ArcingProjectileSpawnPointMesh->GetComponentLocation());
+	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(),FRotator::ZeroRotator);
 	Projectile->SetupProjectileMovementComponent();
 	Projectile->SetOwner(this);
 }
