@@ -26,6 +26,13 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	// 오버랩이벤트 테스트
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -44,4 +51,7 @@ private:
 	// 파티클
 	UPROPERTY(VisibleAnywhere)
 	class UNiagaraComponent* TrailEffectComp = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ABurstEffect> BurstEffectClass;
 };
