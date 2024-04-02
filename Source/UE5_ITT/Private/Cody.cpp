@@ -118,13 +118,21 @@ void ACody::Move(const FInputActionInstance& _Instance)
 		FVector2D MoveInput = _Instance.GetValue().Get<FVector2D>();
 		if (!MoveInput.IsNearlyZero())
 		{
+			
+
+
+
+
+
+
+			//이 밑에는 카메라의 영향을 안받는 player의 movement
+
 			// 입력 방향 노말라이즈
 			MoveInput = MoveInput.GetSafeNormal();
+			CameraLookVector= CameraLookVector.GetSafeNormal();
 			// 입력 방향 벡터
 			FVector ForwardVector = FVector(MoveInput.X, MoveInput.Y, 0.0f);
 
-			// 입력 방향으로 캐릭터를 이동시킴
-			AddMovementInput(ForwardVector);
 
 			// 입력 방향으로 캐릭터를 회전시킴
 			if (!ForwardVector.IsNearlyZero())
@@ -133,6 +141,10 @@ void ACody::Move(const FInputActionInstance& _Instance)
 				FRotator TargetRotation = ForwardVector.Rotation();
 				SetActorRotation(TargetRotation);
 			}
+
+
+			// 입력 방향으로 캐릭터를 이동시킴
+			AddMovementInput(ForwardVector);
 		}
 	}
 }
@@ -149,16 +161,15 @@ void ACody::Look(const FInputActionInstance& _Instance)
 		// 4. 보는 방향 -> 피치,요 둘다 적용
 		// 5. 방향벡터 -> 요만 적용
 
-		FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
+		CameraLookVector = _Instance.GetValue().Get<FVector2D>();
 
+		AddControllerYawInput(CameraLookVector.X);
 		
-		AddControllerYawInput(LookVector.X);
 		// 카메라의 피치 각도 제한
 		float CurrentPitch = GetControlRotation().Pitch;
-		float NewPitch = FMath::ClampAngle(CurrentPitch + LookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
+		float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
 		FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
 		Controller->SetControlRotation(NewRotation);
-		//AddControllerPitchInput(LookVector.Y);
 	}
 }
 

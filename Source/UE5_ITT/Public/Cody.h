@@ -175,6 +175,8 @@ public:
 	class UCameraComponent* CodyCameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* SpringArm;
+
+	FVector2D CameraLookVector = FVector2D::ZeroVector;
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
