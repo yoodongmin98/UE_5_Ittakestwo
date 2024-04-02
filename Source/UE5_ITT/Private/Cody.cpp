@@ -109,42 +109,46 @@ void ACody::Move(const FInputActionInstance& _Instance)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
-	
+
 	if (bCanDash == false)
 	{
 		ChangeState(Cody_State::MOVE);
+		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+		// 컨트롤러의 회전 방향을 가져옴
+		FRotator ControllerRotation = Controller->GetControlRotation();
+		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
+		FRotator TargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+		SetActorRotation(TargetRotation);
 
-		// 캐릭터의 이동 입력 값을 가져옴
+
+		// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
+		FVector WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+		// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
+		FVector WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
+	 
+		// 캐릭터를 입력 방향으로 이동시킴
 		FVector2D MoveInput = _Instance.GetValue().Get<FVector2D>();
 		if (!MoveInput.IsNearlyZero())
 		{
-			
-
-
-
-
-
-
-			//이 밑에는 카메라의 영향을 안받는 player의 movement
-
 			// 입력 방향 노말라이즈
 			MoveInput = MoveInput.GetSafeNormal();
-			CameraLookVector= CameraLookVector.GetSafeNormal();
-			// 입력 방향 벡터
-			FVector ForwardVector = FVector(MoveInput.X, MoveInput.Y, 0.0f);
 
 
-			// 입력 방향으로 캐릭터를 회전시킴
-			if (!ForwardVector.IsNearlyZero())
-			{
-				// 입력 방향 벡터를 사용하여 캐릭터를 회전시킴
-				FRotator TargetRotation = ForwardVector.Rotation();
-				SetActorRotation(TargetRotation);
-			}
+			/////////////////////////////////////////////////////////
+			//회전 구현해야함
+			/////////////////////////////////////////////////////////
+			 
+			 
+			// 컨트롤러의 회전 방향을 기준으로 계산된 월드 전방 벡터와 월드 오른쪽 벡터를 사용하여 이동 방향을 설정
+			FVector MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
 
 
-			// 입력 방향으로 캐릭터를 이동시킴
-			AddMovementInput(ForwardVector);
+			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 앞뒤좌우 이동을 구현
+			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
+			MoveDirection.Normalize();
+			// 입력 방향에 따라 캐릭터를 이동시킴
+			
+			AddMovementInput(MoveDirection);
 		}
 	}
 }
