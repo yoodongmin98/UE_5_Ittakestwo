@@ -33,69 +33,16 @@ UCLASS()
 class UE5_ITT_API ACody : public ACharacter
 {
 	GENERATED_BODY()
-
+	UInputComponent* Input;
 public:
 	//basic
 	ACody();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UInputComponent* Input;
 	//friend class
 
 
-
-	//Cody의 현재 state를 반환합니다.
-	UFUNCTION(BlueprintCallable) 
-	inline Cody_State GetCodyState() const
-	{
-		return CodyState;
-	}
-	//플레이어의 이동이 끝났는지를 반환합니다.
-	UFUNCTION(BlueprintCallable)
-	inline bool GetIsMoveEnd() const
-	{
-		return IsMoveEnd;
-	}
-	//이동이 끝났을때 호출됩니다(CodyAnimNotify.cpp)
-	inline void SetIsMoveEndT()
-	{
-		IsMoveEnd = true;
-	}
-	//대쉬 키를 눌렀는지를 반환합니다.
-	UFUNCTION(BlueprintCallable)
-	inline bool GetbIsDashing() const
-	{
-		return bIsDashing;
-	}
-	//대쉬시작 애니메이션이 끝났는지를 확인합니다
-	UFUNCTION(BlueprintCallable)
-	inline bool GetbIsDashingStart() const
-	{
-		return bIsDashingStart;
-	}
-	//대쉬 시작 애니메이션이 끝났을 때 호출됩니다(CodyNotify_DashStart.cpp)
-	inline void SetbIsDashingStart()
-	{
-		bIsDashingStart = true;
-	}
-	// 대쉬가 다시 입력가능한 상태인지를 확인합니다.
-	UFUNCTION(BlueprintCallable)
-	inline bool GetbCanDash() const
-	{
-		return bCanDash;
-	}
-	//캐릭터 스프링암에 포합된 카메라 컴포넌트를 반환합니다.
-	FORCEINLINE class UCameraComponent* GetCodyCameraComponent() const 
-	{ 
-		return CodyCameraComponent;
-	}
-	//캐릭터의 스프링암을 반환합니다.
-	FORCEINLINE class USpringArmComponent* GetSpringArm() const 
-	{ 
-		return SpringArm;
-	}
 
 	///////////////////Input///////////////////
 
@@ -126,6 +73,88 @@ public:
 	UInputAction* DashAction;
 
 
+	//Cody의 현재 state를 반환합니다.
+	UFUNCTION(BlueprintCallable) 
+	inline Cody_State GetCodyState() const
+	{
+		return CodyState;
+	}
+	//캐릭터 스프링암에 포합된 카메라 컴포넌트를 반환합니다.
+	FORCEINLINE class UCameraComponent* GetCodyCameraComponent() const
+	{
+		return CodyCameraComponent;
+	}
+	//캐릭터의 스프링암을 반환합니다.
+	FORCEINLINE class USpringArmComponent* GetSpringArm() const
+	{
+		return SpringArm;
+	}
+	//플레이어의 이동이 끝났는지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsMoveEnd() const
+	{
+		return IsMoveEnd;
+	}
+	//이동이 끝났을때 호출됩니다(CodyAnimNotify.cpp)
+	inline void SetIsMoveEndT()
+	{
+		IsMoveEnd = true;
+	}
+	//대쉬 키를 눌렀는지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetbIsDashing() const
+	{
+		return bIsDashing;
+	}
+	//대쉬의 지속시간을 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline float GetDashDuration()
+	{
+		return DashDuration;
+	}
+	//대쉬시작 애니메이션이 끝났는지를 확인합니다
+	UFUNCTION(BlueprintCallable)
+	inline bool GetbIsDashingStart() const
+	{
+		return bIsDashingStart;
+	}
+	//대쉬 시작 애니메이션이 끝났을 때 호출됩니다(CodyNotify_DashStart.cpp)
+	inline void SetbIsDashingStart()
+	{
+		bIsDashingStart = true;
+	}
+	// 대쉬가 다시 입력가능한 상태인지를 확인합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetbCanDash() const
+	{
+		return bCanDash;
+	}
+	//Player의 HP를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline int32 GetPlayerHP() const
+	{
+		return PlayerHP;
+	}
+	//카메라의 Vector2D를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline FVector2D GetCameraVector() const
+	{
+		return CameraLookVector;
+	}
+	//캐릭터에 적용되어있는 기본 지면 마찰력을 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline float GetPlayerGroundFriction() const
+	{
+		return DefaultGroundFriction;
+	}
+	//캐릭터에 적용되어있는 기본 중력 스케일을 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline float GetPlayerGravityScale() const
+	{
+		return DefaultGravityScale;
+	}
+
+
 
 
 	///////////////////Test///////////////////
@@ -154,6 +183,9 @@ public:
 	void DashEnd();
 	void DashNoneInput();
 	void Sit();
+	 
+
+
 
 
 	/////////////////Controller///////////////////
@@ -166,7 +198,7 @@ public:
 	//////////////////////////////////////////////
 
 	///////////////////Player/////////////////////
-	UPROPERTY(EditAnywhere,BlueprintReadWrite ,Category = Player)
+	UPROPERTY(EditAnywhere ,BlueprintReadOnly ,Category = Player)
 	int32 PlayerHP = 0;
 	//////////////////////////////////////////////
 
@@ -180,16 +212,15 @@ public:
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashDistance = 2000.0f; // 앞구르기 거리
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashDuration; // 앞구르기 지속 시간
 	float DashStartTime;
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
 	bool bCanDash;
-	bool PressDashKey;
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
-	float DefaultGravityScale;
+	float DefaultGravityScale; //기본 중력
 };

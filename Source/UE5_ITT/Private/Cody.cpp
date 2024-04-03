@@ -58,19 +58,20 @@ void ACody::BeginPlay()
 	bIsDashing = false;
 	bIsDashingStart = false;
 	bCanDash = false;
-	PressDashKey = false;
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
 		float CurrentTime = GetWorld()->GetTimeSeconds();
 		if (CurrentTime >= DashStartTime + DashDuration)
 		{
-			DashEnd(); // 대시 지속 시간이 지나면 대시 종료
+			// 대시 지속 시간이 지나면 대시 종료
+			DashEnd(); 
 		}
 	}
 }
@@ -114,8 +115,10 @@ void ACody::Move(const FInputActionInstance& _Instance)
 	{
 		ChangeState(Cody_State::MOVE);
 		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+		// 
 		// 컨트롤러의 회전 방향을 가져옴
 		FRotator ControllerRotation = Controller->GetControlRotation();
+
 		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
 		FRotator TargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
 		SetActorRotation(TargetRotation);
@@ -133,21 +136,17 @@ void ACody::Move(const FInputActionInstance& _Instance)
 			// 입력 방향 노말라이즈
 			MoveInput = MoveInput.GetSafeNormal();
 
-
-			/////////////////////////////////////////////////////////
-			//회전 구현해야함
-			/////////////////////////////////////////////////////////
-			 
-			 
-			// 컨트롤러의 회전 방향을 기준으로 계산된 월드 전방 벡터와 월드 오른쪽 벡터를 사용하여 이동 방향을 설정
+			// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
 			FVector MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+			FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
+			SetActorRotation(CodyRotation);
 
-
-			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 앞뒤좌우 이동을 구현
+			 
+			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
 			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
 			MoveDirection.Normalize();
+
 			// 입력 방향에 따라 캐릭터를 이동시킴
-			
 			AddMovementInput(MoveDirection);
 		}
 	}
@@ -159,17 +158,18 @@ void ACody::Look(const FInputActionInstance& _Instance)
 	UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
-		// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함
+		// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함 →ㅇ
 		// 2. Move가 입력중일땐 미적용-> Move가 끝난 시점에 적용되어야함(idle)
-		// 3. Move중에도 벡터는 유지되고, 보는 방향은 달라져야함
-		// 4. 보는 방향 -> 피치,요 둘다 적용
-		// 5. 방향벡터 -> 요만 적용
+		// 3. Move중에도 벡터는 유지되고, 보는 방향은 달라져야함 →ㅇ
+		// 4. 보는 방향 -> 피치,요 둘다 적용 →ㅇ
+		// 5. 방향벡터 -> 요만 적용 →ㅇ
 
 		CameraLookVector = _Instance.GetValue().Get<FVector2D>();
 
 		AddControllerYawInput(CameraLookVector.X);
 		
 		// 카메라의 피치 각도 제한
+		// 90도 넘어가면 스프링암 타겟길이에 영향을 미쳐야함.
 		float CurrentPitch = GetControlRotation().Pitch;
 		float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
 		FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
@@ -182,7 +182,9 @@ void ACody::DashInput()
 	if (!bIsDashing && !bCanDash)
 	{
 		ChangeState(Cody_State::DASH);
+		//대쉬 시작시간을 체크
 		DashStartTime = GetWorld()->GetTimeSeconds();
+		//지면에 닿아있는지를 체크하여 실행할 함수 변경
 		if (!GetCharacterMovement()->IsFalling())
 		{
 			GroundDash();
@@ -203,28 +205,35 @@ void ACody::DashNoneInput()
 
 void ACody::GroundDash()
 {
-	GetCharacterMovement()->GroundFriction = 0.0f; //마찰력 없앰
-
-	FVector DashDirection = GetActorForwardVector(); // 전방벡터
-	DashDirection.Normalize(); // 방향벡터normalize
-
-	FVector DashVelocity = DashDirection * DashDistance; //거리x방향
-	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
+	// 마찰력 없앰
+	GetCharacterMovement()->GroundFriction = 0.0f; 
+	// Cody의 전방벡터
+	FVector DashDirection = GetActorForwardVector(); 
+	// 벡터Normalize
+	DashDirection.Normalize(); 
+	// 거리 x 방향 계산
+	FVector DashVelocity = DashDirection * DashDistance; 
+	// 시간에따른 속도설정
+	GetCharacterMovement()->Velocity = DashVelocity; 
 }
 
 void ACody::JumpDash()
 {
-	GetCharacterMovement()->GravityScale = 0.0f; //중력 없앰
-
-	FVector DashDirection = GetActorForwardVector(); // 전방벡터
-	DashDirection.Normalize(); // 방향벡터normalize
-
-	FVector DashVelocity = DashDirection * DashDistance * 0.75f; //거리x방향
-	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
+	// 중력 없앰
+	GetCharacterMovement()->GravityScale = 0.0f; 
+	// Cody의 전방벡터
+	FVector DashDirection = GetActorForwardVector(); 
+	// 방향벡터normalize
+	DashDirection.Normalize(); 
+	// 거리 x 방향 계산
+	FVector DashVelocity = DashDirection * DashDistance * 0.75f; 
+	// 시간에따른 속도설정
+	GetCharacterMovement()->Velocity = DashVelocity;
 }
 
 void ACody::DashEnd()
 {
+	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
 	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	bIsDashing = false;
