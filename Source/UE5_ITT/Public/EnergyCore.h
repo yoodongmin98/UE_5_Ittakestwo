@@ -18,11 +18,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
 	bool IsExplode() const
 	{
 		return bExplode;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	void SetExplode(bool bValue)
 	{
 		bExplode = bValue;
