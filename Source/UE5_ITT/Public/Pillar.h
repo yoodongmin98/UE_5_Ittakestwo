@@ -77,8 +77,6 @@ private:
 	bool bOnPlayer = false;
 
 	UPROPERTY(EditAnywhere, Category = "Bool")
-	bool bExplode = false;
-	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bShieldOpen = false;
 	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bDone = false;
