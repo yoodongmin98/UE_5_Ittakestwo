@@ -25,9 +25,9 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	void SetExplode(bool bValue)
+	void SetExplode()
 	{
-		bExplode = bValue;
+		bExplode = true;
 	}
 
 protected:

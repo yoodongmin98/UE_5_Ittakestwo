@@ -74,6 +74,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	class UBehaviorTree* AIBehaviorTreePhase3;
 
+	UPROPERTY(EditDefaultsOnly)
+	class AFloor* FloorObject = nullptr;
+
 	FTimerHandle TargetLocationCheckHandle;
 	FVector PrevTargetLocation = FVector::ZeroVector;
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;

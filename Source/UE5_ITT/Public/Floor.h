@@ -31,6 +31,9 @@ public:
 	};
 	void SetPhase(Fsm Phase);
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentPhase() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -199,6 +199,8 @@ void APillar::SetupFsm()
 				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
 			}
 
+			bool Check = EnergyCoreActor->IsExplode();
+			
 			if (true == EnergyCoreActor->IsExplode())
 			{
 				//레이저 타격 체크 필요

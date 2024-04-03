@@ -41,6 +41,16 @@ void AFloor::SetPhase(Fsm Phase)
 	FsmComp->ChangeState(Phase);	
 }
 
+int32 AFloor::GetCurrentPhase() const
+{
+	if (nullptr == FsmComp)
+	{
+		return -1;
+	}
+
+	return FsmComp->GetCurrentState();
+}
+
 void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));

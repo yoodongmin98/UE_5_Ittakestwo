@@ -52,6 +52,12 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION(BlueprintCallable)
+	AFloor* GetFloor()
+	{
+		return FloorObject;
+	}
+
 	// 컴포넌트 초기화
 	void SetupComponent();
 
@@ -78,9 +84,17 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AFloor> FloorClass = nullptr;
+
+
 	// 원숭이 
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
+
+	// 원숭이 
+	UPROPERTY(EditAnywhere)
+	class AFloor* FloorObject = nullptr;
 
 	// --------------------------------- spawnpointmesh ---------------------------------- 
 	// 들고 있어야 되나 싶음
