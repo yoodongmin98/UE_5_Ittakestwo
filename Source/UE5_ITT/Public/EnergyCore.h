@@ -18,6 +18,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	bool IsExplode() const
+	{
+		return bExplode;
+	}
+
+	void SetExplode(bool bValue)
+	{
+		bExplode = bValue;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -29,4 +39,5 @@ private:
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* GlassMesh = nullptr;
 
+	bool bExplode = false;
 };
