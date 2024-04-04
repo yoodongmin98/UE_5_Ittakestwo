@@ -19,7 +19,7 @@ void AFlyingSaucerAIController::BeginPlay()
 	Super::BeginPlay();
 	
 	SetupPlayerReference();
-	SetupTimerManager();
+	//SetupTimerManager();
 	SetupStartBehaviorTreePhase1();
 
 	// 네트워크 권한을 확인하는 코드
@@ -70,7 +70,7 @@ void AFlyingSaucerAIController::SetupTimerManager()
 	GetWorldTimerManager().SetTimer(TargetLocationCheckHandle,
 														 this, 
 	   &AFlyingSaucerAIController::SavePreviousTargetLocation,
-														 0.035f,
+									     UpdateDeltaTimeCycle,
 														 true
 															);
 }
@@ -83,17 +83,22 @@ void AFlyingSaucerAIController::SavePreviousTargetLocation()
 	{
 		FVector CurrentTargetLocation = TargetPawn->GetActorLocation();
 
+		// 이전 타겟 위치가 유효하다면 
 		if (true == bPrevTargetLocationValid)
 		{
+			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
 			PrevTargetLocation = PrevTargetLocationBuffer;
 			bPrevTargetLocationValid = false;
 		}
 
 		else
 		{
+			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
 			PrevTargetLocation = CurrentTargetLocation;
 		}
 
+		// 타겟위치를 세팅
+		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
 		PrevTargetLocationBuffer = CurrentTargetLocation;
 		bPrevTargetLocationValid = true;
 	}
@@ -102,10 +107,12 @@ void AFlyingSaucerAIController::SavePreviousTargetLocation()
 
 void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
-	LaserLerpRatio += DeltaTime / 5;
+	LaserLerpRatio += DeltaTime * 15.0f;
 	if (1.0f <= LaserLerpRatio)
 	{
-		LaserLerpRatio = 1.0f;
+		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevLaserAttackLocation"), PrevTargetLocation);
+		SavePreviousTargetLocation();
+		LaserLerpRatio -= 1.0f;
 	}
 
 	GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);

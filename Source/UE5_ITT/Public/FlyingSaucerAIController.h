@@ -82,6 +82,7 @@ private:
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
 	bool bPrevTargetLocationValid = false;
 	float LaserLerpRatio = 0.0f;
+	float UpdateDeltaTimeCycle = 1.0f;
 
 	// phase
 	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
