@@ -198,8 +198,6 @@ void APillar::SetupFsm()
 				}
 				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
 			}
-
-			bool Check = EnergyCoreActor->IsExplode();
 			
 			if (true == EnergyCoreActor->IsExplode())
 			{
