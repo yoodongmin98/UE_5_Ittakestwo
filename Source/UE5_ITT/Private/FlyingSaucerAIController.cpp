@@ -18,6 +18,13 @@ void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (nullptr == TestTargetActor)
+	{
+		// 테스트 타겟
+		TestTargetActor = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
+		TestTargetActor->SetActorLocation(FVector(1810, 4120, 0));
+	}
+
 	SetupPlayerReference();
 	SetupStartBehaviorTreePhase1();
 
@@ -39,6 +46,8 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
+		
+
 		// 체력을 체크해서 페이즈 전환
 		UpdatePhaseFromHealth(DeltaTime);
 		UpdateLerpRatioForLaserBeam(DeltaTime);
@@ -62,6 +71,10 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef1"), PlayerRef1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerRef2"), PlayerRef2);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
+
+		// test
+		GetBlackboardComponent()->SetValueAsObject(TEXT("TestTargetActor"), TestTargetActor);
+
 	}
 	
 }

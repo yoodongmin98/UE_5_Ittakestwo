@@ -85,4 +85,13 @@ private:
 
 	// phase
 	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
+
+
+	// laser test code
+	UPROPERTY(EditDefaultsOnly)
+	class AEnemyMoonBaboon* TestTargetActor = nullptr;
+
+	//tsubclass 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
 };
