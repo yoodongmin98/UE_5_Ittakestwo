@@ -3,6 +3,7 @@
 
 #include "BurstEffect.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 ABurstEffect::ABurstEffect()
@@ -21,7 +22,17 @@ ABurstEffect::ABurstEffect()
 void ABurstEffect::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void ABurstEffect::EffectDestroy()
+{
+	Destroy();
+}
+
+void ABurstEffect::SetupDestroyTimerEvent()
+{
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABurstEffect::EffectDestroy, 1.0f, false);
 }
 
 // Called every frame
@@ -29,12 +40,18 @@ void ABurstEffect::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (true == bDestroyValue)
+	{
+		return;
+	}
+
 	FVector NewScale = GetActorScale3D() + FVector(1.0f, 1.0f, 1.0f) * DeltaTime * 3.0f;
 	GetRootComponent()->SetWorldScale3D(NewScale);
 
 	if (NewScale.X >= MaxScale)
 	{
-		Destroy();
+		SetupDestroyTimerEvent();
+		bDestroyValue = true;
 	}
 }
 

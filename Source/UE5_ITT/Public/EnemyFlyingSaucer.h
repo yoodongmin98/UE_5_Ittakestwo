@@ -21,31 +21,21 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// 각종 발사
-	UFUNCTION(BlueprintCallable, Category = "Battle")
+	UFUNCTION(BlueprintCallable)
 	void FireLaserBeam();
-	UFUNCTION(BlueprintCallable, Category = "Battle")
+	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
-	UFUNCTION(BlueprintCallable, Category = "Battle")
+	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
 	UFUNCTION(BlueprintCallable)
-	float GetCurrentHp() const
-	{
-		return CurrentHp;
-	}
+	float GetCurrentHp() const { return CurrentHp; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetCurrentHp(float HpValue)
-	{
-		CurrentHp = HpValue;
-	}
+	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
 	
 	UFUNCTION(BlueprintCallable)
-	UStaticMeshComponent* GetLaserSpawnPointMesh() const
-	{
-		return LaserSpawnPointMesh;
-	}
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,22 +43,16 @@ protected:
 
 private:
 	UFUNCTION(BlueprintCallable)
-	AFloor* GetFloor()
-	{
-		return FloorObject;
-	}
+	AFloor* GetFloor() { return FloorObject; }
 
-	// 컴포넌트 초기화
 	void SetupComponent();
-
-	// 디버그 관련 함수 
 	void DrawDebugMesh();
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsStartMotion = true;
 
+	// 초반 원숭이 공중에 붕뜨는 거 
 	void StartMotionUpdate(float DeltaTime);
-
 	FVector StartMotionTargetLocation = FVector(0, 0, 650);
 
 	UPROPERTY(EditAnywhere)
@@ -87,17 +71,12 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AFloor> FloorClass = nullptr;
 
-
-	// 원숭이 
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
-	// 원숭이 
 	UPROPERTY(EditAnywhere)
 	class AFloor* FloorObject = nullptr;
 
-	// --------------------------------- spawnpointmesh ---------------------------------- 
-	// 들고 있어야 되나 싶음
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 

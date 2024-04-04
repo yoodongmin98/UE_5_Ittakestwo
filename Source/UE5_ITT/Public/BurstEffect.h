@@ -22,11 +22,18 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere)
+	void EffectDestroy();
+	void SetupDestroyTimerEvent();
+
+	UPROPERTY(EditDefaultsOnly)
 	class USceneComponent* SceneComp = nullptr;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* StaticMeshComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UMaterialInstanceDynamic* DynamicMaterialInstance = nullptr;
+
 
 	UPROPERTY(EditAnywhere)
 	float MaxScale = 10.0f;
@@ -34,4 +41,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float BurstSpeed = 50.0f;
 
+	UPROPERTY(EditAnywhere)
+	bool bDestroyValue = false;
+
+
+	
 };
