@@ -44,7 +44,6 @@ private:
 
 	void SetupPlayerReference();
 	void SetupStartBehaviorTreePhase1();
-	void SetupTimerManager();
 	void SavePreviousTargetLocation();
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 	void UpdatePhaseFromHealth(float DeltaTime);
@@ -82,7 +81,7 @@ private:
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
 	bool bPrevTargetLocationValid = false;
 	float LaserLerpRatio = 0.0f;
-	float UpdateDeltaTimeCycle = 1.0f;
+	float LaserLerpRate = 25.0f;
 
 	// phase
 	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;

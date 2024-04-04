@@ -19,7 +19,6 @@ void AFlyingSaucerAIController::BeginPlay()
 	Super::BeginPlay();
 	
 	SetupPlayerReference();
-	//SetupTimerManager();
 	SetupStartBehaviorTreePhase1();
 
 	GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
@@ -67,16 +66,6 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 	
 }
 
-void AFlyingSaucerAIController::SetupTimerManager()
-{
-	GetWorldTimerManager().SetTimer(TargetLocationCheckHandle,
-														 this, 
-	   &AFlyingSaucerAIController::SavePreviousTargetLocation,
-									     UpdateDeltaTimeCycle,
-														 true
-															);
-}
-
 void AFlyingSaucerAIController::SavePreviousTargetLocation()
 {
 	APawn* TargetPawn = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("LaserBeamTarget")));
@@ -109,7 +98,7 @@ void AFlyingSaucerAIController::SavePreviousTargetLocation()
 
 void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
-	LaserLerpRatio += DeltaTime * 15.0f;
+	LaserLerpRatio += DeltaTime * LaserLerpRate;
 	if (1.0f <= LaserLerpRatio)
 	{
 		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevLaserAttackLocation"), PrevTargetLocation);
