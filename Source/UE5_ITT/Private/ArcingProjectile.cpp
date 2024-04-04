@@ -12,8 +12,6 @@
 // test
 #include "Cody.h"
 
-static int TestCount = 0;
-
 // Sets default values
 AArcingProjectile::AArcingProjectile()
 {
@@ -34,7 +32,6 @@ AArcingProjectile::AArcingProjectile()
 
 	TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffectComponent"));
 	TrailEffectComp->SetupAttachment(SceneComp);
-
 }
 
 // Called when the game starts or when spawned
@@ -42,12 +39,7 @@ void AArcingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// test
-	TestCount = 0;
-
-	ProjectileMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapBegin);
-	ProjectileMeshComp->OnComponentEndOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapEnd);
-	ProjectileMeshComp->OnComponentHit.AddDynamic(this, &AArcingProjectile::OnHit);
+	SetupOverlapEvent();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -58,15 +50,21 @@ void AArcingProjectile::BeginPlay()
 	}
 }
 
+void AArcingProjectile::SetupOverlapEvent()
+{
+	if (nullptr != ProjectileMeshComp)
+	{
+		ProjectileMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapBegin);
+		ProjectileMeshComp->OnComponentEndOverlap.AddDynamic(this, &AArcingProjectile::OnOverlapEnd);
+	}
+}
+
 void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	++TestCount;
-
 	if (OtherActor != this)
 	{
 		FVector SettingLocation = GetActorLocation();
-
-		// 오버랩시작시 버스트이펙트생성
+		
 		ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass, SettingLocation, FRotator::ZeroRotator);
 		if (Effect != nullptr)
 		{
@@ -79,21 +77,15 @@ void AArcingProjectile::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor
 {
 }
 
-// Called every frame
 void AArcingProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// 타이머설정해두고 0.2초 이후에 
-	// 오버랩세팅 하게 해두면 해결되지 않을까?
-
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
 		
 	}
-	// 여기서 한번만 호출되게 ? 
 }
 
 void AArcingProjectile::SetupProjectileMovementComponent()
@@ -111,12 +103,5 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 			ProjectileMovementComp->Velocity = OutVelocity;
 		}
 	}
-}
-
-void AArcingProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	// 여기서 충돌했을 때 원형으로 커지는 구체 생성.
-	ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(ABurstEffect::StaticClass());
-	Effect->SetActorLocation(GetActorLocation());
 }
 

@@ -6,7 +6,7 @@
 
 UBTTask_SetRandomTarget::UBTTask_SetRandomTarget()
 {
-	NodeName = TEXT("BTTask_SetRandomTarget");
+	NodeName = TEXT("BTT_SetRandomTarget");
 }
 
 EBTNodeResult::Type UBTTask_SetRandomTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -21,19 +21,19 @@ EBTNodeResult::Type UBTTask_SetRandomTarget::ExecuteTask(UBehaviorTreeComponent&
 		{
 		case 1:
 		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerRef1"));
+			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
 			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
 		}
 			break;
 		case 2:
 		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerRef1"));
+			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
 			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
 		}
 			break;
 		case 3:
 		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerRef1"));
+			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
 			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
 		}
 			break;
