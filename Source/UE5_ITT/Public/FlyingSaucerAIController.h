@@ -32,36 +32,16 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	enum class EBossPhase
-	{
-		None,
-		Phase_1,
-		Phase_2,
-		Phase_3,
-		Death,
-		Max
-	};
-
 	void SetupPlayerReference();
 	void SetupStartBehaviorTreePhase1();
 	void SavePreviousTargetLocation();
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
-	void UpdatePhaseFromHealth(float DeltaTime);
-	void ChangePhase(EBossPhase Phase);
 
-	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef1;
 
-	// Player Ref Test
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef2;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	bool bFocus = false;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float FocusRange = 300;
 
 	// Behavior Tree
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
@@ -76,13 +56,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
 
-	FTimerHandle TargetLocationCheckHandle;
 	FVector PrevTargetLocation = FVector::ZeroVector;
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
 	bool bPrevTargetLocationValid = false;
 	float LaserLerpRatio = 0.0f;
 	float LaserLerpRate = 25.0f;
-
-	// phase
-	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
 };
