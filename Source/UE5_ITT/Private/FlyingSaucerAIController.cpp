@@ -22,6 +22,8 @@ void AFlyingSaucerAIController::BeginPlay()
 	//SetupTimerManager();
 	SetupStartBehaviorTreePhase1();
 
+	GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
+
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
