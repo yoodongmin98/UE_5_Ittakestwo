@@ -6,7 +6,7 @@
 
 UBTTask_SetRandomTarget::UBTTask_SetRandomTarget()
 {
-	NodeName = TEXT("BTTask_SetRandomTarget");
+	NodeName = TEXT("BTT_SetRandomTarget");
 }
 
 EBTNodeResult::Type UBTTask_SetRandomTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
