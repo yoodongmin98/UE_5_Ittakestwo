@@ -14,6 +14,12 @@ AFlyingSaucerAIController::AFlyingSaucerAIController()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void AFlyingSaucerAIController::AddPatternMatchCount()
+{
+	++PatternMatchCount;
+	GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
+}
+
 void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -57,6 +63,8 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCody"), PlayerRef1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMay"), PlayerRef2);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
+		GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
+
 	}
 	
 }

@@ -38,6 +38,10 @@ public:
 	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
 
 	UFUNCTION(BlueprintCallable)
+	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
+
+
+	UFUNCTION(BlueprintCallable)
 	AFloor* GetFloor() { return FloorObject; }
 protected:
 	// Called when the game starts or when spawned
