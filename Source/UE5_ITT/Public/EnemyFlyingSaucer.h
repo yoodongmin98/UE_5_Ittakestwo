@@ -37,13 +37,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
 
+	UFUNCTION(BlueprintCallable)
+	AFloor* GetFloor() { return FloorObject; }
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
 	UFUNCTION(BlueprintCallable)
-	AFloor* GetFloor() { return FloorObject; }
 
 	void SetupComponent();
 	void DrawDebugMesh();
