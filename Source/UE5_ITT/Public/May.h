@@ -7,6 +7,13 @@
 #include "May.generated.h"
 
 
+UENUM(BlueprintType)
+enum class MayWalkable
+{
+	GROUNDWALK UMETA(DisPlayName = "GROUNDWALK"),
+	SIDEWALK UMETA(DisPlayName = "SIDEWALK"),
+};
+
 UCLASS()
 class UE5_ITT_API AMay : public APlayerBase
 {

@@ -21,6 +21,7 @@ enum class Cody_State : uint8
 	DASH UMETA(DisPlayName = "DASH"),
 	DASHEND UMETA(DisPlayName = "DASHEND"),
 };
+
 UCLASS()
 class UE5_ITT_API APlayerBase : public ACharacter
 {

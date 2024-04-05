@@ -7,6 +7,17 @@
 #include "Cody.generated.h"
 
 
+
+
+
+UENUM(BlueprintType)
+enum class CodySize
+{
+	BIG UMETA(DisPlayName = "BIG"),
+	NORMAL UMETA(DisPlayName = "NORMAL"),
+	SMALL UMETA(DisPlayName = "SMALL"),
+};
+
 UCLASS()
 class UE5_ITT_API ACody : public APlayerBase
 {

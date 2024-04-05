@@ -111,7 +111,7 @@ void APlayerBase::Idle(const FInputActionInstance& _Instance)
 
 void APlayerBase::Move(const FInputActionInstance& _Instance)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Move function called"));
+	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
 
 	if (bCanDash == false)
@@ -158,7 +158,7 @@ void APlayerBase::Move(const FInputActionInstance& _Instance)
 
 void APlayerBase::Look(const FInputActionInstance& _Instance)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Look function called"));
+	//UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
 		// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함 →ㅇ
