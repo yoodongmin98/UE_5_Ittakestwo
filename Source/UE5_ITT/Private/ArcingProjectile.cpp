@@ -63,6 +63,13 @@ void AArcingProjectile::SetupOverlapEvent()
 
 void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 오버랩 대상이 바닥이 아니라면 return;
+	AFloor* OVerlapOtherActor = Cast<AFloor>(OtherActor);
+	if (nullptr == OVerlapOtherActor)
+	{
+		return;
+	}
+
 	if (OtherActor != this && bIsOverlapEvent == false)
 	{
 		FVector SettingLocation = GetActorLocation();
