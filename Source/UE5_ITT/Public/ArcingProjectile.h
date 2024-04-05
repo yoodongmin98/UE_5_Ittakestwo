@@ -53,4 +53,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ABurstEffect> BurstEffectClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsOverlapEvent = false;
+
+
+
 };
