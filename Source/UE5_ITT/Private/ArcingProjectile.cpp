@@ -8,6 +8,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BurstEffect.h"
+#include "Floor.h"
+#include "EnemyFlyingSaucer.h"
 
 // test
 #include "Cody.h"
@@ -61,15 +63,23 @@ void AArcingProjectile::SetupOverlapEvent()
 
 void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor != this)
+	if (OtherActor != this && bIsOverlapEvent == false)
 	{
 		FVector SettingLocation = GetActorLocation();
-		
 		ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass, SettingLocation, FRotator::ZeroRotator);
 		if (Effect != nullptr)
 		{
 			Effect->SetActorLocation(SettingLocation);
+
+			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+			if (nullptr != ParentActor)
+			{
+				AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
+				Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+			}
 		}
+
+		bIsOverlapEvent = true;
 	}
 }
 
