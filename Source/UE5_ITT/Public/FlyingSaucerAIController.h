@@ -27,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }
 
+	UFUNCTION(BlueprintCallable)
+	void AddPatternMatchCount();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -61,4 +64,7 @@ private:
 	bool bPrevTargetLocationValid = false;
 	float LaserLerpRatio = 0.0f;
 	float LaserLerpRate = 25.0f;
+		
+	UPROPERTY(EditAnywhere)
+	int32 PatternMatchCount = 0;
 };
