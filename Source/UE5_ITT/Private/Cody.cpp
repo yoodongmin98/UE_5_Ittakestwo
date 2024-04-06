@@ -66,7 +66,7 @@ void ACody::ChangeSmallSize()
 {
 	switch (CodySizes)
 	{
-	case CodySize::BIG:
+	case CodySize::BIG :
 	{
 		Change_Big_To_Normal();
 	}
