@@ -94,9 +94,17 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
+	AActor* FloorActor = Cast<AActor>(GetFloor());
+
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(),FRotator::ZeroRotator);
 	Projectile->SetupProjectileMovementComponent();
 	Projectile->SetOwner(this);
+	if (Projectile != nullptr)
+	{
+		Projectile->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
+	
+	
 }
 
 void AEnemyFlyingSaucer::SetupComponent()
