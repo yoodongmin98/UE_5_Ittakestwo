@@ -11,6 +11,7 @@
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
+#include "Floor.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -70,13 +71,25 @@ void AEnemyFlyingSaucer::FireLaserBeam()
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
+	AActor* FloorActor = Cast<AActor>(GetFloor());
+
 	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 
 	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 	HomingRocket1->SetOwner(this);
+	if (HomingRocket1 != nullptr)
+	{
+		HomingRocket1->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
+
+
 	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
 	HomingRocket2->SetOwner(this);
+	if (HomingRocket2 != nullptr)
+	{
+		HomingRocket2->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
 }
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
