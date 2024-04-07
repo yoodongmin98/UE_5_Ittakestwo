@@ -64,10 +64,6 @@ void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void AEnemyFlyingSaucer::FireLaserBeam()
-{
-	
-}
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
