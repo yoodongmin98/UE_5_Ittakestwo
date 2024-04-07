@@ -46,10 +46,14 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class ACody* PlayerCodyRef = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	bool bIsActive = true;
 
 	// 파티클
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent* FireEffectComp = nullptr;
+	
+	// 파티클
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AExplosionEffect> ExplosionEffectClass;
 };

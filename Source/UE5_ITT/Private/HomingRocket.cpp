@@ -2,12 +2,14 @@
 
 
 #include "HomingRocket.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "NiagaraComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "EnemyFlyingSaucer.h"
+#include "ExplosionEffect.h"
+#include "Floor.h"
 #include "Cody.h"
-
 
 
 // Sets default values
@@ -82,7 +84,18 @@ void AHomingRocket::Tick(float DeltaTime)
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// юс╫ц 
+	FVector SettingLocation = GetActorLocation();
+	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
+	if (Effect != nullptr)
+	{
+		AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+		if (nullptr != ParentActor)
+		{
+			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
+			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+		}
+	}
+
 	Destroy();
 }
 

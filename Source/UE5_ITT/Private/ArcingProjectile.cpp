@@ -76,7 +76,7 @@ void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass, SettingLocation, FRotator::ZeroRotator);
 		if (Effect != nullptr)
 		{
-			Effect->SetActorLocation(SettingLocation);
+			// Effect->SetActorLocation(SettingLocation);
 
 			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
 			if (nullptr != ParentActor)
