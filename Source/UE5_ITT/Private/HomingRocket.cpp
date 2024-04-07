@@ -65,6 +65,10 @@ void AHomingRocket::Tick(float DeltaTime)
 		{
 			// 테스트코드. 비활성 함수를 만들고, 비활성 상태로 변경한다. 
 			bIsActive = false;
+			RocketMeshComp->SetSimulatePhysics(true);
+			RocketMeshComp->SetEnableGravity(true);
+			FireEffectComp->SetActive(false);
+			
 			return;
 		}
 
@@ -84,6 +88,11 @@ void AHomingRocket::Tick(float DeltaTime)
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (false == bIsActive)
+	{
+		return;
+	}
+
 	FVector SettingLocation = GetActorLocation();
 	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
 	if (Effect != nullptr)
