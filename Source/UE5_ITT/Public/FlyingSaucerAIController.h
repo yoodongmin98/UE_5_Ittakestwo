@@ -36,7 +36,13 @@ protected:
 
 private:
 	void SetupPlayerReference();
+	
+	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase1();
+	UFUNCTION(BlueprintCallable)
+	void SetupStartBehaviorTreePhase2();
+	UFUNCTION(BlueprintCallable)
+	void SetupStartBehaviorTreePhase3();
 	void SavePreviousTargetLocation();
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 
@@ -48,13 +54,21 @@ private:
 
 	// Behavior Tree
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase1;
+	class UBehaviorTree* AIBehaviorTreePhase1 = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase2;
+	class UBehaviorTree* AIBehaviorTreePhase2 = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase3;
+	class UBehaviorTree* AIBehaviorTreePhase3 = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTree* CurrentBehaviorTree = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTreeComponent* CurrentBehaviorTreeComp = nullptr;
+
+
 
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;

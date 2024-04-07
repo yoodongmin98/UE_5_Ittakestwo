@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Cody.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "EnemyFlyingSaucer.h"
 #include "TimerManager.h"
 #include "EnemyMoonBaboon.h"
@@ -12,6 +14,8 @@
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
 }
 
 void AFlyingSaucerAIController::AddPatternMatchCount()
@@ -60,13 +64,35 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 	if (nullptr != AIBehaviorTreePhase1)
 	{
 		RunBehaviorTree(AIBehaviorTreePhase1);
+		CurrentBehaviorTree = AIBehaviorTreePhase1;
+		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase1, EBTExecutionMode::Looped);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCody"), PlayerRef1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMay"), PlayerRef2);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
-
 	}
-	
+}
+
+void AFlyingSaucerAIController::SetupStartBehaviorTreePhase2()
+{
+	if (nullptr != CurrentBehaviorTree && nullptr != AIBehaviorTreePhase2)
+	{
+		CurrentBehaviorTreeComp->StopTree();
+		RunBehaviorTree(AIBehaviorTreePhase2);
+		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase2);
+		CurrentBehaviorTree = AIBehaviorTreePhase2;
+	}
+}
+
+void AFlyingSaucerAIController::SetupStartBehaviorTreePhase3()
+{
+	if (nullptr != CurrentBehaviorTree && nullptr != AIBehaviorTreePhase3)
+	{
+		CurrentBehaviorTreeComp->StopTree();
+		RunBehaviorTree(AIBehaviorTreePhase3);
+		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase3);
+		CurrentBehaviorTree = AIBehaviorTreePhase3;
+	}
 }
 
 void AFlyingSaucerAIController::SavePreviousTargetLocation()
