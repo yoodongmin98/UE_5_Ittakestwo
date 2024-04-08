@@ -25,7 +25,8 @@ protected:
 private:	
 
 	// ·ÎÁî ÆÈ ¸ð¾ç ½ºÄÌ·¹Å» ¸Þ½Ã
-	//class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
 
 };
