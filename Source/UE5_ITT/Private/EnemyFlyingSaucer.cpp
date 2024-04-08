@@ -12,6 +12,7 @@
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
 #include "Floor.h"
+#include "EnergyChargeEffect.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -99,8 +100,15 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	{
 		Projectile->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
 	}
-	
-	
+}
+
+AEnergyChargeEffect* AEnemyFlyingSaucer::CreateEnergyChargeEffect()
+{
+	EnergyChargeEffect = nullptr;
+	EnergyChargeEffect = GetWorld()->SpawnActor<AEnergyChargeEffect>(EnergyChargeEffectClass,LaserSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
+	EnergyChargeEffect->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("EnergyChargeEffectSpawnPointSocket"));
+
+	return EnergyChargeEffect;
 }
 
 void AEnemyFlyingSaucer::SetupComponent()
