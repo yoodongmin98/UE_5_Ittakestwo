@@ -13,7 +13,7 @@
 UENUM(BlueprintType)
 enum class CodySize
 {
-	NONE UMETA(DisPlayName = "BIG"),
+	NONE UMETA(DisPlayName = "NONE"),
 	BIG UMETA(DisPlayName = "BIG"),
 	NORMAL UMETA(DisPlayName = "NORMAL"),
 	SMALL UMETA(DisPlayName = "SMALL"),
@@ -22,20 +22,39 @@ enum class CodySize
 UCLASS()
 class UE5_ITT_API ACody : public APlayerBase
 {
-private:
+public:
 	GENERATED_BODY()
 	ACody();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	//CodySize Enum을 변경합니다
+	void ChangeCodySizeEnum(CodySize _Enum)
+	{
+		CodySizes = _Enum;
+	}
+	//Cody의 Size를 Enum으로 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline CodySize GetCodySize() const
+	{
+		return CodySizes;
+	}
+	//변환하고자하는 Size의 TargetScale을 반환합니다
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetTargetScale() const
+	{
+		return TargetScale;
+	}
 
 	void ChangeBigSize();
 	void ChangeSmallSize();
 
-	void Change_Small_To_Normal();
-	void Change_Normal_To_Big();
-	void Change_Big_To_Normal();
-	void Change_Normal_To_Small();
+
 	CodySize CodySizes = CodySize::NONE;
+	float ScaleSpeed;
+	FVector TargetScale;
+	FVector BigSize;
+	FVector NormalSize;
+	FVector SmallSize;
 };

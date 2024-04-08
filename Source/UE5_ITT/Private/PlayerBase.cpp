@@ -88,7 +88,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction(TEXT("Player_Sit"), EInputEvent::IE_Pressed, this, &APlayerBase::Sit);
 
 
-	UEnhancedInputComponent* PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move);

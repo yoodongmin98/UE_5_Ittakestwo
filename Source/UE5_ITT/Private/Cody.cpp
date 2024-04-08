@@ -4,6 +4,7 @@
 #include "Cody.h"
 
 
+
 // Sets default values
 ACody::ACody()
 {
@@ -16,19 +17,26 @@ void ACody::BeginPlay()
 	Super::BeginPlay();
 	
 	CodySizes = CodySize::NORMAL;
+	ScaleSpeed = 0.5f;
+	BigSize = FVector(2.0f, 2.0f, 2.0f);
+	NormalSize = FVector(1.0f, 1.0f, 1.0f);
+	SmallSize= FVector(0.5f, 0.5f, 0.5f);
+	TargetScale = NormalSize;
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//FVector NewScale = FMath::Lerp(GetActorScale3D(), TargetScale, ScaleSpeed * DeltaTime);
+	GetMesh()->SetWorldScale3D(TargetScale);
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	UEnhancedInputComponent* PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
 		PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
@@ -40,66 +48,52 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACody::ChangeBigSize()
 {
+	UE_LOG(LogTemp, Warning, TEXT("right function called"));
 	switch (CodySizes)
 	{
 	case CodySize::BIG:
 	{
-		return;
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		Change_Normal_To_Big();
+		ChangeCodySizeEnum(CodySize::BIG);
+		TargetScale = FVector(2.0f, 2.0f, 2.0f);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		Change_Small_To_Normal();
+		ChangeCodySizeEnum(CodySize::NORMAL);
+		TargetScale = FVector(1.0f, 1.0f, 1.0f);
+		break;
 	}
 	default :
-		//대충 에러코드
 		break;
 	}
 }
 
 void ACody::ChangeSmallSize()
 {
+	UE_LOG(LogTemp, Warning, TEXT("left function called"));
 	switch (CodySizes)
 	{
 	case CodySize::BIG :
 	{
-		Change_Big_To_Normal();
+		ChangeCodySizeEnum(CodySize::NORMAL);
+		TargetScale = FVector(1.0f, 1.0f, 1.0f);
+		break;
 	}
 	case CodySize::NORMAL:
 	{
-		Change_Normal_To_Small();
+		ChangeCodySizeEnum(CodySize::SMALL);
+		TargetScale = FVector(0.5f, 0.5f, 0.5f);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		return;
 		break;
 	}
 	default:
-		//대충 에러코드
 		break;
 	}
-}
-
-
-void ACody::Change_Small_To_Normal()	  
-{
-
-}
-void ACody::Change_Normal_To_Big()		  
-{
-
-}
-void ACody::Change_Big_To_Normal()		  
-{
-
-}
-void ACody::Change_Normal_To_Small()
-{
-
 }

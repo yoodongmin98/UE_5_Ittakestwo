@@ -28,6 +28,7 @@ class UE5_ITT_API APlayerBase : public ACharacter
 	GENERATED_BODY()
 	UInputComponent* Input;
 public:
+	UEnhancedInputComponent* PlayerInput;
 	// Sets default values for this character's properties
 	APlayerBase();
 
