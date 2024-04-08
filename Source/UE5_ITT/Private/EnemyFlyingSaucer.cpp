@@ -55,7 +55,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 			StartMotionUpdate(DeltaTime);
 		}
 
-		DrawDebugMesh();
+		//DrawDebugMesh();
 	}
 }
 
