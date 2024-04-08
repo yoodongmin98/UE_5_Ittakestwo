@@ -23,21 +23,24 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
+	
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
 	UFUNCTION(BlueprintCallable)
-	float GetCurrentHp() const { return CurrentHp; }
+	AEnergyChargeEffect* CreateEnergyChargeEffect();
 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHp() const { return CurrentHp; }
 	
 	UFUNCTION(BlueprintCallable)
 	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
 
 	UFUNCTION(BlueprintCallable)
 	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
-
 
 	UFUNCTION(BlueprintCallable)
 	AFloor* GetFloor() { return FloorObject; }
@@ -75,10 +78,16 @@ private:
 	TSubclassOf<class AFloor> FloorClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AEnergyChargeEffect> EnergyChargeEffectClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	class AFloor* FloorObject = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
@@ -91,4 +100,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
+
+
+
+
+
 };
