@@ -200,6 +200,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* SpringArm;
 
+	float BigLength;
+	float NormalLength;
+	float SmallLength;
+
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
 	//////////////////////////////////////////////
 
@@ -215,4 +219,5 @@ public:
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
+	//////////////////////////////////////////////
 };

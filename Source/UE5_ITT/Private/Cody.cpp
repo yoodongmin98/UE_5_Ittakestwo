@@ -2,13 +2,15 @@
 
 
 #include "Cody.h"
-
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Components/CapsuleComponent.h"
 
 
 // Sets default values
 ACody::ACody()
 {
-	
+
 }
 
 // Called when the game starts or when spawned
@@ -18,10 +20,14 @@ void ACody::BeginPlay()
 	
 	CodySizes = CodySize::NORMAL;
 	ScaleSpeed = 0.5f;
-	BigSize = FVector(2.0f, 2.0f, 2.0f);
+	CameraSpeed = 1.5f;
+	BigSize = FVector(4.0f, 4.0f, 4.0f);
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
-	SmallSize= FVector(0.5f, 0.5f, 0.5f);
+	SmallSize= FVector(0.2f, 0.2f, 0.2f);
 	TargetScale = NormalSize;
+	BigSizeCapsule = FVector(0.0f, 0.0f, -360.0f);
+	NormalSizeCapsule = FVector(0.0f, 0.0f, -90.0f);
+	SmallSizeCapsule = FVector(0.0f, 0.0f, -18.0f);
 }
 
 // Called every frame
@@ -29,8 +35,39 @@ void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//FVector NewScale = FMath::Lerp(GetActorScale3D(), TargetScale, ScaleSpeed * DeltaTime);
+	//Scale Check
 	GetMesh()->SetWorldScale3D(TargetScale);
+
+
+
+	//Size Setting
+	switch (CodySizes)
+	{
+	case CodySize::BIG :
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		GetCapsuleComponent()->SetCapsuleSize(140.0f, 360.0f);
+		/*SetActorLocation(GetCapsuleComponent()->GetComponentLocation() + BigSizeCapsule);*/
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		GetCapsuleComponent()->SetCapsuleSize(35.0f, 90.0f);
+		/*SetActorLocation(GetCapsuleComponent()->GetComponentLocation() + NormalSizeCapsule);*/
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
+		GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
+		/*SetActorLocation(GetCapsuleComponent()->GetComponentLocation() + SmallSizeCapsule);*/
+		break;
+	}
+	default :
+		break;
+	}
+	//GetMesh()->SetRelativeTransform(CodyLocalTransform);
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -48,7 +85,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACody::ChangeBigSize()
 {
-	UE_LOG(LogTemp, Warning, TEXT("right function called"));
+	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
 	switch (CodySizes)
 	{
 	case CodySize::BIG:
@@ -58,13 +95,13 @@ void ACody::ChangeBigSize()
 	case CodySize::NORMAL:
 	{
 		ChangeCodySizeEnum(CodySize::BIG);
-		TargetScale = FVector(2.0f, 2.0f, 2.0f);
+		TargetScale = BigSize;
 		break;
 	}
 	case CodySize::SMALL:
 	{
 		ChangeCodySizeEnum(CodySize::NORMAL);
-		TargetScale = FVector(1.0f, 1.0f, 1.0f);
+		TargetScale = NormalSize;
 		break;
 	}
 	default :
@@ -74,19 +111,19 @@ void ACody::ChangeBigSize()
 
 void ACody::ChangeSmallSize()
 {
-	UE_LOG(LogTemp, Warning, TEXT("left function called"));
+	//UE_LOG(LogTemp, Warning, TEXT("left function called"));
 	switch (CodySizes)
 	{
 	case CodySize::BIG :
 	{
 		ChangeCodySizeEnum(CodySize::NORMAL);
-		TargetScale = FVector(1.0f, 1.0f, 1.0f);
+		TargetScale = NormalSize;
 		break;
 	}
 	case CodySize::NORMAL:
 	{
 		ChangeCodySizeEnum(CodySize::SMALL);
-		TargetScale = FVector(0.5f, 0.5f, 0.5f);
+		TargetScale = SmallSize;
 		break;
 	}
 	case CodySize::SMALL:

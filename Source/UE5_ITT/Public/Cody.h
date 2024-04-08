@@ -52,9 +52,19 @@ public:
 
 
 	CodySize CodySizes = CodySize::NONE;
+	//Set Speed
 	float ScaleSpeed;
+	float CameraSpeed;
 	FVector TargetScale;
+	//Size
 	FVector BigSize;
 	FVector NormalSize;
 	FVector SmallSize;
+	FVector BigSizeCapsule;
+	FVector NormalSizeCapsule;
+	FVector SmallSizeCapsule;
+	//Transform
+	FTransform CodyCapsuleComponent;
+	FTransform CodyTransform;
+	FTransform CodyLocalTransform;
 };

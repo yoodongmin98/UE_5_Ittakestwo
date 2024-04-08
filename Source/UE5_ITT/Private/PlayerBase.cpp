@@ -12,6 +12,11 @@ APlayerBase::APlayerBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+
+	BigLength = 2000.0f;
+	NormalLength = 1200.0f;
+	SmallLength = 200.0f;
+
 	// 캐릭터이동
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
@@ -22,7 +27,7 @@ APlayerBase::APlayerBase()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->SetUsingAbsoluteRotation(true);
-	SpringArm->TargetArmLength = 1000.f;
+	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = false;
 
