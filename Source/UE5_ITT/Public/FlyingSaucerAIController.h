@@ -35,7 +35,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	void SetupPlayerReference();
+	void SetupPlayerRefAndBehaviorTreePhase1();
 	
 	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase1();
@@ -81,4 +81,7 @@ private:
 		
 	UPROPERTY(EditAnywhere)
 	int32 PatternMatchCount = 0;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsSetupPlayerRef= false;
 };
