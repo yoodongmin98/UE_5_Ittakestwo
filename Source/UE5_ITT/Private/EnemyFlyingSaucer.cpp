@@ -13,6 +13,8 @@
 #include "ArcingProjectile.h"
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
+#include "FlyingSaucerAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -91,9 +93,30 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
-	AActor* FloorActor = Cast<AActor>(GetFloor());
+	++ArcingProjectileFireCount;
 
-	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(),FRotator::ZeroRotator);
+	AActor* FloorActor = Cast<AActor>(GetFloor());
+	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	if (nullptr != Projectile && nullptr != AIController)
+	{
+		FVector TargetLocation = FVector::ZeroVector;
+		if (ArcingProjectileFireCount % 2 == 0)
+		{
+			AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerCody")));
+			TargetLocation = TargetActor->GetActorLocation();
+			
+		}
+
+		else if (ArcingProjectileFireCount % 2 == 1)
+		{
+			AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerMay")));
+			TargetLocation = TargetActor->GetActorLocation();
+		}
+
+		Projectile->SetupTargetLocation(TargetLocation);
+	}
+	
 	Projectile->SetupProjectileMovementComponent();
 	Projectile->SetOwner(this);
 	if (Projectile != nullptr)
