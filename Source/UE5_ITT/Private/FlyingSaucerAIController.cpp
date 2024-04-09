@@ -10,6 +10,7 @@
 #include "EnemyFlyingSaucer.h"
 #include "TimerManager.h"
 #include "EnemyMoonBaboon.h"
+#include "ITTGameModeBase.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
@@ -28,10 +29,6 @@ void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetupPlayerReference();
-	SetupStartBehaviorTreePhase1();
-	GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
-
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
@@ -48,15 +45,36 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		UpdateLerpRatioForLaserBeam(DeltaTime);
+		// 플레이어 셋업이 되지 않았을 때 
+		if (false == bIsSetupPlayerRef)
+		{
+			SetupPlayerRefAndBehaviorTreePhase1();
+		}
+
+		// 셋팅이 되었다면 그때부터 동작
+		else if (true == bIsSetupPlayerRef)
+		{
+			UpdateLerpRatioForLaserBeam(DeltaTime);
+		}
 	}
 }
 
-void AFlyingSaucerAIController::SetupPlayerReference()
+void AFlyingSaucerAIController::SetupPlayerRefAndBehaviorTreePhase1()
 {
-	// 폰의 위치를 받아온다. 
-	PlayerRef1 = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	PlayerRef2 = UGameplayStatics::GetPlayerPawn(GetWorld(), 1);
+	// 여기서 게임모드를 받아와서 카운트가 2가 되었는지 확인하고 2가 되었다면 bool 값을 true로 변경
+	AITTGameModeBase* CurrentGameMode = Cast<AITTGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	int32 LoginCount = CurrentGameMode->GetPlayerLoginCount();
+	if (2 == LoginCount)
+	{
+		TArray<AActor*> Players = CurrentGameMode->GetLoginPlayerControllers();
+		APlayerController* PlayerController0 = Cast<APlayerController>(Players[0]);
+		APlayerController* PlayerController1 = Cast<APlayerController>(Players[1]);
+		PlayerRef1 = PlayerController0->GetPawn();
+		PlayerRef2 = PlayerController1->GetPawn();
+		SetupStartBehaviorTreePhase1();
+		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
+		bIsSetupPlayerRef = true;
+	}
 }
 
 void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
@@ -133,6 +151,10 @@ void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
 		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevLaserAttackLocation"), PrevTargetLocation);
 		SavePreviousTargetLocation();
 		LaserLerpRatio -= 1.0f;
+		if (0.1f <= LaserLerpRatio)
+		{
+			LaserLerpRatio = 0.0f;
+		}
 	}
 
 	GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);

@@ -16,25 +16,25 @@ EBTNodeResult::Type UBTTask_SetRandomTarget::ExecuteTask(UBehaviorTreeComponent&
 	UBlackboardComponent* BlackBoardComp = OwnerComp.GetBlackboardComponent();
 	if (nullptr != BlackBoardComp)
 	{
-		int32 TargetCount = BlackBoardComp->GetValueAsInt(TEXT("Phase1TargetCount"));
+		int32 TargetCount = BlackBoardComp->GetValueAsInt(TEXT("PatternMatchCount"));
 		switch (TargetCount)
 		{
+		case 0:
+		{
+			UObject* PlayerRef = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
+			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef);
+		}
+			break;
 		case 1:
 		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
-			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
+			UObject* PlayerRef = BlackBoardComp->GetValueAsObject(TEXT("PlayerMay"));
+			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef);
 		}
 			break;
 		case 2:
 		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
-			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
-		}
-			break;
-		case 3:
-		{
-			UObject* PlayerRef1 = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
-			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef1);
+			UObject* PlayerRef = BlackBoardComp->GetValueAsObject(TEXT("PlayerCody"));
+			BlackBoardComp->SetValueAsObject(TEXT("LaserBeamTarget"), PlayerRef);
 		}
 			break;
 		default:
