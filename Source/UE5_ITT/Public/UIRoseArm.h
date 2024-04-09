@@ -26,7 +26,12 @@ private:
 
 	// ·ÎÁî ÆÈ ¸ð¾ç ½ºÄÌ·¹Å» ¸Þ½Ã
 	UPROPERTY(VisibleAnywhere)
-	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
+	USkeletalMeshComponent* ArmMeshComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* CodyMeshComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* MayMeshComponent;
 
 };
