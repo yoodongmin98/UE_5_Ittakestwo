@@ -219,5 +219,7 @@ public:
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
+
+	bool BigCanDash;
 	//////////////////////////////////////////////
 };

@@ -65,6 +65,7 @@ void APlayerBase::BeginPlay()
 	bIsDashing = false;
 	bIsDashingStart = false;
 	bCanDash = false;
+	BigCanDash = true;
 }
 
 // Called every frame
@@ -187,7 +188,7 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 
 void APlayerBase::DashInput()
 {
-	if (!bIsDashing && !bCanDash)
+	if (!bIsDashing && !bCanDash && BigCanDash)
 	{
 		ChangeState(Cody_State::DASH);
 		//대쉬 시작시간을 체크

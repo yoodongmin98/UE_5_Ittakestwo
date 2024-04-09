@@ -102,6 +102,7 @@ void ACody::ChangeBigSize()
 			TargetScale = BigSize;
 			GetMesh()->AddLocalOffset(BigSizeCapsule);
 			ACharacter::JumpMaxCount = 1;
+			BigCanDash = false;
 			break;
 		}
 		case CodySize::SMALL:
@@ -111,6 +112,7 @@ void ACody::ChangeBigSize()
 			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
 			GetCharacterMovement()->MaxWalkSpeed = CodyDefaultSpeed;
 			GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+			DashDistance = 2000.0f;
 			break;
 		}
 		default:
@@ -131,6 +133,8 @@ void ACody::ChangeSmallSize()
 			ChangeCodySizeEnum(CodySize::NORMAL);
 			TargetScale = NormalSize;
 			GetMesh()->AddLocalOffset(-BigSizeCapsule);
+			ACharacter::JumpMaxCount = 2;
+			BigCanDash = true;
 			break;
 		}
 		case CodySize::NORMAL:
@@ -140,6 +144,7 @@ void ACody::ChangeSmallSize()
 			GetMesh()->AddLocalOffset(SmallSizeCapsule);
 			GetCharacterMovement()->MaxWalkSpeed = 400.0f;
 			GetCharacterMovement()->JumpZVelocity = 1200.0f;
+			DashDistance = 1300.0f;
 			break;
 		}
 		case CodySize::SMALL:
