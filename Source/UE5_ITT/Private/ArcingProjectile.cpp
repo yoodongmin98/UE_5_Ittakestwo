@@ -87,6 +87,7 @@ void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		}
 
 		bIsOverlapEvent = true;
+		Destroy();
 	}
 }
 
@@ -110,7 +111,6 @@ void AArcingProjectile::SetupProjectileMovementComponent()
 	// 이후에 플레이어 두명되면 변경해야함 
 	if (nullptr != ProjectileMovementComp)
 	{
-		TargetLocation = Cast<ACody>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0))->GetActorLocation();
 		FVector StartLocation = GetActorLocation(); // 시작 위치
 		StartLocation.Z += 500.0f;
 		float ArcValue = 0.62f; // ArcParam (0.0-1.0)

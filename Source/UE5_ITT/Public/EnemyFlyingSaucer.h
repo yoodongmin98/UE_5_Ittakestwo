@@ -74,6 +74,13 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
+	UFUNCTION(BlueprintCallable)
+	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
+	
+	UPROPERTY(EditDefaultsOnly)
+	int32 ArcingProjectileFireCount = 0;
+
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AFloor> FloorClass = nullptr;
 
