@@ -2,7 +2,7 @@
 
 
 #include "Floor.h"
-#include "ParentShutter.h"
+#include <Engine/StaticMeshActor.h>
 #include "Pillar.h"
 #include "FsmComponent.h"
 #include "Laser.h"
@@ -188,6 +188,9 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
+			//ÄÆ¾ÀÀ» ÇÏ°í ÄÆ¾ÀÀÌ ³¡³ª¸é ¹®´Ý±â
+			//LeftDoor->SetActorLocation();
+			//RightDoor->SetActorLocation();
 		},
 
 		[this]
