@@ -29,6 +29,10 @@ void ACody::BeginPlay()
 	NormalSizeCapsule = FVector(0.0f, 0.0f, -90.0f);
 	SmallSizeCapsule = FVector(0.0f, 0.0f, 72.0f);
 
+	CodyDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
+	
+
 	GetMesh()->AddLocalOffset(NormalSizeCapsule);
 }
 
@@ -84,55 +88,66 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ACody::ChangeBigSize()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
-	switch (CodySizes)
+	if (!GetCharacterMovement()->IsFalling())
 	{
-	case CodySize::BIG:
-	{
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		ChangeCodySizeEnum(CodySize::BIG);
-		TargetScale = BigSize;
-		GetMesh()->AddLocalOffset(BigSizeCapsule);
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		ChangeCodySizeEnum(CodySize::NORMAL);
-		TargetScale = NormalSize;
-		GetMesh()->AddLocalOffset(-SmallSizeCapsule);
-		break;
-	}
-	default :
-		break;
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			ChangeCodySizeEnum(CodySize::BIG);
+			TargetScale = BigSize;
+			GetMesh()->AddLocalOffset(BigSizeCapsule);
+			ACharacter::JumpMaxCount = 1;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			ChangeCodySizeEnum(CodySize::NORMAL);
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
+			GetCharacterMovement()->MaxWalkSpeed = CodyDefaultSpeed;
+			GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+			break;
+		}
+		default:
+			break;
+		}
 	}
 }
 
 void ACody::ChangeSmallSize()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("left function called"));
-	switch (CodySizes)
+	if (!GetCharacterMovement()->IsFalling())
 	{
-	case CodySize::BIG :
-	{
-		ChangeCodySizeEnum(CodySize::NORMAL);
-		TargetScale = NormalSize;
-		GetMesh()->AddLocalOffset(-BigSizeCapsule);
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		ChangeCodySizeEnum(CodySize::SMALL);
-		TargetScale = SmallSize;
-		GetMesh()->AddLocalOffset(SmallSizeCapsule);
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		break;
-	}
-	default:
-		break;
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			ChangeCodySizeEnum(CodySize::NORMAL);
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-BigSizeCapsule);
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			ChangeCodySizeEnum(CodySize::SMALL);
+			TargetScale = SmallSize;
+			GetMesh()->AddLocalOffset(SmallSizeCapsule);
+			GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+			GetCharacterMovement()->JumpZVelocity = 1200.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			break;
+		}
+		default:
+			break;
+		}
 	}
 }

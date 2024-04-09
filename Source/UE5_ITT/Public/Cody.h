@@ -11,7 +11,7 @@
 
 
 UENUM(BlueprintType)
-enum class CodySize
+enum class CodySize : uint8
 {
 	NONE UMETA(DisPlayName = "NONE"),
 	BIG UMETA(DisPlayName = "BIG"),
@@ -67,4 +67,7 @@ public:
 	FTransform CodyCapsuleComponent;
 	FTransform CodyTransform;
 	FTransform CodyLocalTransform;
+
+	float CodyDefaultSpeed;
+	float CodyDefaultJumpHeight;
 };
