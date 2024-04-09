@@ -145,6 +145,23 @@ public:
 	{
 		return DefaultGravityScale;
 	}
+	//애니메이션이 끝났을 때 호출됩니다
+	UFUNCTION(BlueprintCallable)
+	inline void SetCurrentAnimationEndT()
+	{
+		CurrentAnimationEnd = true;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetCurrentAnimationEndF()
+	{
+		CurrentAnimationEnd = false;
+	}
+	//이전 애니메이션이 끝났는지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCurrentAnimationEnd() const
+	{
+		return CurrentAnimationEnd;
+	}
 
 
 
@@ -222,4 +239,8 @@ public:
 
 	bool BigCanDash;
 	//////////////////////////////////////////////
+
+
+	//Test
+	bool CurrentAnimationEnd;
 };

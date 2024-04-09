@@ -58,7 +58,7 @@ void APlayerBase::BeginPlay()
 
 	//Set
 	PlayerHP = 12; //Player기본 Hp설정
-	DashDuration = 1.0f; //Dash 시간
+	DashDuration = 0.8f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 
@@ -66,6 +66,9 @@ void APlayerBase::BeginPlay()
 	bIsDashingStart = false;
 	bCanDash = false;
 	BigCanDash = true;
+
+
+	CurrentAnimationEnd = false;
 }
 
 // Called every frame
