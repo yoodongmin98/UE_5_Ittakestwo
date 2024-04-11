@@ -32,6 +32,17 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	enum class ERocketState
+	{
+		PlayerChase,
+		PlayerEquipWait,
+		PlayerEquip,
+	};
+
+	void SetupOverlapEvent();
+
+	void SetupFsmComponent();
+
 	void InActive()
 	{
 		bIsActive = false;
@@ -39,6 +50,13 @@ private:
 	
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
 	class USceneComponent* SceneComp = nullptr;
@@ -68,4 +86,19 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class AActor* TargetActor = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UFsmComponent* RocketFsmComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsPlayerEquip = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsPlayerOverlap = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	class APlayerBase* OverlapActor = nullptr;
+
+
+
 };
