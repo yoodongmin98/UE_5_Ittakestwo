@@ -22,6 +22,18 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable)
+	void SetupRotateCenterPivotActor();
+
+	UFUNCTION(BlueprintCallable)
+	void DetachRotateCenterPivotActor();
+	
+	UFUNCTION(BlueprintCallable)
+	ABossRotatePivotActor* GetRotateCenterPivotActor() { return RotateCenterPivotActor; }
+
+	UFUNCTION(BlueprintCallable)
+	void RotationCenterPivotActor(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
 	
 	UFUNCTION(BlueprintCallable)
@@ -80,6 +92,15 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	int32 ArcingProjectileFireCount = 0;
 
+	UPROPERTY(EditDefaultsOnly)
+	class ABossRotatePivotActor* RotateCenterPivotActor = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ABossRotatePivotActor> RotateCenterPivotActorClass = nullptr;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	float RotateCenterPivotActorMoveSpeed = 9.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AFloor> FloorClass = nullptr;

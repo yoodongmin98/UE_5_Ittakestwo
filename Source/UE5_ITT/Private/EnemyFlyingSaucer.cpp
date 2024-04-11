@@ -15,6 +15,7 @@
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BossRotatePivotActor.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -67,6 +68,38 @@ void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
+{
+	RotateCenterPivotActor = GetWorld()->SpawnActor<ABossRotatePivotActor>(RotateCenterPivotActorClass, FVector::ZeroVector,FRotator::ZeroRotator);
+	if (nullptr != RotateCenterPivotActor)
+	{
+		RotateCenterPivotActor->SetActorEnableCollision(false);
+		UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(RotateCenterPivotActor->GetRootComponent());
+		if (nullptr != PrimitiveComp)
+		{
+			PrimitiveComp->SetEnableGravity(false);
+		}
+		AttachToActor(RotateCenterPivotActor, FAttachmentTransformRules::KeepWorldTransform);
+	}
+}
+
+void AEnemyFlyingSaucer::DetachRotateCenterPivotActor()
+{
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	if (nullptr != RotateCenterPivotActor)
+	{
+		RotateCenterPivotActor->Destroy();
+	}
+}
+
+
+void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
+{
+	if (nullptr != RotateCenterPivotActor)
+	{
+		RotateCenterPivotActor->AddActorLocalRotation({ 0.f, 1.f * DeltaTime * RotateCenterPivotActorMoveSpeed , 0.0f });
+	}
+}
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
