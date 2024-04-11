@@ -69,6 +69,11 @@ void AHomingRocket::Tick(float DeltaTime)
 			RocketMeshComp->SetEnableGravity(true);
 			FireEffectComp->SetActive(false);
 			
+			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+			if (nullptr != ParentActor)
+			{
+				ParentActor->DisCountHomingRocketFireCount();
+			}
 			return;
 		}
 
@@ -95,9 +100,10 @@ void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 
 	FVector SettingLocation = GetActorLocation();
 	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
+	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
 	if (Effect != nullptr)
 	{
-		AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+		
 		if (nullptr != ParentActor)
 		{
 			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
@@ -105,6 +111,7 @@ void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		}
 	}
 
+	ParentActor->DisCountHomingRocketFireCount();
 	Destroy();
 }
 

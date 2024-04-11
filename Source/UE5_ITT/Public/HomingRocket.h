@@ -47,10 +47,10 @@ private:
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float RocketLifeTime = 7.0f;
+	float RocketLifeTime = 12.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float RocketMoveSpeed = 600.0f;
+	float RocketMoveSpeed = 750.0f;
 
 	UPROPERTY(VisibleAnywhere)
 	class ACody* PlayerCodyRef = nullptr;

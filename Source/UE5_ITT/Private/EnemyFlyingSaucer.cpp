@@ -103,6 +103,11 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
+	if (0 != HomingRocketFireCount)
+	{
+		return;
+	}
+
 	HomingRocketFireCount += 2;
 
 	// 1번로켓 세팅

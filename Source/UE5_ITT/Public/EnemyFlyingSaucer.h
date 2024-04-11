@@ -56,6 +56,17 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AFloor* GetFloor() { return FloorObject; }
+
+	UFUNCTION(BlueprintCallable)
+	void DisCountHomingRocketFireCount()
+	{
+		if (0 <= HomingRocketFireCount)
+		{
+			--HomingRocketFireCount;
+		}
+	}
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
