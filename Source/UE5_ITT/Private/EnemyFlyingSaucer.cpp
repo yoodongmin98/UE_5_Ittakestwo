@@ -103,11 +103,14 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
+	HomingRocketFireCount += 2;
+
+	// 1번로켓 세팅
 	AActor* FloorActor = Cast<AActor>(GetFloor());
-
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerCody")));
 	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-
+	HomingRocket1->SetupTarget(TargetActor);
 	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 	HomingRocket1->SetOwner(this);
 	if (HomingRocket1 != nullptr)
@@ -116,12 +119,17 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 	}
 
 
+	// 2번로켓 세팅
+	TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerMay")));
+	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+	HomingRocket2->SetupTarget(TargetActor);
 	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
 	HomingRocket2->SetOwner(this);
 	if (HomingRocket2 != nullptr)
 	{
 		HomingRocket2->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
 	}
+
 }
 
 void AEnemyFlyingSaucer::FireArcingProjectile()

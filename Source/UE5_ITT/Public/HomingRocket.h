@@ -18,6 +18,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UFUNCTION()
+	void SetupTarget(AActor* Target) 
+	{
+		if (nullptr != Target)
+		{
+			TargetActor = Target; 
+		}
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,4 +65,7 @@ private:
 	// ÆÄÆ¼Å¬
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AExplosionEffect> ExplosionEffectClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	class AActor* TargetActor = nullptr;
 };

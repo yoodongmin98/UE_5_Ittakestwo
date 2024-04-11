@@ -22,7 +22,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	APawn* GetPlayerPawn() const { return PlayerRef1; }
+	APawn* GetPlayer1Pawn() const { return PlayerRef1; }
+
+	UFUNCTION(BlueprintCallable)
+	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
+
 	
 	UFUNCTION(BlueprintCallable)
 	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }

@@ -93,6 +93,9 @@ private:
 	int32 ArcingProjectileFireCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)
+	int32 HomingRocketFireCount = 0;
+
+	UPROPERTY(EditDefaultsOnly)
 	class ABossRotatePivotActor* RotateCenterPivotActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)

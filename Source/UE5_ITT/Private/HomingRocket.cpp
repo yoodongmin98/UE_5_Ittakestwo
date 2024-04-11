@@ -61,7 +61,7 @@ void AHomingRocket::Tick(float DeltaTime)
 			return;
 		}
 
-		if (nullptr == PlayerCodyRef || 0.0f >= RocketLifeTime)
+		if (nullptr == TargetActor || 0.0f >= RocketLifeTime)
 		{
 			// 테스트코드. 비활성 함수를 만들고, 비활성 상태로 변경한다. 
 			bIsActive = false;
@@ -74,7 +74,7 @@ void AHomingRocket::Tick(float DeltaTime)
 
 		RocketLifeTime -= DeltaTime;
 		FVector RocketLocation = GetActorLocation();
-		FVector TargetLocation = PlayerCodyRef->GetActorLocation();
+		FVector TargetLocation = TargetActor->GetActorLocation();
 
 		FVector Dir = TargetLocation - RocketLocation;
 		Dir.Normalize();
