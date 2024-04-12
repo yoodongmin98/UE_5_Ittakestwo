@@ -226,7 +226,7 @@ public:
 
 	//////////////////Movement////////////////////
 	UPROPERTY(EditAnywhere, Category = "Dash")
-	float DashDistance = 2000.0f; // 앞구르기 거리
+	float DashDistance = 2500.0f; // 앞구르기 거리
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashDuration; // 앞구르기 지속 시간
 	float DashStartTime;
@@ -236,8 +236,9 @@ public:
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
-
 	bool BigCanDash;
+
+	bool AirDash;
 	//////////////////////////////////////////////
 
 

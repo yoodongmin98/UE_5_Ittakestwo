@@ -66,7 +66,7 @@ void APlayerBase::BeginPlay()
 	bIsDashingStart = false;
 	bCanDash = false;
 	BigCanDash = true;
-
+	AirDash = true;
 
 	CurrentAnimationEnd = false;
 }
@@ -239,7 +239,7 @@ void APlayerBase::JumpDash()
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance*0.75f;
+	FVector DashVelocity = DashDirection * DashDistance*0.6f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -249,10 +249,13 @@ void APlayerBase::DashEnd()
 	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
 	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	bIsDashing = false;
-	bIsDashingStart = false;
-	bCanDash = false;
-	DashDuration = 0.7f;
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		bIsDashing = false;
+		bIsDashingStart = false;
+		bCanDash = false;
+		DashDuration = 0.7f;
+	}
 }
 
 void APlayerBase::Sit()
