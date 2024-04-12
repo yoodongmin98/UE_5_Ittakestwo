@@ -26,7 +26,7 @@ AHomingRocket::AHomingRocket()
 	RocketMeshComp->SetupAttachment(SceneComp);
 
 	FireEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
-	FireEffectComp->SetupAttachment(RocketMeshComp);
+	FireEffectComp->SetupAttachment(SceneComp);
 
 	SetupFsmComponent();
 }
@@ -110,6 +110,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this]
 		{
+			//Cast<AEnemyFlyingSaucer>(GetOwner())->DisCountHomingRocketFireCount();
 		});
 
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,
@@ -156,31 +157,30 @@ void AHomingRocket::SetupFsmComponent()
 			if (nullptr != OverlapActor)
 			{
 				// ±âÁ¸¾×ÅÍºÎÂøÇØÁ¦ (¹Ù´Ú) 
-				DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				// DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 				bIsPlayerEquip = true;
 				UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
 
 				RocketMeshComp->SetSimulatePhysics(false);
 				RocketMeshComp->SetEnableGravity(false);
-				// FireEffectComp->SetActive(true);
-				
-				// SceneComp->SetRelativeLocation(FVector::ZeroVector);
+				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 				
 
 				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
 				if (nullptr != ActorMesh)
 				{
 					//SetActorRelativeLocation(FVector::ZeroVector);
-					SceneComp->SetRelativeLocation(FVector::ZeroVector);
+					// SceneComp->SetRelativeLocation(FVector::ZeroVector);
+					
+					SetActorRelativeLocation(FVector::ZeroVector);
 					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-					RocketMeshComp->AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
+					/*SetActorRelativeRotation(FRotator::ZeroRotator);
+					RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
+
+					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
 					this->SetOwner(OverlapActor);
-
-
-					/*SceneComp->AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
-					SceneComp->SetRelativeLocation(FVector::ZeroVector);*/
-
+				
 				}
 				
 				
@@ -275,7 +275,7 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			Cast<AEnemyFlyingSaucer>(GetOwner())->DisCountHomingRocketFireCount();
+			
 			DestroyRocket();
 			// player take damage 
 		}
