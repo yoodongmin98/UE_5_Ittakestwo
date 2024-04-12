@@ -65,6 +65,8 @@ public:
 	UInputAction* DashAction;
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* InteractAction;
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* SprintAction;
 
 
 	//Cody의 현재 state를 반환합니다.
@@ -184,7 +186,7 @@ public:
 
 
 
-
+	
 
 	//////////////////////////////////////////
 
@@ -197,14 +199,16 @@ public:
 	void Look(const FInputActionInstance& _Instance);
 	void DashInput();
 	void GroundDash();
+	virtual void DashEnd() {};
 	void JumpDash();
-	void DashEnd();
 	void DashNoneInput();
 	void InteractInput();
 	void InteractNoneInput();
+	virtual void SprintInput() {};
+	virtual void SprintNoneInput() {};
 	void Sit();
 
-
+	
 
 
 
@@ -239,6 +243,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashDistance = 2500.0f; // 앞구르기 거리
 	UPROPERTY(EditAnywhere, Category = "Dash")
+
+	float PlayerDefaultSpeed;
+
 	float DashDuration; // 앞구르기 지속 시간
 	float DashStartTime;
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그

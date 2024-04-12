@@ -62,6 +62,7 @@ void APlayerBase::BeginPlay()
 	DashDuration = 0.7f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
+	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
 
 	bIsDashing = false;
 	bIsDashingStart = false;
@@ -107,6 +108,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(DashAction, ETriggerEvent::None, this, &APlayerBase::DashNoneInput);
 		PlayerInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerBase::InteractInput);
 		PlayerInput->BindAction(InteractAction, ETriggerEvent::None, this, &APlayerBase::InteractNoneInput);
+		PlayerInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerBase::SprintInput);
+		PlayerInput->BindAction(SprintAction, ETriggerEvent::None, this, &APlayerBase::SprintNoneInput);
 	}
 }
 
@@ -246,20 +249,7 @@ void APlayerBase::JumpDash()
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
 
-void APlayerBase::DashEnd()
-{
-	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
-	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	//땅에 닿았을때만 대쉬 재시작 가능
-	if (!GetCharacterMovement()->IsFalling())
-	{
-		bIsDashing = false;
-		bIsDashingStart = false;
-		bCanDash = false;
-		DashDuration = 0.7f;
-	}
-}
+
 
 void APlayerBase::Sit()
 {
@@ -283,6 +273,8 @@ void APlayerBase::InteractNoneInput()
 {
 	IsInteract = false;
 }
+
+
 
 //////////////FSM//////////
 void APlayerBase::ChangeState(Cody_State _State)
