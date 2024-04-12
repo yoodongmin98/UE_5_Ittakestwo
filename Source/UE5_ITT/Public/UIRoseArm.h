@@ -18,16 +18,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// 로즈 팔 모양 스켈레탈 메시
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USkeletalMeshComponent* ArmMeshComponent;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:	
 
-	// 로즈 팔 모양 스켈레탈 메시
-	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* ArmMeshComponent;
-
+	// 메이, 코디 인형 메시
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* CodyMeshComponent;
 
