@@ -102,10 +102,10 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	int32 ArcingProjectileFireCount = 0;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	int32 HomingRocketFireCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)
