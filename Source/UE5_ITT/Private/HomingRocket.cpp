@@ -76,6 +76,8 @@ void AHomingRocket::SetupFsmComponent()
 				return;
 			}
 
+			
+
 			// 타겟액터가 nullptr이거나, 현재 로켓의 수명을 모두 소진했다면 -> ChangeState
 			if (0.0f >= RocketLifeTime)
 			{
@@ -97,6 +99,12 @@ void AHomingRocket::SetupFsmComponent()
 
 			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
 			SetActorLocation(NewRocketLocation);
+
+			if (false == bIsSetLifeTime && true == IsMaxFloorDistance())
+			{
+				SetRocektLifeTime(3.0f);
+				bIsSetLifeTime = true;
+			}
 		},
 
 		[this]
@@ -160,7 +168,24 @@ void AHomingRocket::Tick(float DeltaTime)
 	if (true == HasAuthority())
 	{
 		
+
 	}
+}
+
+bool AHomingRocket::IsMaxFloorDistance()
+{
+	AEnemyFlyingSaucer* OnwerActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+	if (nullptr != OnwerActor)
+	{
+		FVector FloorLocation = OnwerActor->GetFloor()->GetActorLocation();
+		float LocationZ = GetActorLocation().Z - FloorLocation.Z;
+		if (MaxFloorDistance >= LocationZ)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -192,6 +217,8 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 
 		ParentActor->DisCountHomingRocketFireCount();
 		Destroy();
+		// 여기서 플레이어 take damage
+
 	}
 	break;
 	case ERocketState::PlayerEquipWait:

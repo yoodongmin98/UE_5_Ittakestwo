@@ -65,7 +65,7 @@ private:
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	float RocketLifeTime = 12.0f;
+	float RocketLifeTime = 30.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketMoveSpeed = 750.0f;
@@ -99,6 +99,14 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class APlayerBase* OverlapActor = nullptr;
 
+	UPROPERTY(EditAnywhere)
+	float MaxFloorDistance = 425.0f;
 
+	bool IsMaxFloorDistance();
+	
+	UFUNCTION()
+	void SetRocektLifeTime(const float LifeTime) { RocketLifeTime = LifeTime; }
+	bool bIsSetLifeTime = false;
+	
 
 };
