@@ -11,6 +11,7 @@ APlayerBase::APlayerBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Tags.Add(FName("Player"));
 
 
 	BigLength = 2000.0f;
@@ -66,7 +67,6 @@ void APlayerBase::BeginPlay()
 	bIsDashingStart = false;
 	bCanDash = false;
 	BigCanDash = true;
-	AirDash = true;
 
 	CurrentAnimationEnd = false;
 }
@@ -105,6 +105,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::None, this, &APlayerBase::DashNoneInput);
+		PlayerInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerBase::InteractInput);
+		PlayerInput->BindAction(InteractAction, ETriggerEvent::None, this, &APlayerBase::InteractNoneInput);
 	}
 }
 
@@ -249,6 +251,7 @@ void APlayerBase::DashEnd()
 	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
 	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	//땅에 닿았을때만 대쉬 재시작 가능
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		bIsDashing = false;
@@ -270,6 +273,15 @@ void APlayerBase::Sit()
 		//GetCharacterMovement()->GravityScale = DefaultGravityScale;
 	}
 	//작성중
+}
+
+void APlayerBase::InteractInput()
+{
+	IsInteract = true;
+}
+void APlayerBase::InteractNoneInput()
+{
+	IsInteract = false;
 }
 
 //////////////FSM//////////

@@ -63,6 +63,8 @@ public:
 	//IA_Dash
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* DashAction;
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* InteractAction;
 
 
 	//Cody의 현재 state를 반환합니다.
@@ -162,6 +164,12 @@ public:
 	{
 		return CurrentAnimationEnd;
 	}
+	//상호작용 키를 눌렀을때 true를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsInteract() const
+	{
+		return IsInteract;
+	} 
 
 
 
@@ -172,6 +180,7 @@ public:
 	bool IsMoveEnd = true;
 	float RotationInterpSpeed = 2.0f;
 
+	bool IsInteract = false;
 
 
 
@@ -191,6 +200,8 @@ public:
 	void JumpDash();
 	void DashEnd();
 	void DashNoneInput();
+	void InteractInput();
+	void InteractNoneInput();
 	void Sit();
 
 
@@ -237,11 +248,9 @@ public:
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
 	bool BigCanDash;
-
-	bool AirDash;
 	//////////////////////////////////////////////
 
-
-	//Test
+	///////////////////Animation//////////////////
 	bool CurrentAnimationEnd;
+	//////////////////////////////////////////////
 };
