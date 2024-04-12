@@ -66,6 +66,8 @@ public:
 		}
 	}
 
+	// test, 보스 테스트 끝나면 삭제 
+	void BossHitTestFireRocket();
 
 protected:
 	// Called when the game starts or when spawned

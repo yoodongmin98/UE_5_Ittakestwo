@@ -38,8 +38,11 @@ void AHomingRocket::BeginPlay()
 
 	if (nullptr != RocketFsmComponent)
 	{
+		// 보스 로켓 오버랩 테스트코드
+		// RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
 	}
+
 	SetupOverlapEvent();
 
 	// 네트워크 권한을 확인하는 코드
@@ -97,6 +100,12 @@ void AHomingRocket::SetupFsmComponent()
 
 			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
 			SetActorLocation(NewRocketLocation);
+
+			if (false == bIsSetLifeTime && true == IsMaxFloorDistance())
+			{
+				SetRocektLifeTime(3.0f);
+				bIsSetLifeTime = true;
+			}
 		},
 
 		[this]
@@ -109,8 +118,6 @@ void AHomingRocket::SetupFsmComponent()
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
 			FireEffectComp->SetActive(false);
-
-			
 
 			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
 			if (nullptr != ParentActor)
@@ -141,7 +148,19 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			
+			// test 코드
+			FVector RocketLocation = GetActorLocation();
+			FVector TargetLocation = GetOwner()->GetActorLocation();
+			TargetLocation.Z += 1200.0f;
+
+
+			FVector Dir = TargetLocation - RocketLocation;
+			Dir.Normalize();
+
+			SetActorRotation(Dir.Rotation());
+
+			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
+			SetActorLocation(NewRocketLocation);
 		},
 
 		[this]
@@ -160,7 +179,24 @@ void AHomingRocket::Tick(float DeltaTime)
 	if (true == HasAuthority())
 	{
 		
+
 	}
+}
+
+bool AHomingRocket::IsMaxFloorDistance()
+{
+	AEnemyFlyingSaucer* OnwerActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+	if (nullptr != OnwerActor)
+	{
+		FVector FloorLocation = OnwerActor->GetFloor()->GetActorLocation();
+		float LocationZ = GetActorLocation().Z - FloorLocation.Z;
+		if (MaxFloorDistance >= LocationZ)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -178,41 +214,27 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 	case ERocketState::PlayerChase:
 	{
-		FVector SettingLocation = GetActorLocation();
-		AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
-		AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
-		if (Effect != nullptr)
+		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			if (nullptr != ParentActor)
-			{
-				AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
-				Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
-			}
+			DestroyRocket();
+			// player take damage 
 		}
-
-		ParentActor->DisCountHomingRocketFireCount();
-		Destroy();
 	}
 	break;
 	case ERocketState::PlayerEquipWait:
 	{
-		// 내가 플레이어 장착 대기 상태일때 오버랩 이벤트가 발생하면 
-		// 플레이어가 e키를 눌렀는지 체크해 
-		if (nullptr != OtherActor)
+		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			APlayerBase* PlayerRef = Cast<APlayerBase>(OtherActor);
-			if (nullptr != PlayerRef)
-			{
-				bIsPlayerOverlap = true;
-			}
+			bIsPlayerOverlap = true;
 		}
-
-
 	}
 	break;
 	case ERocketState::PlayerEquip:
 	{
-
+		if (true == OtherActor->ActorHasTag(TEXT("Boss")))
+		{
+			DestroyRocket();
+		}
 	}
 	break;
 	default:
@@ -222,5 +244,22 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 
 void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+}
+
+void AHomingRocket::DestroyRocket()
+{
+	Destroy();
+	FVector SettingLocation = GetActorLocation();
+	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
+	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+	if (Effect != nullptr)
+	{
+		if (nullptr != ParentActor)
+		{
+			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
+			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+			ParentActor->DisCountHomingRocketFireCount();
+		}
+	}
 }
 

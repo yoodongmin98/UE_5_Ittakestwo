@@ -25,6 +25,19 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetupComponent();
+	Tags.Add(FName("Boss"));
+}
+
+void AEnemyFlyingSaucer::BossHitTestFireRocket()
+{
+	// 1번로켓 세팅
+	AActor* FloorActor = Cast<AActor>(GetFloor());
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	AActor* TargetActor = this;
+	AHomingRocket* TestHomingRocket = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+	TestHomingRocket->SetupTarget(TargetActor);
+	TestHomingRocket->SetActorLocation(FVector(0.0f, 0.0f, 1000.0f));
+	TestHomingRocket->SetOwner(this);
 }
 
 // Called when the game starts or when spawned
@@ -35,6 +48,8 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
+
+	// BossHitTestFireRocket();
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
