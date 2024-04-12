@@ -58,7 +58,7 @@ void APlayerBase::BeginPlay()
 
 	//Set
 	PlayerHP = 12; //Player기본 Hp설정
-	DashDuration = 0.8f; //Dash 시간
+	DashDuration = 0.7f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 
@@ -203,6 +203,7 @@ void APlayerBase::DashInput()
 		}
 		else
 		{
+			DashDuration = 0.4f;
 			JumpDash();
 		}
 		bIsDashing = true;
@@ -238,7 +239,7 @@ void APlayerBase::JumpDash()
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance * 0.75f;
+	FVector DashVelocity = DashDirection * DashDistance*0.75f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -251,6 +252,7 @@ void APlayerBase::DashEnd()
 	bIsDashing = false;
 	bIsDashingStart = false;
 	bCanDash = false;
+	DashDuration = 0.7f;
 }
 
 void APlayerBase::Sit()
