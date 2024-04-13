@@ -208,7 +208,7 @@ void APlayerBase::DashInput()
 		}
 		else
 		{
-			DashDuration = 0.4f;
+			DashDuration = 0.2f;
 			JumpDash();
 		}
 		bIsDashing = true;
@@ -244,7 +244,7 @@ void APlayerBase::JumpDash()
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance*0.6f;
+	FVector DashVelocity = DashDirection * DashDistance * 0.8f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
