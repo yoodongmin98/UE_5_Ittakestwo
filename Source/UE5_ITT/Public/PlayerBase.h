@@ -20,6 +20,7 @@ enum class Cody_State : uint8
 	JUMP UMETA(DisPlayName = "JUMP"),
 	DASH UMETA(DisPlayName = "DASH"),
 	DASHEND UMETA(DisPlayName = "DASHEND"),
+	PlayerDeath UMETA(DisPlayName = "PlayerDeath"),
 };
 
 UCLASS()
@@ -184,7 +185,10 @@ public:
 	{
 		return IsPlayerDeath;
 	}
-	
+	inline void SetPlayerDeath()
+	{
+		IsPlayerDeath = true;
+	}
 
 
 

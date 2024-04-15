@@ -289,12 +289,15 @@ void APlayerBase::ChangeState(Cody_State _State)
 
 void APlayerBase::PlayerDeathCheck()
 {
-	if (0 == PlayerHP)
+	ChangeState(Cody_State::PlayerDeath);
+	//플레이어hp가 0보다 작거나 death함수가 호출되었을때 실행됩니다.
+	if (0 <= PlayerHP || IsPlayerDeath == true)
 	{
 		IsPlayerDeath = true;
 	}
 	if (FullHP == PlayerHP)
 	{
 		IsPlayerDeath = false;
+		ChangeState(Cody_State::IDLE);
 	}
 }
