@@ -2,7 +2,7 @@
 
 
 #include "Floor.h"
-#include "ParentShutter.h"
+#include <Engine/StaticMeshActor.h>
 #include "Pillar.h"
 #include "FsmComponent.h"
 #include "Laser.h"
@@ -13,6 +13,8 @@ AFloor::AFloor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetupFsm();
+
+	Tags.Add(FName("Floor"));
 }
 
 // Called when the game starts or when spawned
@@ -39,6 +41,16 @@ void AFloor::Tick(float DeltaTime)
 void AFloor::SetPhase(Fsm Phase)
 {	
 	FsmComp->ChangeState(Phase);	
+}
+
+int32 AFloor::GetCurrentPhase() const
+{
+	if (nullptr == FsmComp)
+	{
+		return -1;
+	}
+
+	return FsmComp->GetCurrentState();
 }
 
 void AFloor::SetupFsm()
@@ -178,6 +190,9 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
+			//ÄÆ¾ÀÀ» ÇÏ°í ÄÆ¾ÀÀÌ ³¡³ª¸é ¹®´Ý±â
+			//LeftDoor->SetActorLocation();
+			//RightDoor->SetActorLocation();
 		},
 
 		[this]

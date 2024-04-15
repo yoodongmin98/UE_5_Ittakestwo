@@ -31,6 +31,9 @@ public:
 	};
 	void SetPhase(Fsm Phase);
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentPhase() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -45,19 +48,17 @@ private:
 	FVector CurPos = FVector::Zero();
 	FVector NextPos = FVector::Zero();
 
-	//UPROPERTY(EditAnywhere,Category = "Pointer")
-	//class AParentShutter* ParentShutter0 = nullptr;
-	//UPROPERTY(EditAnywhere, Category = "Pointer")
-	//class AParentShutter* ParentShutter1 = nullptr;
-	//UPROPERTY(EditAnywhere, Category = "Pointer")
-	//class AParentShutter* ParentShutter2 = nullptr;
-
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class APillar* Pillar0 = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class APillar* Pillar1 = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class APillar* Pillar2 = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class AStaticMeshActor* LeftDoor = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class AStaticMeshActor* RightDoor = nullptr;
 
 
 	UPROPERTY(EditAnywhere, Category = "Pointer")

@@ -21,48 +21,69 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// 각종 발사
-	UFUNCTION(BlueprintCallable, Category = "Battle")
-	void FireLaserBeam();
-	UFUNCTION(BlueprintCallable, Category = "Battle")
+	UFUNCTION(BlueprintCallable)
+	void SetupRotateCenterPivotActor();
+
+	UFUNCTION(BlueprintCallable)
+	void DetachRotateCenterPivotActor();
+	
+	UFUNCTION(BlueprintCallable)
+	ABossRotatePivotActor* GetRotateCenterPivotActor() { return RotateCenterPivotActor; }
+
+	UFUNCTION(BlueprintCallable)
+	void RotationCenterPivotActor(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
-	UFUNCTION(BlueprintCallable, Category = "Battle")
+	
+	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
 	UFUNCTION(BlueprintCallable)
-	float GetCurrentHp() const
-	{
-		return CurrentHp;
-	}
+	AEnergyChargeEffect* CreateEnergyChargeEffect();
 
 	UFUNCTION(BlueprintCallable)
-	void SetCurrentHp(float HpValue)
-	{
-		CurrentHp = HpValue;
-	}
+	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHp() const { return CurrentHp; }
 	
 	UFUNCTION(BlueprintCallable)
-	UStaticMeshComponent* GetLaserSpawnPointMesh() const
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
+
+	UFUNCTION(BlueprintCallable)
+	AFloor* GetFloor() { return FloorObject; }
+
+	UFUNCTION(BlueprintCallable)
+	void DisCountHomingRocketFireCount()
 	{
-		return LaserSpawnPointMesh;
+		if (0 <= HomingRocketFireCount)
+		{
+			--HomingRocketFireCount;
+		}
 	}
+
+	// test, 보스 테스트 끝나면 삭제 
+	void BossHitTestFireRocket();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	// 컴포넌트 초기화
-	void SetupComponent();
+	UFUNCTION(BlueprintCallable)
 
-	// 디버그 관련 함수 
+	void SetupComponent();
 	void DrawDebugMesh();
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsStartMotion = true;
 
+	// 초반 원숭이 공중에 붕뜨는 거 
 	void StartMotionUpdate(float DeltaTime);
-
 	FVector StartMotionTargetLocation = FVector(0, 0, 650);
 
 	UPROPERTY(EditAnywhere)
@@ -78,12 +99,40 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
-	// 원숭이 
+	UFUNCTION(BlueprintCallable)
+	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
+	
+	UPROPERTY(EditDefaultsOnly)
+	int32 ArcingProjectileFireCount = 0;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 HomingRocketFireCount = 0;
+
+	UPROPERTY(EditDefaultsOnly)
+	class ABossRotatePivotActor* RotateCenterPivotActor = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ABossRotatePivotActor> RotateCenterPivotActorClass = nullptr;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	float RotateCenterPivotActorMoveSpeed = 9.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AFloor> FloorClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AEnergyChargeEffect> EnergyChargeEffectClass = nullptr;
+
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
-	// --------------------------------- spawnpointmesh ---------------------------------- 
-	// 들고 있어야 되나 싶음
+	UPROPERTY(EditAnywhere)
+	class AFloor* FloorObject = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
+
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
@@ -95,4 +144,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
+
+
+
+
+
 };

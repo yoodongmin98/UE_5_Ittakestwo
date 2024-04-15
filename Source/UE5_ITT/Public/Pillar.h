@@ -55,20 +55,18 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere)
-	class UStaticMeshComponent* GlassMesh = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* PillarMesh = nullptr;
-
-	UPROPERTY(EditAnywhere)
-	class UStaticMeshComponent* CoreMesh = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* ShieldMesh = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* ButtonMesh = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class AEnergyCore* EnergyCoreActor = nullptr;
 
 
 	UPROPERTY(EditAnywhere, Category = "Bool")
@@ -78,8 +76,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bOnPlayer = false;
 
-	UPROPERTY(EditAnywhere, Category = "Bool")
-	bool bExplode = false;
 	UPROPERTY(EditAnywhere, Category = "Bool")
 	bool bShieldOpen = false;
 	UPROPERTY(EditAnywhere, Category = "Bool")

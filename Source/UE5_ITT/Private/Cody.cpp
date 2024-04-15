@@ -2,161 +2,241 @@
 
 
 #include "Cody.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Components/CapsuleComponent.h"
+
 
 // Sets default values
 ACody::ACody()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	
 }
 
 // Called when the game starts or when spawned
 void ACody::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	CodySizes = CodySize::NORMAL;
+	ScaleSpeed = 2.0f;
+	CameraSpeed = 1.5f;
+	BigSize = FVector(4.0f, 4.0f, 4.0f);
+	NormalSize = FVector(1.0f, 1.0f, 1.0f);
+	SmallSize= FVector(0.2f, 0.2f, 0.2f);
+	TargetScale = NormalSize;
+	BigSizeCapsule = FVector(0.0f, 0.0f, -270.0f);
+	NormalSizeCapsule = FVector(0.0f, 0.0f, -90.0f);
+	SmallSizeCapsule = FVector(0.0f, 0.0f, 72.0f);
 
-	CodyController = Cast<APlayerController>(Controller);
-	if (CodyController != nullptr)
-	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = 
-		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(CodyController->GetLocalPlayer());
-		if (Subsystem != nullptr)
-		{
-			Subsystem->AddMappingContext(CodyMappingContext, 0);
-		}
-	}
+	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
+	
 
-
-	//Set
-	PlayerHP = 12; //Player기본 Hp설정
-	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
-	DefaultGravityScale = GetCharacterMovement()->GravityScale;
+	GetMesh()->AddLocalOffset(NormalSizeCapsule);
 }
 
 // Called every frame
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	//Scale Check
+	GetMesh()->SetWorldScale3D(FMath::VInterpTo(GetMesh()->GetComponentScale(), TargetScale, DeltaTime, ScaleSpeed));
+
+
+
+	//Size Setting
+	switch (CodySizes)
+	{
+	case CodySize::BIG :
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		GetCapsuleComponent()->SetCapsuleSize(140.0f, 360.0f);
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		GetCapsuleComponent()->SetCapsuleSize(35.0f, 90.0f);
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
+		GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
+		break;
+	}
+	default :
+		break;
+	}
 }
 
-// Called to bind functionality to input
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	Input = PlayerInputComponent;
-	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 
-
-	UEnhancedInputComponent* CodyInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	if (CodyInput != nullptr)
+	if (PlayerInput != nullptr)
 	{
-		CodyInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACody::Move);
-		CodyInput->BindAction(MoveAction, ETriggerEvent::None, this, &ACody::Idle);
-		CodyInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACody::Look);
-		CodyInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &ACody::DashInput);
+		PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
+		PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeBigSize);
 	}
 }
 
 
-//////////////////////////////캐릭터 이동관련///////////////////////////
-//새로운 입력 Action
-void ACody::Idle(const FInputActionInstance& _Instance)
+
+void ACody::ChangeBigSize()
 {
-	IsMoveEnd = false;
-	ChangeState(Cody_State::IDLE);
-}
-void ACody::Move(const FInputActionInstance& _Instance)
-{
-	IsMoveEnd = true;
-	ChangeState(Cody_State::MOVE);
-	FVector2D MoveVector = _Instance.GetValue().Get<FVector2D>();
-	if (Controller != nullptr)
+	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
+	if (!GetCharacterMovement()->IsFalling())
 	{
-		// 이동
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// 회전 각도 계산
-		float Yaw = FMath::RadiansToDegrees(FMath::Atan2(MoveVector.Y, MoveVector.X));
-		const float InterpolatedYaw = FMath::FInterpTo(Rotation.Yaw, Yaw, GetWorld()->GetDeltaSeconds(), RotationInterpSpeed);
-		const FRotator InterpolatedRotation(0, InterpolatedYaw, 0);
-		SetActorRotation(InterpolatedRotation);
-
-		AddMovementInput(ForwardVector, MoveVector.X);
-		AddMovementInput(RightVector, MoveVector.Y);
-	}
-}
-
-void ACody::Look(const FInputActionInstance& _Instance)
-{
-	FVector2D LookVector = _Instance.GetValue().Get<FVector2D>();
-	if (Controller != nullptr)
-	{
-		AddControllerYawInput(LookVector.X);
-		AddControllerPitchInput(LookVector.Y);
-	}
-}
-
-void ACody::DashInput()
-{
-	ChangeState(Cody_State::DASH);
-	if (!bIsDashing)
-	{
-		if (!GetCharacterMovement()->IsFalling())
+		switch (CodySizes)
 		{
-			GroundDash();
+		case CodySize::BIG:
+		{
+			break;
 		}
-		else
+		case CodySize::NORMAL:
 		{
-			JumpDash();
+			ChangeCodySizeEnum(CodySize::BIG);
+			TargetScale = BigSize;
+			GetMesh()->AddLocalOffset(BigSizeCapsule);
+			ACharacter::JumpMaxCount = 1;
+			BigCanDash = false;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			ChangeCodySizeEnum(CodySize::NORMAL);
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale;
+			GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+			DashDistance = 2500.0f;
+			break;
+		}
+		default:
+			break;
 		}
 	}
 }
 
-void ACody::GroundDash()
+void ACody::ChangeSmallSize()
 {
-	GetCharacterMovement()->GroundFriction = 0.0f; //마찰력 없앰
-
-	FVector DashDirection = GetActorForwardVector(); // 전방벡터
-	DashDirection.Normalize(); // 방향벡터normalize
-
-	FVector DashVelocity = DashDirection * DashDistance; //거리x방향
-	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
-
-	bIsDashing = true;
-	bIsDashingStart = false;
-	// 시간지나면 end호출
-	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &ACody::DashEnd, DashDuration, false);
+	//UE_LOG(LogTemp, Warning, TEXT("left function called"));
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			ChangeCodySizeEnum(CodySize::NORMAL);
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-BigSizeCapsule);
+			ACharacter::JumpMaxCount = 2;
+			BigCanDash = true;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale;
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			ChangeCodySizeEnum(CodySize::SMALL);
+			TargetScale = SmallSize;
+			GetMesh()->AddLocalOffset(SmallSizeCapsule);
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 400.0f;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale - 2.0f;
+			GetCharacterMovement()->JumpZVelocity = 700.0f;
+			DashDistance = 1000.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+	}
 }
 
-void ACody::JumpDash()
+void ACody::SprintInput()
 {
-	GetCharacterMovement()->GravityScale = 0.0f; //중력 없앰
-
-	FVector DashDirection = GetActorForwardVector(); // 전방벡터
-	DashDirection.Normalize(); // 방향벡터normalize
-
-	FVector DashVelocity = DashDirection * DashDistance * 0.75f; //거리x방향
-	GetCharacterMovement()->Velocity = DashVelocity; // 시간에따른 속도설정
-
-	bIsDashing = true;
-	bIsDashingStart = false;
-	// 시간지나면 end호출
-	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &ACody::DashEnd, DashDuration, false);
+	CodySprint = true;
+	switch (CodySizes)
+	{
+	case CodySize::BIG:
+	{
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 400.0f;
+		break;
+	}
+	default:
+		break;
+	}
+}
+void ACody::SprintNoneInput()
+{
+	CodySprint = false;
+	switch (CodySizes)
+	{
+	case CodySize::BIG:
+	{
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 600.0f;
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 void ACody::DashEnd()
 {
-	GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	bIsDashing = false;
-}
-
-//////////////FSM//////////
-void ACody::ChangeState(Cody_State _State)
-{
-	CodyState = _State;
+	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
+	switch (CodySizes)
+	{
+	case CodySize::BIG:
+	{
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
+		GetCharacterMovement()->GravityScale = DefaultGravityScale;
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 20.0f;
+		GetCharacterMovement()->GravityScale = DefaultGravityScale - 2.0f;
+		break;
+	}
+	default:
+		break;
+	}
+	//땅에 닿았을때만 대쉬 재시작 가능
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		bIsDashing = false;
+		bIsDashingStart = false;
+		bCanDash = false;
+		DashDuration = 0.7f;
+	}
 }

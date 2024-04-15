@@ -22,64 +22,70 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	APawn* GetPlayerPawn() const { return PlayerRef1; }
+	APawn* GetPlayer1Pawn() const { return PlayerRef1; }
+
+	UFUNCTION(BlueprintCallable)
+	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
+
 	
 	UFUNCTION(BlueprintCallable)
 	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }
+
+	UFUNCTION(BlueprintCallable)
+	void AddPatternMatchCount();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	enum class EBossPhase
-	{
-		None,
-		Phase_1,
-		Phase_2,
-		Phase_3,
-		Death,
-		Max
-	};
-
-	void SetupPlayerReference();
+	void SetupPlayerRefAndBehaviorTreePhase1();
+	
+	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase1();
-	void SetupTimerManager();
+	UFUNCTION(BlueprintCallable)
+	void SetupStartBehaviorTreePhase2();
+	UFUNCTION(BlueprintCallable)
+	void SetupStartBehaviorTreePhase3();
 	void SavePreviousTargetLocation();
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
-	void UpdatePhaseFromHealth(float DeltaTime);
-	void ChangePhase(EBossPhase Phase);
 
-	// Player Ref
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef1;
 
-	// Player Ref Test
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef2;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	bool bFocus = false;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float FocusRange = 300;
-
 	// Behavior Tree
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase1;
+	class UBehaviorTree* AIBehaviorTreePhase1 = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase2;
+	class UBehaviorTree* AIBehaviorTreePhase2 = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase3;
+	class UBehaviorTree* AIBehaviorTreePhase3 = nullptr;
 
-	FTimerHandle TargetLocationCheckHandle;
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTree* CurrentBehaviorTree = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	class UBehaviorTreeComponent* CurrentBehaviorTreeComp = nullptr;
+
+
+
+	UPROPERTY(EditDefaultsOnly)
+	class AFloor* FloorObject = nullptr;
+
 	FVector PrevTargetLocation = FVector::ZeroVector;
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
 	bool bPrevTargetLocationValid = false;
 	float LaserLerpRatio = 0.0f;
+	float LaserLerpRate = 25.0f;
+		
+	UPROPERTY(EditAnywhere)
+	int32 PatternMatchCount = 0;
 
-	// phase
-	EBossPhase CurrentBossPhase = EBossPhase::Phase_1;
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsSetupPlayerRef= false;
 };
