@@ -26,7 +26,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DetachRotateCenterPivotActor();
-	
+
 	UFUNCTION(BlueprintCallable)
 	ABossRotatePivotActor* GetRotateCenterPivotActor() { return RotateCenterPivotActor; }
 
@@ -35,7 +35,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
-	
+
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
@@ -47,7 +47,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetCurrentHp() const { return CurrentHp; }
-	
+
 	UFUNCTION(BlueprintCallable)
 	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
 
@@ -74,6 +74,26 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	enum class EBossState
+	{
+		None,
+		Phase1Start,
+		Phase1Progress,
+		Phase1End,
+		
+		Phase2Start,
+		Phase2Progress,
+		Phase2End,
+		
+		Phase3Start,
+		Phase3Progress,
+		Phase3End,
+
+		FireHomingRocket,
+		FireArcingProjectile,
+
+	};
+
 	UFUNCTION(BlueprintCallable)
 
 	void SetupComponent();
@@ -129,10 +149,18 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	class AFloor* FloorObject = nullptr;
-
+	
 	UPROPERTY(EditAnywhere)
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
+	void SetupFsmComponent();
+
+	// FSM Comp
+	UPROPERTY(EditDefaultsOnly)
+	class UFsmComponent* FsmComp = nullptr;
+
+
+	// 보스 공격 생성 지점 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
@@ -144,9 +172,5 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
-
-
-
-
 
 };

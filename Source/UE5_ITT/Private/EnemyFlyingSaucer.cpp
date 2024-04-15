@@ -7,6 +7,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "FsmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
@@ -17,6 +18,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BossRotatePivotActor.h"
 #include "DrawDebugHelpers.h"
+#include "Misc/Paths.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -25,6 +27,7 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetupComponent();
+	SetupFsmComponent();
 	Tags.Add(FName("Boss"));
 }
 
@@ -49,6 +52,7 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
+	FsmComp->ChangeState(EBossState::Phase1Start);
 	// BossHitTestFireRocket();
 
 	// 네트워크 권한을 확인하는 코드
@@ -68,10 +72,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		if (true == bIsStartMotion)
-		{
-			StartMotionUpdate(DeltaTime);
-		}
+		
 
 		//DrawDebugMesh();
 	}
@@ -205,6 +206,8 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	ArcingProjectileSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArcingProjectileSpawnPointMesh"));
 	ArcingProjectileSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("ArcingProjectileSpawnPointSocket"));
+
+	
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -285,5 +288,91 @@ void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
 	FVector NewLocaiton = CurrentLocation + DeltaMovement;
 
 	GetMesh()->SetRelativeLocation(NewLocaiton);
+}
+
+void AEnemyFlyingSaucer::SetupFsmComponent()
+{
+	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComponent"));
+	FsmComp->CreateState(EBossState::Phase1Start,
+		[this]
+		{
+			// 메시받아오기
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+				
+			}
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 종료 체크 
+			bool bIsAnimationPlaying = GetMesh()->IsPlaying();
+			if (!bIsAnimationPlaying)
+			{
+				FsmComp->ChangeState(EBossState::Phase1Progress);
+				return;
+			}
+
+		
+		},
+
+		[this]
+		{
+			
+		});
+
+	FsmComp->CreateState(EBossState::Phase1Progress,
+		[this]
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Phase 1 Progress"));
+
+			// 메시받아오기
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+
+			}
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase1End,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
+		});
 }
 
