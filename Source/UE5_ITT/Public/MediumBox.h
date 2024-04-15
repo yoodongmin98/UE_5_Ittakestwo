@@ -44,9 +44,5 @@ private:
 
 	float ShakeRange= 30.f;
 
-	FRandomStream Random;
-
-
 	void SetupFsm();
-
 };

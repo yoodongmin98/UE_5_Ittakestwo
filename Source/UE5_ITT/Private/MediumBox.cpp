@@ -11,6 +11,7 @@ AMediumBox::AMediumBox()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	MediumBoxMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MediumBoxMesh"));
+	SetRootComponent(MediumBoxMesh);
 	SetupFsm();
 }
 
@@ -18,7 +19,6 @@ AMediumBox::AMediumBox()
 void AMediumBox::BeginPlay()
 {
 	Super::BeginPlay();
-	Random.GenerateNewSeed();
 
 	FsmComp->ChangeState(Fsm::Wait);
 	
