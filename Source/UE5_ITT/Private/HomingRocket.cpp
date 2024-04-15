@@ -5,13 +5,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "NiagaraComponent.h"
 #include "EnemyFlyingSaucer.h"
 #include "ExplosionEffect.h"
 #include "Floor.h"
 #include "FsmComponent.h"
 #include "Cody.h"
-
 
 // Sets default values
 AHomingRocket::AHomingRocket()
@@ -69,7 +69,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerChase,
 		[this]
 		{
-
+			
 		},
 
 		[this](float DT)
@@ -117,6 +117,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this]
 		{
+			//Cast<AEnemyFlyingSaucer>(GetOwner())->DisCountHomingRocketFireCount();
 		});
 
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,
@@ -124,21 +125,29 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
-			FireEffectComp->SetActive(false);
+			FireEffectComp->SetActive(false, true);
 
 			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
 			if (nullptr != ParentActor)
 			{
 				ParentActor->DisCountHomingRocketFireCount();
 			}
+
+			UE_LOG(LogTemp, Warning, TEXT("Start Player EquipWait"));
 		},
 
 		[this](float DT)
 		{
-			if (true == bIsPlayerOverlap)
+			if (true == bIsPlayerOverlap && nullptr != OverlapActor)
 			{
-				RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
-				return;
+				APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
+				bool KeyCheck = PlayerBase->GetIsInteract();
+				if (true == KeyCheck)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Change State PlayerEquip"));
+					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
+					return;
+				}
 			}
 		},
 
@@ -150,24 +159,74 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			bIsPlayerEquip = true;
+			UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
+
+			if (nullptr != OverlapActor)
+			{
+				// 기존액터부착해제 (바닥) 
+				// DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+				bIsPlayerEquip = true;
+				UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
+
+				RocketMeshComp->SetSimulatePhysics(false);
+				RocketMeshComp->SetEnableGravity(false);
+				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
+				
+
+				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
+				if (nullptr != ActorMesh)
+				{
+					//SetActorRelativeLocation(FVector::ZeroVector);
+					// SceneComp->SetRelativeLocation(FVector::ZeroVector);
+					
+					SetActorRelativeLocation(FVector::ZeroVector);
+					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+					/*SetActorRelativeRotation(FRotator::ZeroRotator);
+					RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
+
+					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
+					this->SetOwner(OverlapActor);
+				
+				}
+				
+				
+				
+				UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
+			}
 		},
 
 		[this](float DT)
 		{
-			// test 코드
-			FVector RocketLocation = GetActorLocation();
-			FVector TargetLocation = GetOwner()->GetActorLocation();
-			TargetLocation.Z += 1200.0f;
+			AActor* ParentActor = GetAttachParentActor();
+			if (nullptr == ParentActor)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
+			}
+			else
+			{
+				bool Check = ParentActor->ActorHasTag(TEXT("Player"));
+				if (true == Check)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Player Equip"));
+				}
+				
+			}
 
 
-			FVector Dir = TargetLocation - RocketLocation;
-			Dir.Normalize();
+			//// test 코드
+			//FVector RocketLocation = GetActorLocation();
+			//FVector TargetLocation = GetOwner()->GetActorLocation();
+			//TargetLocation.Z += 1200.0f;
 
-			SetActorRotation(Dir.Rotation());
 
-			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
-			SetActorLocation(NewRocketLocation);
+			//FVector Dir = TargetLocation - RocketLocation;
+			//Dir.Normalize();
+
+			//SetActorRotation(Dir.Rotation());
+
+			//FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
+			//SetActorLocation(NewRocketLocation);
 		},
 
 		[this]
@@ -251,11 +310,16 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
 			bIsPlayerOverlap = true;
+			APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
+			OverlapActor = PlayerBase;
 		}
 	}
 	break;
 	case ERocketState::PlayerEquip:
 	{
+
+
+
 		if (true == OtherActor->ActorHasTag(TEXT("Boss")))
 		{
 			// 여기서도 불값만 변경하는걸로
@@ -270,6 +334,14 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 
 void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag("Player"))
+		{
+			bIsPlayerOverlap = false;
+			// OverlapActor = nullptr;
+		}
+	}
 }
 
 void AHomingRocket::DestroyRocket()
@@ -283,7 +355,7 @@ void AHomingRocket::DestroyRocket()
 		{
 			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
 			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
-			ParentActor->DisCountHomingRocketFireCount();
+			
 		}
 	}
 
