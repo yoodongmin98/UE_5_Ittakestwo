@@ -58,7 +58,7 @@ void APlayerBase::BeginPlay()
 	}
 
 	//Set
-	PlayerHP = 12; //Player기본 Hp설정
+	PlayerHP = FullHP; //Player기본 Hp설정
 	DashDuration = 0.7f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
@@ -77,6 +77,8 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//플레이어 생존여부 확인
+	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
@@ -283,4 +285,16 @@ void APlayerBase::InteractNoneInput()
 void APlayerBase::ChangeState(Cody_State _State)
 {
 	ITTPlayerState = _State;
+}
+
+void APlayerBase::PlayerDeathCheck()
+{
+	if (0 == PlayerHP)
+	{
+		IsPlayerDeath = true;
+	}
+	if (FullHP == PlayerHP)
+	{
+		IsPlayerDeath = false;
+	}
 }

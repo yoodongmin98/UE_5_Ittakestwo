@@ -178,21 +178,23 @@ public:
 	{
 		return IsSprint;
 	}
-
-
-
-
-	///////////////////Test///////////////////
-	void ChangeState(Cody_State _State);
-	//Test
-	bool IsMoveEnd = true;
-	float RotationInterpSpeed = 2.0f;
-
-	bool IsInteract = false;
-
-
-
+	//Player가 죽은상태인지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsPlayerDeath() const
+	{
+		return IsPlayerDeath;
+	}
 	
+
+
+
+
+	//////////////////////////////////////////
+	void ChangeState(Cody_State _State);
+	//마우스 돌아가는 스피드
+	float RotationInterpSpeed = 2.0f;
+	//상호작용
+	bool IsInteract = false;
 
 	//////////////////////////////////////////
 
@@ -213,8 +215,7 @@ public:
 	virtual void SprintInput() {};
 	virtual void SprintNoneInput() {};
 	void Sit();
-
-	
+	///////////////////////////////////////////////////////
 
 
 
@@ -230,6 +231,9 @@ public:
 	///////////////////Player/////////////////////
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 0;
+	int32 FullHP = 12;
+	bool IsPlayerDeath = false;
+	void PlayerDeathCheck();
 	//////////////////////////////////////////////
 
 	//////////////////Camera////////////////////
@@ -250,22 +254,22 @@ public:
 	float DashDistance = 2500.0f; // 앞구르기 거리
 	UPROPERTY(EditAnywhere, Category = "Dash")
 
-	float PlayerDefaultSpeed;
-
+	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
+	bool IsMoveEnd = true; //움직임이 끝났는지
 	float DashDuration; // 앞구르기 지속 시간
-	float DashStartTime;
+	float DashStartTime;//앞구르기 시작시간 체크
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
-	bool bCanDash;
+	bool bCanDash; //대쉬가 가능한 상태인지
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
-	bool BigCanDash;
+	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 
-	bool IsSprint;
+	bool IsSprint; //달리기 여부
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////
-	bool CurrentAnimationEnd;
+	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
 };

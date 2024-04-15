@@ -65,6 +65,10 @@ void ACody::Tick(float DeltaTime)
 	{
 		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
 		GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
+		if (GetCharacterMovement()->IsFalling())
+		{
+			DashDuration = 0.03f;
+		}
 		break;
 	}
 	default :
@@ -195,8 +199,8 @@ void ACody::ChangeSmallSize()
 			TargetScale = SmallSize;
 			GetMesh()->AddLocalOffset(SmallSizeCapsule);
 			GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
-			GetCharacterMovement()->JumpZVelocity = 300.0f;
-			DashDistance = 800.0f;
+			GetCharacterMovement()->JumpZVelocity = 250.0f;
+			DashDistance = 700.0f;
 			break;
 		}
 		case CodySize::SMALL:
@@ -232,7 +236,8 @@ void ACody::DashEnd()
 	}
 	case CodySize::SMALL:
 	{
-		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 40.0f;
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700;
+		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 45.0f;
 		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
 		break;
 	}
