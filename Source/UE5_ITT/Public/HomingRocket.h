@@ -37,6 +37,8 @@ private:
 		PlayerChase,
 		PlayerEquipWait,
 		PlayerEquip,
+
+		Destroy,
 	};
 
 	void SetupOverlapEvent();

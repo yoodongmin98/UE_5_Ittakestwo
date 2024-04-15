@@ -74,6 +74,13 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			if (false == bIsActive)
+			{
+				RocketFsmComponent->ChangeState(ERocketState::Destroy);
+				return;
+			}
+
+
 			if (nullptr == TargetActor)
 			{
 				return;
@@ -167,6 +174,21 @@ void AHomingRocket::SetupFsmComponent()
 		{
 		});
 
+	RocketFsmComponent->CreateState(ERocketState::Destroy,
+		[this]
+		{
+			DestroyRocket();
+		},
+
+		[this](float DT)
+		{
+			
+		},
+
+		[this]
+		{
+		});
+
 
 }
 
@@ -216,8 +238,11 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
-			DestroyRocket();
-			// player take damage 
+			if (true == bIsActive)
+			{
+				bIsActive = false;
+			}
+
 		}
 	}
 	break;
@@ -233,7 +258,8 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (true == OtherActor->ActorHasTag(TEXT("Boss")))
 		{
-			DestroyRocket();
+			// 여기서도 불값만 변경하는걸로
+			// DestroyRocket();
 		}
 	}
 	break;
@@ -248,7 +274,6 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 void AHomingRocket::DestroyRocket()
 {
-	Destroy();
 	FVector SettingLocation = GetActorLocation();
 	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
 	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
@@ -261,5 +286,7 @@ void AHomingRocket::DestroyRocket()
 			ParentActor->DisCountHomingRocketFireCount();
 		}
 	}
+
+	Destroy();
 }
 
