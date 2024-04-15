@@ -5,6 +5,7 @@
 #include <Components/StaticMeshComponent.h>
 #include <Components/SceneComponent.h>
 #include "FsmComponent.h"
+#include "PlayerBase.h"
 
 // Sets default values
 ASmasher::ASmasher()
@@ -118,6 +119,15 @@ void ASmasher::SetupFsm()
 		{
 		}
 	);
+}
+
+void ASmasher::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
+	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr )
+	{
+		//OverlapPlayer-> 즉사처리
+	}
 }
 
 // Called every frame
