@@ -42,4 +42,8 @@ private:
 	class UStaticMeshComponent* GlassMesh = nullptr;
 
 	bool bExplode = false;
+
+	
+
+
 };

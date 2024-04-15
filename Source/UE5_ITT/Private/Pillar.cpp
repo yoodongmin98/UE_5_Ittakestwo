@@ -6,6 +6,9 @@
 #include "FsmComponent.h"
 #include "ParentShutter.h"
 #include "EnergyCore.h"
+#include "NiagaraComponent.h"
+#include "CoreExplosionEffect.h"
+
 
 // Sets default values
 APillar::APillar()
@@ -203,6 +206,7 @@ void APillar::SetupFsm()
 			{
 				//레이저 타격 체크 필요
 				FsmComp->ChangeState(Fsm::Boom);
+				SetupNiagaraEffect();
 				return;
 			}
 		},
@@ -326,5 +330,14 @@ void APillar::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 	if (OtherActor && (OtherActor != this) && OtherComp)
 	{
 		bOnPlayer = false;
+	}
+}
+
+void APillar::SetupNiagaraEffect()
+{
+	if (nullptr != EnergyCoreActor)
+	{
+		FVector EffectLocation = EnergyCoreActor->GetActorLocation();
+		ACoreExplosionEffect* Effect = GetWorld()->SpawnActor<ACoreExplosionEffect>(ExplosionEffectClass, EffectLocation, FRotator::ZeroRotator);
 	}
 }
