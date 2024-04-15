@@ -70,6 +70,7 @@ void APlayerBase::BeginPlay()
 	BigCanDash = true;
 
 	CurrentAnimationEnd = false;
+	IsSprint = false;
 }
 
 // Called every frame
@@ -118,6 +119,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 //새로운 입력 Action
 void APlayerBase::Idle(const FInputActionInstance& _Instance)
 {
+	IsSprint = false;
 	IsMoveEnd = false;
 	if (bCanDash == false)
 		ChangeState(Cody_State::IDLE);
@@ -196,6 +198,7 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 
 void APlayerBase::DashInput()
 {
+	IsSprint = false;
 	if (!bIsDashing && !bCanDash && BigCanDash)
 	{
 		ChangeState(Cody_State::DASH);

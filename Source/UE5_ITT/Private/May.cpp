@@ -7,7 +7,7 @@
 // Sets default values
 AMay::AMay()
 {
-
+	Tags.Add(FName("May"));
 }
 
 // Called when the game starts or when spawned

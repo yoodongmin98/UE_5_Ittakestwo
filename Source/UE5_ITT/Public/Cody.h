@@ -46,17 +46,11 @@ public:
 	{
 		return TargetScale;
 	}
-	// Cody가 달리고있는 상태인지를 반환합니다.
-	UFUNCTION(BlueprintCallable)
-	inline bool GetCodySprint() const
-	{
-		return CodySprint;
-	}
+	
 
 	void ChangeBigSize();
 	void ChangeSmallSize();
 	virtual void SprintInput() override;
-	virtual void SprintNoneInput() override;
 	virtual void DashEnd() override;
 
 
@@ -79,6 +73,5 @@ public:
 
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
-
-	bool CodySprint;
+	
 };

@@ -10,7 +10,7 @@
 // Sets default values
 ACody::ACody()
 {
-	
+	Tags.Add(FName("Cody"));
 }
 
 // Called when the game starts or when spawned
@@ -23,7 +23,7 @@ void ACody::BeginPlay()
 	CameraSpeed = 1.5f;
 	BigSize = FVector(4.0f, 4.0f, 4.0f);
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
-	SmallSize= FVector(0.2f, 0.2f, 0.2f);
+	SmallSize= FVector(0.1f, 0.1f, 0.1f);
 	TargetScale = NormalSize;
 	BigSizeCapsule = FVector(0.0f, 0.0f, -270.0f);
 	NormalSizeCapsule = FVector(0.0f, 0.0f, -90.0f);
@@ -33,6 +33,7 @@ void ACody::BeginPlay()
 	
 
 	GetMesh()->AddLocalOffset(NormalSizeCapsule);
+
 }
 
 // Called every frame
@@ -69,6 +70,53 @@ void ACody::Tick(float DeltaTime)
 	default :
 		break;
 	}
+
+
+	//SPRINT
+	if (IsSprint)
+	{
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 500.0f;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	else
+	{
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700.0f;
+			break;
+		}
+		default:
+			break;
+		}
+	}
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -89,6 +137,7 @@ void ACody::ChangeBigSize()
 	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
 	if (!GetCharacterMovement()->IsFalling())
 	{
+		IsSprint = false;
 		switch (CodySizes)
 		{
 		case CodySize::BIG:
@@ -127,6 +176,7 @@ void ACody::ChangeSmallSize()
 	//UE_LOG(LogTemp, Warning, TEXT("left function called"));
 	if (!GetCharacterMovement()->IsFalling())
 	{
+		IsSprint = false;
 		switch (CodySizes)
 		{
 		case CodySize::BIG:
@@ -144,10 +194,9 @@ void ACody::ChangeSmallSize()
 			ChangeCodySizeEnum(CodySize::SMALL);
 			TargetScale = SmallSize;
 			GetMesh()->AddLocalOffset(SmallSizeCapsule);
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 400.0f;
-			GetCharacterMovement()->GravityScale = DefaultGravityScale - 2.0f;
-			GetCharacterMovement()->JumpZVelocity = 700.0f;
-			DashDistance = 1000.0f;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+			GetCharacterMovement()->JumpZVelocity = 300.0f;
+			DashDistance = 800.0f;
 			break;
 		}
 		case CodySize::SMALL:
@@ -162,50 +211,9 @@ void ACody::ChangeSmallSize()
 
 void ACody::SprintInput()
 {
-	CodySprint = true;
-	switch (CodySizes)
-	{
-	case CodySize::BIG:
-	{
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 400.0f;
-		break;
-	}
-	default:
-		break;
-	}
+	IsSprint = !IsSprint;
 }
-void ACody::SprintNoneInput()
-{
-	CodySprint = false;
-	switch (CodySizes)
-	{
-	case CodySize::BIG:
-	{
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 600.0f;
-		break;
-	}
-	default:
-		break;
-	}
-}
+
 
 void ACody::DashEnd()
 {
@@ -224,8 +232,8 @@ void ACody::DashEnd()
 	}
 	case CodySize::SMALL:
 	{
-		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 20.0f;
-		GetCharacterMovement()->GravityScale = DefaultGravityScale - 2.0f;
+		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 40.0f;
+		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
 		break;
 	}
 	default:

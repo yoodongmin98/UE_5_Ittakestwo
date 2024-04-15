@@ -171,7 +171,13 @@ public:
 	inline bool GetIsInteract() const
 	{
 		return IsInteract;
-	} 
+	}
+	// Player가 달리고있는 상태인지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsSprint() const
+	{
+		return IsSprint;
+	}
 
 
 
@@ -255,6 +261,8 @@ public:
 	float DefaultGroundFriction; // 기본 지면 마찰력
 	float DefaultGravityScale; //기본 중력
 	bool BigCanDash;
+
+	bool IsSprint;
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////
