@@ -118,7 +118,7 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	if (0 != HomingRocketFireCount)
+	if (0 < HomingRocketFireCount)
 	{
 		return;
 	}
