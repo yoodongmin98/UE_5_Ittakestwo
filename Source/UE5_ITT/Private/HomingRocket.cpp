@@ -74,13 +74,14 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// 오버랩이벤트에서 비활성체크, 비활성일 경우 Destroy 로 변경.
 			if (false == bIsActive)
 			{
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 				return;
 			}
 
-
+			// 타겟액터가 nullptr 이라면 return;
 			if (nullptr == TargetActor)
 			{
 				return;
@@ -108,6 +109,7 @@ void AHomingRocket::SetupFsmComponent()
 			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
 			SetActorLocation(NewRocketLocation);
 
+
 			if (false == bIsSetLifeTime && true == IsMaxFloorDistance())
 			{
 				SetRocektLifeTime(3.0f);
@@ -117,7 +119,12 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this]
 		{
-			//Cast<AEnemyFlyingSaucer>(GetOwner())->DisCountHomingRocketFireCount();
+			// chase 상태에서 다른 상태로 넘어갈 경우 부모액터 로켓카운트 변수 -- 
+			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+			if (nullptr != ParentActor)
+			{
+				ParentActor->DisCountHomingRocketFireCount();
+			}
 		});
 
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,
@@ -126,19 +133,13 @@ void AHomingRocket::SetupFsmComponent()
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
 			FireEffectComp->SetActive(false, true);
-
-			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
-			if (nullptr != ParentActor)
-			{
-				ParentActor->DisCountHomingRocketFireCount();
-			}
-
-			UE_LOG(LogTemp, Warning, TEXT("Start Player EquipWait"));
+			// UE_LOG(LogTemp, Warning, TEXT("Start Player EquipWait"));
 		},
 
 		[this](float DT)
 		{
-			if (true == bIsPlayerOverlap && nullptr != OverlapActor)
+			// 대기상태일 때 플레이어 키 눌렸는지 확인하여 상태변경
+			/*if (true == bIsPlayerOverlap && nullptr != OverlapActor)
 			{
 				APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
 				bool KeyCheck = PlayerBase->GetIsInteract();
@@ -148,7 +149,7 @@ void AHomingRocket::SetupFsmComponent()
 					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 					return;
 				}
-			}
+			}*/
 		},
 
 		[this]
@@ -159,46 +160,38 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
+			//UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
 
-			if (nullptr != OverlapActor)
-			{
-				// 기존액터부착해제 (바닥) 
-				// DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			//if (nullptr != OverlapActor)
+			//{
+			//	bIsPlayerEquip = true;
+			//	UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
 
-				bIsPlayerEquip = true;
-				UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
+			//	RocketMeshComp->SetSimulatePhysics(false);
+			//	RocketMeshComp->SetEnableGravity(false);
+			//	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
+			//	
 
-				RocketMeshComp->SetSimulatePhysics(false);
-				RocketMeshComp->SetEnableGravity(false);
-				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
-				
+			//	USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
+			//	if (nullptr != ActorMesh)
+			//	{
+			//		SetActorRelativeLocation(FVector::ZeroVector);
+			//		RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+			//		/*SetActorRelativeRotation(FRotator::ZeroRotator);
+			//		RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
 
-				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
-				if (nullptr != ActorMesh)
-				{
-					//SetActorRelativeLocation(FVector::ZeroVector);
-					// SceneComp->SetRelativeLocation(FVector::ZeroVector);
-					
-					SetActorRelativeLocation(FVector::ZeroVector);
-					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-					/*SetActorRelativeRotation(FRotator::ZeroRotator);
-					RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
-
-					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
-					this->SetOwner(OverlapActor);
-				
-				}
-				
-				
-				
-				UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
-			}
+			//		AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
+			//		this->SetOwner(OverlapActor);
+			//	
+			//	}
+			//	
+			//	UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
+			//}
 		},
 
 		[this](float DT)
 		{
-			AActor* ParentActor = GetAttachParentActor();
+			/*AActor* ParentActor = GetAttachParentActor();
 			if (nullptr == ParentActor)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
@@ -211,22 +204,7 @@ void AHomingRocket::SetupFsmComponent()
 					UE_LOG(LogTemp, Warning, TEXT("Player Equip"));
 				}
 				
-			}
-
-
-			//// test 코드
-			//FVector RocketLocation = GetActorLocation();
-			//FVector TargetLocation = GetOwner()->GetActorLocation();
-			//TargetLocation.Z += 1200.0f;
-
-
-			//FVector Dir = TargetLocation - RocketLocation;
-			//Dir.Normalize();
-
-			//SetActorRotation(Dir.Rotation());
-
-			//FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
-			//SetActorLocation(NewRocketLocation);
+			}*/
 		},
 
 		[this]
@@ -317,9 +295,6 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	break;
 	case ERocketState::PlayerEquip:
 	{
-
-
-
 		if (true == OtherActor->ActorHasTag(TEXT("Boss")))
 		{
 			// 여기서도 불값만 변경하는걸로
