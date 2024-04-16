@@ -146,9 +146,21 @@ public:
 	}
 	//캐릭터에 적용되어있는 기본 중력 스케일을 반환합니다.
 	UFUNCTION(BlueprintCallable)
-	inline float GetPlayerGravityScale() const
+	inline float GetPlayerDefaultGravityScale() const
 	{
 		return DefaultGravityScale;
+	}
+	//캐릭터에 현재 적용되어있는 중력 스케일을 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline float GetPlayerGravityScale() const
+	{
+		return GetCharacterMovement()->GravityScale;
+	}
+	//현재 중력이 캐릭터 Scale에 관계없이 정상 적용되고있는지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline float GetIsDGravityScale() const
+	{
+		return IsDGravity;
 	}
 	//애니메이션이 끝났을 때 호출됩니다
 	UFUNCTION(BlueprintCallable)
@@ -219,6 +231,7 @@ public:
 	virtual void SprintInput() {};
 	virtual void SprintNoneInput() {};
 	void Sit();
+	void SitEnd();
 	///////////////////////////////////////////////////////
 
 
@@ -256,7 +269,8 @@ public:
 	//////////////////Movement////////////////////
 	UPROPERTY(EditAnywhere, Category = "Dash")
 	float DashDistance = 2500.0f; // 앞구르기 거리
-	UPROPERTY(EditAnywhere, Category = "Dash")
+	
+	bool IsDGravity;
 
 	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
 	bool IsMoveEnd = true; //움직임이 끝났는지
@@ -271,6 +285,11 @@ public:
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 
 	bool IsSprint; //달리기 여부
+
+	float SitStartTime;
+	float SitDuration;
+	bool CanSit;
+	
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////

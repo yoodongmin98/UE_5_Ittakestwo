@@ -71,12 +71,25 @@ void APlayerBase::BeginPlay()
 
 	CurrentAnimationEnd = false;
 	IsSprint = false;
+
+	CanSit = true;
+	SitDuration = 0.7f;
 }
 
 // Called every frame
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//중력상태확인(Sit)
+	if (GetCharacterMovement()->GravityScale <=5.5f)
+	{
+		IsDGravity = true;
+	}
+	else
+	{
+		IsDGravity = false;
+	}
 	//플레이어 생존여부 확인
 	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
@@ -87,6 +100,19 @@ void APlayerBase::Tick(float DeltaTime)
 		{
 			// 대시 지속 시간이 지나면 대시 종료
 			DashEnd();
+		}
+	}
+	if (!CanSit)
+	{
+		float CurrentSitTime = GetWorld()->GetTimeSeconds();
+		if (CurrentSitTime >= SitStartTime + SitDuration)
+		{
+			GetCharacterMovement()->GravityScale = 10.0f;
+			if (!GetCharacterMovement()->IsFalling())
+			{
+				SitEnd();
+			}
+			
 		}
 	}
 }
@@ -267,17 +293,24 @@ void APlayerBase::JumpDash()
 void APlayerBase::Sit()
 {
 	ChangeState(Cody_State::SIT);
-	if (GetCharacterMovement()->IsFalling())
+	SitStartTime = GetWorld()->GetTimeSeconds();
+	if (GetCharacterMovement()->IsFalling() && CanSit)
 	{
-		//GetCharacterMovement()->GravityScale = 10.0f;
+		//일단 중력없애
+		GetCharacterMovement()->GravityScale = 0.0f;
+		//일단 멈춰
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		CanSit = false;
 	}
-	else
-	{
-		//GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	}
-	//작성중
 }
 
+
+void APlayerBase::SitEnd()
+{
+	CanSit = true;
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+}
 void APlayerBase::InteractInput()
 {
 	IsInteract = true;
