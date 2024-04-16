@@ -19,6 +19,8 @@
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
 #include "BossRotatePivotActor.h"
+#include "OverlapCheckActor.h"
+#include "PlayerBase.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -420,15 +422,56 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				}
 			}
 
+			// 4.5초 후에 UI 활성화 
 			FTimerHandle TimerHandle;
 			GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateUIComponent, 4.5f, false);
+
+			FTimerHandle TimerHandle2;
+			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 		},
 
 		[this](float DT)
 		{
-			// 여기서 특정 오브젝트와 오버랩 되었는지 체크 + e 키눌렀는지 체크해서 애니메이션 변경?
+			if (nullptr == OverlapCheckActor)
+			{
+				return;
+			}
+
+			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != CurrentOverlapPlayer)
+			{
+				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				{
+					bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+					// 현재 인터랙트 키 눌렀는지 체크
+					if (true == bIsInteract)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding"));
+
+						// 눌렀으면 ChangeState 
+						FsmComp->ChangeState(EBossState::CodyHolding);
+						return;
+					}
+				}
+			}
+		},
+
+		[this]
+		{
+
+		});
 
 
+	FsmComp->CreateState(EBossState::CodyHolding,
+		[this]
+		{
+			// e키 눌렀을 때 여기 들어오고 
+			// 우주선 -> 코디홀딩 시작모션
+			// 원숭이 -> 그 이상한 모션 loop 로 변경
+		},
+
+		[this](float DT)
+		{
 
 
 		},
@@ -437,6 +480,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 
 		});
+
+	
+
+
+
 
 	FsmComp->CreateState(EBossState::Phase2Start,
 		[this]
@@ -495,5 +543,12 @@ void AEnemyFlyingSaucer::ActivateUIComponent()
 	{
 		UIComp->SetVisibility(true, true);
 	}
+}
+
+void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
+{
+	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
+	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
+	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
 }
 

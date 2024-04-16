@@ -80,6 +80,8 @@ private:
 		Phase1Start,
 		Phase1Progress,
 		Phase1End,
+
+		CodyHolding,
 		
 		Phase2Start,
 		Phase2Progress,
@@ -165,6 +167,17 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateUIComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnOverlapCheckActor();
+
+
+	// UI comp
+	UPROPERTY(EditDefaultsOnly)
+	class AOverlapCheckActor* OverlapCheckActor = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
 
 	// 보스 공격 생성 지점 
