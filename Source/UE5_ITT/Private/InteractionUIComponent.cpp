@@ -62,6 +62,13 @@ void UInteractionUIComponent::TickComponent(float DeltaTime, ELevelTick TickType
         return;
     }
 
+    if (false == IsVisible())
+    {
+        NearWidgetComponent->SetVisibility(false);
+        FarWidgetComponent->SetVisibility(false);
+        return;
+    }
+
     // Calculate distance between player controller and this scene component
     FVector PlayerLocation = PlayerController->GetPawn()->GetActorLocation();
     FVector SceneComponentLocation = GetComponentLocation();

@@ -2,23 +2,24 @@
 
 
 #include "EnemyFlyingSaucer.h"
+#include "Misc/Paths.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "FsmComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "InteractionUIComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "BossRotatePivotActor.h"
 #include "DrawDebugHelpers.h"
-#include "Misc/Paths.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -207,7 +208,11 @@ void AEnemyFlyingSaucer::SetupComponent()
 	ArcingProjectileSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArcingProjectileSpawnPointMesh"));
 	ArcingProjectileSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("ArcingProjectileSpawnPointSocket"));
 
+	UIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("InteractionUIComponent"));
+	UIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("UISocket"));
 	
+	// 부모 비활성, 자식 비활성 
+	UIComp->SetVisibility(false, true);
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -307,7 +312,19 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				{
 					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
 				}
-				
+			}
+
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
 			}
 		},
 
@@ -326,15 +343,24 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			
+			// MoonBaboon 애니메이션 변경
+			USkeletalMeshComponent* SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
 		});
 
 	FsmComp->CreateState(EBossState::Phase1Progress,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Phase 1 Progress"));
-
-			// 메시받아오기
+			// FlyingSaucer 애니메이션 변경
 			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
 			if (nullptr != SkeletalMeshComponent)
 			{
@@ -345,13 +371,19 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				{
 					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
 				}
-
 			}
+
+			
 		},
 
 		[this](float DT)
 		{
-
+			// 페이즈 종료 검사 임시 
+			if (CurrentHp <= 67.0f)
+			{
+				FsmComp->ChangeState(EBossState::Phase1End);
+				return;
+			}
 		},
 
 		[this]
@@ -362,6 +394,71 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1End,
 		[this]
 		{
+			// 페이즈 종료시점에 추락 + 원숭이 애니메이션 변경 후 
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
+
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateUIComponent, 4.5f, false);
+		},
+
+		[this](float DT)
+		{
+			// 여기서 특정 오브젝트와 오버랩 되었는지 체크 + e 키눌렀는지 체크해서 애니메이션 변경?
+
+
+
+
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2Start,
+		[this]
+		{
+			
+		},
+
+		[this](float DT)
+		{
+			
+
+		},
+
+		[this]
+		{
+			
+		});
+
+	FsmComp->CreateState(EBossState::Phase2Progress,
+		[this]
+		{
+		
 
 		},
 
@@ -374,5 +471,29 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 
 		});
+
+	FsmComp->CreateState(EBossState::Phase2End,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
+		});
+}
+
+void AEnemyFlyingSaucer::ActivateUIComponent()
+{
+	if (nullptr != UIComp)
+	{
+		UIComp->SetVisibility(true, true);
+	}
 }
 

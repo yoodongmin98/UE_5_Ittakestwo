@@ -107,7 +107,7 @@ private:
 	FVector StartMotionTargetLocation = FVector(0, 0, 650);
 
 	UPROPERTY(EditAnywhere)
-	float CurrentHp = 100.0f;
+	float CurrentHp = 67.0f;
 	
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
@@ -158,6 +158,13 @@ private:
 	// FSM Comp
 	UPROPERTY(EditDefaultsOnly)
 	class UFsmComponent* FsmComp = nullptr;
+
+	// UI comp
+	UPROPERTY(EditDefaultsOnly)
+	class UInteractionUIComponent* UIComp = nullptr;
+
+	UFUNCTION(BlueprintCallable)
+	void ActivateUIComponent();
 
 
 	// 보스 공격 생성 지점 
