@@ -250,6 +250,6 @@ void ACody::DashEnd()
 		bIsDashing = false;
 		bIsDashingStart = false;
 		bCanDash = false;
-		DashDuration = 0.7f;
+		DashDuration = 0.75f;
 	}
 }
