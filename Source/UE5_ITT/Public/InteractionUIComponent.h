@@ -20,6 +20,12 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+    UPROPERTY(EditAnywhere, Category = "UI")
+    bool bOnlyMay;
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    bool bOnlyCody;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -33,10 +39,17 @@ protected:
     UPROPERTY(EditAnywhere, Category = "UI")
     float DistanceThreshold;
 
+
 private:
     UPROPERTY()
     UWidgetComponent* NearWidgetComponent;
 
     UPROPERTY()
     UWidgetComponent* FarWidgetComponent;
+
+    void InitComponent();
+
+    bool SetVisibilityBasedOnTage(APawn* PlayerPawn);
+
+    void SetVisibilityBasedOnDistance(APawn* PlayerPawn);
 };

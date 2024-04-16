@@ -15,6 +15,9 @@ UInteractionUIComponent::UInteractionUIComponent()
     // Create widget components
     NearWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("NearWidgetComponent"));
     FarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("FarWidgetComponent"));
+
+    bOnlyMay = false;
+    bOnlyCody = false;
 }
 
 
@@ -22,7 +25,11 @@ UInteractionUIComponent::UInteractionUIComponent()
 void UInteractionUIComponent::BeginPlay()
 {
 	Super::BeginPlay();
+    InitComponent();
+}
 
+void UInteractionUIComponent::InitComponent()
+{
     // Attach widget components to this scene component
     NearWidgetComponent->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
     FarWidgetComponent->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
@@ -36,7 +43,7 @@ void UInteractionUIComponent::BeginPlay()
     {
         FarWidgetComponent->SetWidgetClass(FarWidgetClass);
     }
-    
+
     // Set widget space to screen
     NearWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
     FarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
@@ -46,24 +53,70 @@ void UInteractionUIComponent::BeginPlay()
     FarWidgetComponent->SetWorldScale3D(WidgetScale);
     // Initially hide far widget
     FarWidgetComponent->SetVisibility(false);
-    
-}
 
+}
 
 // Called every frame
 void UInteractionUIComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    // Check if player controller is valid
-    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-    if (!PlayerController)
+
+    // Check if player controller pawn is valid
+    APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+    if (!PlayerPawn || PlayerPawn->IsPendingKill())
     {
         return;
     }
 
+    // 태그 대상에 따라 설정
+    if (true == SetVisibilityBasedOnTage(PlayerPawn))
+    {
+        return;
+    }
+
+    // 거리에 따라 설정
+    SetVisibilityBasedOnDistance(PlayerPawn);
+
+}
+
+bool UInteractionUIComponent::SetVisibilityBasedOnTage(APawn* PlayerPawn)
+{
+    if (true == bOnlyMay && false == bOnlyCody)
+    {
+        const TArray<FName>& Tags = PlayerPawn->Tags;
+
+        // 태그를 순회하며 "Cody" 태그 확인
+        for (const FName& Tag : Tags)
+        {
+            if (Tag == FName("Cody"))
+            {
+                SetVisibility(false, true);
+                return true; // "Cody" 태그를 찾았을 경우 비활성화
+            }
+        }
+    }
+    if (false == bOnlyMay && true == bOnlyCody)
+    {
+        const TArray<FName>& Tags = PlayerPawn->Tags;
+
+        // 태그를 순회하며 "May" 태그 확인
+        for (const FName& Tag : Tags)
+        {
+            if (Tag == FName("May"))
+            {
+                SetVisibility(false, true);
+                return true; // "May" 태그를 찾았을 경우 비활성화
+            }
+        }
+    }
+    return false;
+}
+
+void UInteractionUIComponent::SetVisibilityBasedOnDistance(APawn* PlayerPawn)
+{
     // Calculate distance between player controller and this scene component
-    FVector PlayerLocation = PlayerController->GetPawn()->GetActorLocation();
+    FVector PlayerLocation = PlayerPawn->GetActorLocation();
     FVector SceneComponentLocation = GetComponentLocation();
     float Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
 
@@ -81,4 +134,3 @@ void UInteractionUIComponent::TickComponent(float DeltaTime, ELevelTick TickType
         FarWidgetComponent->SetVisibility(true);
     }
 }
-
