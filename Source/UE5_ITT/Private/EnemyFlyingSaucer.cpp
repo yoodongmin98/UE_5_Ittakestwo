@@ -2,20 +2,25 @@
 
 
 #include "EnemyFlyingSaucer.h"
+#include "Misc/Paths.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "FsmComponent.h"
+#include "InteractionUIComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "BossRotatePivotActor.h"
+#include "OverlapCheckActor.h"
+#include "PlayerBase.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -25,6 +30,7 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetupComponent();
+	SetupFsmComponent();
 	Tags.Add(FName("Boss"));
 }
 
@@ -49,6 +55,7 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
+	FsmComp->ChangeState(EBossState::Phase1Start);
 	// BossHitTestFireRocket();
 
 	// 네트워크 권한을 확인하는 코드
@@ -68,10 +75,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		if (true == bIsStartMotion)
-		{
-			StartMotionUpdate(DeltaTime);
-		}
+		
 
 		//DrawDebugMesh();
 	}
@@ -205,6 +209,12 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	ArcingProjectileSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArcingProjectileSpawnPointMesh"));
 	ArcingProjectileSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("ArcingProjectileSpawnPointSocket"));
+
+	UIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("InteractionUIComponent"));
+	UIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("UISocket"));
+	
+	// 부모 비활성, 자식 비활성 
+	UIComp->SetVisibility(false, true);
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -285,5 +295,260 @@ void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
 	FVector NewLocaiton = CurrentLocation + DeltaMovement;
 
 	GetMesh()->SetRelativeLocation(NewLocaiton);
+}
+
+void AEnemyFlyingSaucer::SetupFsmComponent()
+{
+	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComponent"));
+	FsmComp->CreateState(EBossState::Phase1Start,
+		[this]
+		{
+			// 메시받아오기
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
+
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 종료 체크 
+			bool bIsAnimationPlaying = GetMesh()->IsPlaying();
+			if (!bIsAnimationPlaying)
+			{
+				FsmComp->ChangeState(EBossState::Phase1Progress);
+				return;
+			}
+
+		
+		},
+
+		[this]
+		{
+			// MoonBaboon 애니메이션 변경
+			USkeletalMeshComponent* SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+		});
+
+	FsmComp->CreateState(EBossState::Phase1Progress,
+		[this]
+		{
+			// FlyingSaucer 애니메이션 변경
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+
+			
+		},
+
+		[this](float DT)
+		{
+			// 페이즈 종료 검사 임시 
+			if (CurrentHp <= 67.0f)
+			{
+				FsmComp->ChangeState(EBossState::Phase1End);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase1End,
+		[this]
+		{
+			// 페이즈 종료시점에 추락 + 원숭이 애니메이션 변경 후 
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
+
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+
+			// 4.5초 후에 UI 활성화 
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateUIComponent, 4.5f, false);
+
+			FTimerHandle TimerHandle2;
+			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
+		},
+
+		[this](float DT)
+		{
+			if (nullptr == OverlapCheckActor)
+			{
+				return;
+			}
+
+			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != CurrentOverlapPlayer)
+			{
+				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				{
+					bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+					// 현재 인터랙트 키 눌렀는지 체크
+					if (true == bIsInteract)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding"));
+
+						// 눌렀으면 ChangeState 
+						FsmComp->ChangeState(EBossState::CodyHolding);
+						return;
+					}
+				}
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+
+	FsmComp->CreateState(EBossState::CodyHolding,
+		[this]
+		{
+			// e키 눌렀을 때 여기 들어오고 
+			// 우주선 -> 코디홀딩 시작모션
+			// 원숭이 -> 그 이상한 모션 loop 로 변경
+		},
+
+		[this](float DT)
+		{
+
+
+		},
+
+		[this]
+		{
+
+		});
+
+	
+
+
+
+
+	FsmComp->CreateState(EBossState::Phase2Start,
+		[this]
+		{
+			
+		},
+
+		[this](float DT)
+		{
+			
+
+		},
+
+		[this]
+		{
+			
+		});
+
+	FsmComp->CreateState(EBossState::Phase2Progress,
+		[this]
+		{
+		
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2End,
+		[this]
+		{
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
+		});
+}
+
+void AEnemyFlyingSaucer::ActivateUIComponent()
+{
+	if (nullptr != UIComp)
+	{
+		UIComp->SetVisibility(true, true);
+	}
+}
+
+void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
+{
+	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
+	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
+	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
 }
 

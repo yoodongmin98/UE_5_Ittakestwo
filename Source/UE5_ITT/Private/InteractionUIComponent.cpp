@@ -115,6 +115,13 @@ bool UInteractionUIComponent::SetVisibilityBasedOnTage(APawn* PlayerPawn)
 
 void UInteractionUIComponent::SetVisibilityBasedOnDistance(APawn* PlayerPawn)
 {
+    if (false == IsVisible())
+    {
+        NearWidgetComponent->SetVisibility(false);
+        FarWidgetComponent->SetVisibility(false);
+        return;
+    }
+
     // Calculate distance between player controller and this scene component
     FVector PlayerLocation = PlayerPawn->GetActorLocation();
     FVector SceneComponentLocation = GetComponentLocation();
