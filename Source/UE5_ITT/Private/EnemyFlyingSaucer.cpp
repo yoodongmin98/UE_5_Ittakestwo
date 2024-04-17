@@ -612,73 +612,26 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-			const USkeletalMeshSocket* Socket = SkeletalMeshComponent->GetSocketByName(TEXT("RotationPivot"));
-			FVector SpawnLocation = Socket->GetSocketLocation(SkeletalMeshComponent);
+			if (nullptr != SkeletalMeshComponent)
+			{
+				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer"));
+				if (nullptr != LoadedAnimBlueprint)
+				{
+					SkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+					SkeletalMeshComponent->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
+				}
+			}
 
-			/*USkeletalMeshComponent* SkeletalMeshComponent = OverlapCheckActor->GetCurrentOverlapPlayer()->GetMesh();
-			FVector SpawnLocation = SkeletalMeshComponent->GetBoneLocation(TEXT("Neck"));*/
-			PrevRotation = GetActorRotation();
-			PrevLocation = GetActorLocation();
-			// 기존 로테이터 액터에서 해제 후 부착
-			this->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-			// 피벗위치에 액터생성 후 액터를 임시 부착
-			CodyHoldingRotationPivotActor = GetWorld()->SpawnActor<ABossRotatePivotActor>(SpawnLocation, GetActorRotation());
-			this->AttachToActor(CodyHoldingRotationPivotActor, FAttachmentTransformRules::KeepWorldTransform);
-
-			LerpStartRotator = CodyHoldingRotationPivotActor->GetActorRotation();
-			LerpEndRotator = LerpStartRotator + FRotator(ChangeAngle, 0.0f, 0.0f);
 		},
 
 		[this](float DT)
 		{
-			if (true == bIsLefpComplete)
-			{
-				FsmComp->ChangeState(EBossState::CodyHoldingProgress_KeyMashing);
-				UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHoldingProgress_KeyMashing"));
-				return;
-			}
-
-			ChangeOfAngleRatio += DT / 2.0f;
-
-			if (1.0f <= ChangeOfAngleRatio)
-			{
-				ChangeOfAngleRatio = 1.0f;
-				bIsLefpComplete = true;
-				
-			}
-
-			FRotator LerpedRotation = FMath::Lerp(LerpStartRotator, LerpEndRotator, ChangeOfAngleRatio);
-			UE_LOG(LogTemp, Warning, TEXT("LerpedRotation : %f"), LerpedRotation.Pitch);
-			CodyHoldingRotationPivotActor->SetActorRotation(LerpedRotation);
-
-			FRotator Check = CodyHoldingRotationPivotActor->GetActorRotation();
-			UE_LOG(LogTemp, Warning, TEXT("PivotActorRotation : %f"), Check.Pitch);
-
-			FVector CheckActorLocation = CodyHoldingRotationPivotActor->GetActorLocation();
-
-			UE_LOG(LogTemp, Warning, TEXT("PivotActorLocation : %s"), *CheckActorLocation.ToString());
+			
 		},
 
 		[this]
 		{
-			this->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			this->AttachToActor(RotateCenterPivotActor, FAttachmentTransformRules::KeepWorldTransform);
-
-			//SetActorRotation(PrevRotation);
-			//SetActorLocation(PrevLocation);
-			// 원래회전으로 되돌려야함 
-
-			if (nullptr != CodyHoldingRotationPivotActor)
-			{
-				CodyHoldingRotationPivotActor->Destroy();
-				CodyHoldingRotationPivotActor = nullptr;
-			}
-
-			ChangeOfAngleRatio = 0.0f;
-			LerpStartRotator = FRotator::ZeroRotator;
-			LerpEndRotator = FRotator::ZeroRotator;
-			bIsLefpComplete = false;
+			
 		});
 
 
@@ -707,8 +660,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 
 		});
-
-
 
 
 	FsmComp->CreateState(EBossState::Phase2Start,

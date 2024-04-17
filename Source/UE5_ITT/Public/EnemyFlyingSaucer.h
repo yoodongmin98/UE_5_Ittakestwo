@@ -123,21 +123,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 67.0f;
-
-	UPROPERTY(EditAnywhere)
-	float ChangeOfAngleRatio = 0.0f;
-	const float ChangeAngle = -35.0f;
-	bool bIsLefpComplete = false;
-
-	UPROPERTY(EditAnywhere)
-	FRotator LerpStartRotator = FRotator::ZeroRotator;
-
-	UPROPERTY(EditAnywhere)
-	FRotator LerpEndRotator = FRotator::ZeroRotator;
-	ABossRotatePivotActor* CodyHoldingRotationPivotActor = nullptr;
-	FRotator PrevRotation = FRotator::ZeroRotator;
-	FVector PrevLocation = FVector::ZeroVector;
-	
+		
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
