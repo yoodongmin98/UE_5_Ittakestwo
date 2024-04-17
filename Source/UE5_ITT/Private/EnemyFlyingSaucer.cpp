@@ -592,7 +592,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					// 현재 인터랙트 키 눌렀는지 체크
 					if (true == bIsInteract)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHoldingProgress_ChangeOfAngle"));
+						
 
 						// 눌렀으면 ChangeState 
 						FsmComp->ChangeState(EBossState::CodyHoldingProgress_ChangeOfAngle);
@@ -607,7 +607,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	// 각도 변경 상태 여기서 액터 각도 변경
 	FsmComp->CreateState(EBossState::CodyHoldingProgress_ChangeOfAngle,
 		[this]
 		{
@@ -617,24 +616,32 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer"));
 				if (nullptr != LoadedAnimBlueprint)
 				{
-					SkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 					SkeletalMeshComponent->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
 				}
 			}
 
+			StateCompleteTime = 3.0f;
+			
 		},
 
 		[this](float DT)
 		{
-			
+			if (StateCompleteTime <= 0.0f)
+			{
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_KeyMashing);
+				return;
+			}
+
+			StateCompleteTime -= DT;
 		},
 
 		[this]
 		{
-			
+			StateCompleteTime = 0.0f;
 		});
 
 
+	// 키연타중 
 	FsmComp->CreateState(EBossState::CodyHoldingProgress_KeyMashing,
 		[this]
 		{

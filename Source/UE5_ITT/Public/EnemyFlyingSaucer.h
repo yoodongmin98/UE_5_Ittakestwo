@@ -123,6 +123,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 67.0f;
+
+	UPROPERTY(EditAnywhere)
+	float StateCompleteTime = 0.0f;
+
 		
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
