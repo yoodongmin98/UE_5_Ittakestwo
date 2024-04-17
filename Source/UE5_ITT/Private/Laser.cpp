@@ -10,28 +10,35 @@ ALaser::ALaser()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		bReplicates = true;
+		SetReplicateMovement(true);
+	}
+
 	LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
+
 	SetupFsm();
+
 }
 
 // Called when the game starts or when spawned
 void ALaser::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	bPhaseEnd = true;
-	FsmComp->ChangeState(Fsm::Wait);
-
-	DefaultPos = LaserMesh->GetRelativeLocation();
-	AttackPos = DefaultPos;
-	AttackPos.Z += AttackMoveSize;
 
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		FsmComp->ChangeState(Fsm::Wait);
+
+		bPhaseEnd = true;
+
+		DefaultPos = LaserMesh->GetRelativeLocation();
+		AttackPos = DefaultPos;
+		AttackPos.Z += AttackMoveSize;
 	}
 }
 

@@ -16,6 +16,8 @@ APillar::APillar()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+	
 	PillarMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PillarMesh"));
 	RootComponent = PillarMesh;
 	
@@ -25,7 +27,11 @@ APillar::APillar()
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
 
-
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+	}
 	SetupFsm();
 }
 
@@ -34,14 +40,9 @@ void APillar::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FsmComp->ChangeState(Fsm::Close);
-
-	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		FsmComp->ChangeState(Fsm::Close);
 	}
 }
 
@@ -68,7 +69,7 @@ void APillar::SetupFsm()
 				FsmComp->ChangeState(Fsm::ShutterOpen);
 			}
 		},
-
+		
 		[this]
 		{
 		});
@@ -76,6 +77,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::ShutterOpen,
 		[this]
 		{
+			DefaultPos = GetActorLocation();
 			ParentShutter->SetShutterOpen();
 		},
 
@@ -95,8 +97,6 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::WaitMove,
 		[this]
 		{
-			DefaultPos = GetActorLocation();
-
 			PlayerWaitPos = DefaultPos;
 			PlayerWaitPos.Z += PlayerWaitSize;
 
@@ -110,13 +110,16 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			//밟힐 높이까지 올리고 오버랩이벤트 바인딩
 			PlayerWaitRatio += DT;
 			if (PlayerWaitRatio >= 1.f)
 			{
 				PlayerWaitRatio = 1.f;
 				FsmComp->ChangeState(Fsm::Wait);
+				SetActorLocation(FMath::Lerp(DefaultPos, PlayerWaitPos, PlayerWaitRatio));
 				ButtonMesh->OnComponentBeginOverlap.AddDynamic(this, &APillar::OnOverlapBegin);
 				ButtonMesh->OnComponentEndOverlap.AddDynamic(this, &APillar::OnOverlapEnd);
+				return;
 			}
 
 			SetActorLocation(FMath::Lerp(DefaultPos, PlayerWaitPos, PlayerWaitRatio));
@@ -135,6 +138,7 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			//플레이어가 올라오길 기다리는 상태
 			if (true == bOnPlayer)
 			{
 				FsmComp->ChangeState(Fsm::MoveUp);
@@ -154,6 +158,7 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			//플레이어가 떨어짐
 			if (false == bOnPlayer)
 			{
 				bShieldOpen = true;
@@ -161,11 +166,14 @@ void APillar::SetupFsm()
 				return;
 			}
 
+			//기둥 위로 올리기
 			MoveRatio += DT;
 			if (MoveRatio >= 1.f)
 			{
 				MoveRatio = 1.f;
+				SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
 				FsmComp->ChangeState(Fsm::WaitBoom);
+				return;
 			}
 
 			SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
@@ -184,6 +192,7 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			//플레이어가 떨어짐
 			if (false == bOnPlayer)
 			{
 				bShieldOpen = true;
@@ -191,6 +200,7 @@ void APillar::SetupFsm()
 				return;
 			}
 
+			//실드가 다 안열렸으면 열기
 			if (false == bShieldOpen)
 			{
 				ShieldOpenRatio += DT;
@@ -202,7 +212,8 @@ void APillar::SetupFsm()
 				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
 			}
 			
-			if (true == EnergyCoreActor->IsExplode())
+			//실드 열렸는데 구체 맞아서 터짐
+			if (true==bShieldOpen&&true == EnergyCoreActor->IsExplode())
 			{
 				//레이저 타격 체크 필요
 				FsmComp->ChangeState(Fsm::Boom);
@@ -223,13 +234,14 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
-
+			//플레이어가 올라탐
 			if (true == bOnPlayer)
 			{
 				FsmComp->ChangeState(Fsm::MoveUp);
 				return;
 			}
 
+			//실드가 열려있으면 닫기
 			if (true == bShieldOpen)
 			{
 				ShieldOpenRatio -= DT * 3.f;
@@ -241,11 +253,14 @@ void APillar::SetupFsm()
 				ShieldMesh->SetRelativeLocation(FMath::Lerp(ShieldDefaultPos, ShieldOpenPos, ShieldOpenRatio));
 			}
 
+			//기둥 내리기
 			MoveRatio -= DT;
 			if (MoveRatio <= 0.f)
 			{
 				MoveRatio = 0.f;
+				SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
 				FsmComp->ChangeState(Fsm::Wait);
+				return;
 			}
 
 			SetActorLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
@@ -306,7 +321,9 @@ void APillar::SetupFsm()
 			if (MoveRatio <= 0.f)
 			{
 				MoveRatio = 0.f;
+				SetActorLocation(FMath::Lerp(DefaultPos, MovePos, MoveRatio));
 				FsmComp->ChangeState(Fsm::ShutterClose);
+				return;
 			}
 
 			SetActorLocation(FMath::Lerp(DefaultPos, MovePos, MoveRatio));

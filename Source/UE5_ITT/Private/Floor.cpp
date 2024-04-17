@@ -15,6 +15,14 @@ AFloor::AFloor()
 	SetupFsm();
 
 	Tags.Add(FName("Floor"));
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		bReplicates = true;
+		SetReplicateMovement(true);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -22,13 +30,10 @@ void AFloor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FsmComp->ChangeState(Fsm::Phase1_1);
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		FsmComp->ChangeState(Fsm::Phase1_1);
 	}
 }
 
