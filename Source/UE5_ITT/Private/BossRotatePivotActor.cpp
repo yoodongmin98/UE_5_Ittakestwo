@@ -39,7 +39,7 @@ void ABossRotatePivotActor::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		/*FVector LaserSpawnPointMeshLocation = GetActorLocation();
+		FVector LaserSpawnPointMeshLocation = GetActorLocation();
 
 		float SphereRadius = 100.0f;
 		int32 Segments = 12;
@@ -56,7 +56,7 @@ void ABossRotatePivotActor::Tick(float DeltaTime)
 			LifeTime,
 			0,
 			Thickness
-		);*/
+		);
 	}
 
 }

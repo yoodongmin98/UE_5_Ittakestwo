@@ -21,6 +21,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// 2페이즈 원형 움직임을 위한 pivot actor 세팅, 부착, 해제 및 회전 관련
 	UFUNCTION(BlueprintCallable)
 	void SetupRotateCenterPivotActor();
 
@@ -33,29 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RotationCenterPivotActor(float DeltaTime);
 
+	// 보스 패턴 중 투사체 발사 관련 함수 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
-
-	UFUNCTION(BlueprintCallable)
-	void FireArcingProjectile();
-
-	UFUNCTION(BlueprintCallable)
-	AEnergyChargeEffect* CreateEnergyChargeEffect();
-
-	UFUNCTION(BlueprintCallable)
-	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
-
-	UFUNCTION(BlueprintCallable)
-	float GetCurrentHp() const { return CurrentHp; }
-
-	UFUNCTION(BlueprintCallable)
-	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
-
-	UFUNCTION(BlueprintCallable)
-	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
-
-	UFUNCTION(BlueprintCallable)
-	AFloor* GetFloor() { return FloorObject; }
 
 	UFUNCTION(BlueprintCallable)
 	void DisCountHomingRocketFireCount()
@@ -66,6 +47,29 @@ public:
 		}
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void FireArcingProjectile();
+
+	UFUNCTION(BlueprintCallable)
+	AEnergyChargeEffect* CreateEnergyChargeEffect();
+
+	// 체력(임시) 
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHp() const { return CurrentHp; }
+
+	// Get, Set 
+	UFUNCTION(BlueprintCallable)
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
+
+	UFUNCTION(BlueprintCallable)
+	AFloor* GetFloor() { return FloorObject; }
+
 	// test, 보스 테스트 끝나면 삭제 
 	void BossHitTestFireRocket();
 
@@ -74,12 +78,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UFUNCTION()
-	void ChangeAnimationFlyingSaucer(const FName& AnimationName);
-
-	UFUNCTION()
-	void ChangeAnimationMoonBaboon(const FName& AnimationName);
-
 	enum class EBossState
 	{
 		None,
@@ -102,7 +100,7 @@ private:
 		Phase2Start,
 		Phase2Progress,
 		Phase2End,
-		
+
 		Phase3Start,
 		Phase3Progress,
 		Phase3End,
@@ -111,25 +109,32 @@ private:
 		FireArcingProjectile,
 
 	};
-
-	UFUNCTION(BlueprintCallable)
-
-	void SetupComponent();
+	// 디버그 
 	void DrawDebugMesh();
 
-	UPROPERTY(EditAnywhere)
+	// 추후작성, State 에서 변경되는 애니메이션 관련 변경 함수 
+	UFUNCTION()
+	void ChangeAnimationFlyingSaucer(const FName& AnimationName);
+
+	UFUNCTION()
+	void ChangeAnimationMoonBaboon(const FName& AnimationName);
+
+	void SetupComponent();
+	void SetupFsmComponent();
+	
+	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
+	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyMashing = false;
 	float KeyMashingTime = 1.25f;
 	
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	float CurrentHp = 67.0f;
 
-	UPROPERTY(EditAnywhere)
+	// 특정시간 내에 State 변경 시 해당 변수 사용
+	UPROPERTY(EditDefaultsOnly)
 	float StateCompleteTime = 0.0f;
 
-		
-	//tsubclass 
+	// tsubclass 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
 
@@ -139,6 +144,13 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AArcingProjectile> ArcingProjectileClass = nullptr;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AFloor> FloorClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AEnergyChargeEffect> EnergyChargeEffectClass = nullptr;
+
+	// 보스 투사체 관련 
 	UFUNCTION(BlueprintCallable)
 	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
 	
@@ -148,22 +160,17 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 HomingRocketFireCount = 0;
 
+	// 보스 2페이즈 회전시 기준점이 되는 액터 
 	UPROPERTY(EditDefaultsOnly)
 	class ABossRotatePivotActor* RotateCenterPivotActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ABossRotatePivotActor> RotateCenterPivotActorClass = nullptr;
 
-
 	UPROPERTY(EditDefaultsOnly)
 	float RotateCenterPivotActorMoveSpeed = 9.0f;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AFloor> FloorClass = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AEnergyChargeEffect> EnergyChargeEffectClass = nullptr;
-
+	// 보스가 생성하는 액터 
 	UPROPERTY(EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
@@ -173,35 +180,27 @@ private:
 	UPROPERTY(EditAnywhere)
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
-	void SetupFsmComponent();
-
-	// FSM Comp
+	// Component
 	UPROPERTY(EditDefaultsOnly)
 	class UFsmComponent* FsmComp = nullptr;
 
-	// UI comp
 	UPROPERTY(EditDefaultsOnly)
 	class UInteractionUIComponent* UIComp = nullptr;
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateUIComponent();
 
+	// 오버랩 체크 관련 
 	UFUNCTION(BlueprintCallable)
 	void SpawnOverlapCheckActor();
 
-
-	// UI comp
 	UPROPERTY(EditDefaultsOnly)
 	class AOverlapCheckActor* OverlapCheckActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
-	
-
-
-
-	// 보스 공격 생성 지점 
+	// 보스 공격 생성 지점 컴포넌트 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
@@ -213,5 +212,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
-
 };
