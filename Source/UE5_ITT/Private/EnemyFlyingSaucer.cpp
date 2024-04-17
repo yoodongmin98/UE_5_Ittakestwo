@@ -58,6 +58,8 @@ void AEnemyFlyingSaucer::BeginPlay()
 	EnemyMoonBaboon->SetOwner(this);
 
 	FsmComp->ChangeState(EBossState::Phase1Start);
+
+	AttachToActor(GetFloor(), FAttachmentTransformRules::KeepWorldTransform);
 	// BossHitTestFireRocket();
 
 	// 네트워크 권한을 확인하는 코드
@@ -98,8 +100,6 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
-
 		//DrawDebugMesh();
 	}
 }
@@ -112,6 +112,9 @@ void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 {
+	// 여기서 현재 어태치된 액터 해제해야하고 부착해야할 수 도 있음. 체크 
+
+
 	RotateCenterPivotActor = GetWorld()->SpawnActor<ABossRotatePivotActor>(RotateCenterPivotActorClass, FVector::ZeroVector,FRotator::ZeroRotator);
 	if (nullptr != RotateCenterPivotActor)
 	{
@@ -122,6 +125,7 @@ void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 			PrimitiveComp->SetEnableGravity(false);
 		}
 		AttachToActor(RotateCenterPivotActor, FAttachmentTransformRules::KeepWorldTransform);
+		
 	}
 }
 
