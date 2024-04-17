@@ -93,6 +93,9 @@ private:
 		CodyHoldingProgress_ChangeOfAngle,
 
 		CodyHoldingProgress_KeyMashing,
+
+		CodyHoldingProgress_KeyMashingEnd,
+
 		CodyHoldingProgress,
 		CodyHoldingEnd,
 
@@ -114,12 +117,10 @@ private:
 	void SetupComponent();
 	void DrawDebugMesh();
 
-	UPROPERTY(EditDefaultsOnly)
-	bool bIsStartMotion = true;
-
-	// ÃÊ¹Ý ¿ø¼þÀÌ °øÁß¿¡ ºØ¶ß´Â °Å 
-	void StartMotionUpdate(float DeltaTime);
-	FVector StartMotionTargetLocation = FVector(0, 0, 650);
+	UPROPERTY(EditAnywhere)
+	bool bIsKeyMashing = false;
+	float KeyMashingTime = 1.25f;
+	
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 67.0f;

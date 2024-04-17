@@ -304,21 +304,6 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
-void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
-{
-	FVector CurrentLocation = GetMesh()->GetRelativeLocation();
-	if (CurrentLocation.Z >= StartMotionTargetLocation.Z)
-	{
-		bIsStartMotion = false;
-		return;
-	}
-
-	float MoveSpeed = 150.0f;
-	FVector DeltaMovement = FVector(0.0f, 0.0f, MoveSpeed * DeltaTime);
-	FVector NewLocaiton = CurrentLocation + DeltaMovement;
-
-	GetMesh()->SetRelativeLocation(NewLocaiton);
-}
 
 void AEnemyFlyingSaucer::SetupFsmComponent()
 {
@@ -475,7 +460,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					// 현재 인터랙트 키 눌렀는지 체크
 					if (true == bIsInteract && CodySize::BIG == Size)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding Start"));
+						// UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding Start"));
 
 						// 눌렀으면 ChangeState 
 						FsmComp->ChangeState(EBossState::CodyHoldingStart);
@@ -531,7 +516,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
 			if (false == FlyingSaucerMesh->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State CodyHoldingProgress_NotKeyMashing"));
+				
 				FsmComp->ChangeState(EBossState::CodyHoldingProgress_NotKeyMashing);
 				return;
 			}
@@ -616,6 +601,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer"));
 				if (nullptr != LoadedAnimBlueprint)
 				{
+					// UE_LOG(LogTemp, Warning, TEXT("Change AnimBluerprint"));
 					SkeletalMeshComponent->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
 				}
 			}
@@ -656,17 +642,59 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
 				}
 			}
+
+			bIsKeyMashing = true;
 		},
 
 		[this](float DT)
 		{
-			
+			if (KeyMashingTime <= 0.0f)
+			{
+				// UE_LOG(LogTemp, Warning, TEXT("KeyMashing Time : 0.0f"));
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_KeyMashingEnd);
+				return;
+			}
+
+			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != OverlapPlayer)
+			{
+				if (OverlapPlayer->ActorHasTag(TEXT("Cody")))
+				{
+					bool CheckInput = OverlapPlayer->GetIsInteract();
+					if (true == CheckInput)
+					{
+						 // UE_LOG(LogTemp, Warning, TEXT("KeyMashing Time ++"));
+						KeyMashingTime = 0.75f;
+					}
+				}
+			}
+
+			KeyMashingTime -= DT;
+		},
+
+		[this]
+		{
+			bIsKeyMashing = false;
+		});
+
+
+	FsmComp->CreateState(EBossState::CodyHoldingProgress_KeyMashingEnd,
+		[this]
+		{
+			// 고각도에서 다시 내려오는 애니메이션 적용
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 재생완료 시 CodyHoldingProgress_NotKeyMashing 로 변경 
+
 		},
 
 		[this]
 		{
 
 		});
+
 
 
 	FsmComp->CreateState(EBossState::Phase2Start,
