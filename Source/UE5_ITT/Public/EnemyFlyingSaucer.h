@@ -74,6 +74,12 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void ChangeAnimationFlyingSaucer(const FName& AnimationName);
+
+	UFUNCTION()
+	void ChangeAnimationMoonBaboon(const FName& AnimationName);
+
 	enum class EBossState
 	{
 		None,
@@ -81,8 +87,18 @@ private:
 		Phase1Progress,
 		Phase1End,
 
-		CodyHolding,
-		
+		CodyHoldingStart,
+		CodyHoldingProgress_NotKeyMashing,
+
+		CodyHoldingProgress_ChangeOfAngle,
+
+		CodyHoldingProgress_KeyMashing,
+
+		CodyHoldingProgress_KeyMashingEnd,
+
+		CodyHoldingProgress,
+		CodyHoldingEnd,
+
 		Phase2Start,
 		Phase2Progress,
 		Phase2End,
@@ -101,16 +117,18 @@ private:
 	void SetupComponent();
 	void DrawDebugMesh();
 
-	UPROPERTY(EditDefaultsOnly)
-	bool bIsStartMotion = true;
-
-	// 초반 원숭이 공중에 붕뜨는 거 
-	void StartMotionUpdate(float DeltaTime);
-	FVector StartMotionTargetLocation = FVector(0, 0, 650);
+	UPROPERTY(EditAnywhere)
+	bool bIsKeyMashing = false;
+	float KeyMashingTime = 1.25f;
+	
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 67.0f;
-	
+
+	UPROPERTY(EditAnywhere)
+	float StateCompleteTime = 0.0f;
+
+		
 	//tsubclass 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
@@ -178,6 +196,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
+
+	
+
 
 
 	// 보스 공격 생성 지점 

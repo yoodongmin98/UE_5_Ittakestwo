@@ -5,6 +5,7 @@
 #include "Misc/Paths.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
@@ -21,6 +22,7 @@
 #include "BossRotatePivotActor.h"
 #include "OverlapCheckActor.h"
 #include "PlayerBase.h"
+#include "Cody.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -64,6 +66,27 @@ void AEnemyFlyingSaucer::BeginPlay()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		SetReplicates(true);
 		SetReplicateMovement(true);
+	}
+}
+
+// 나중에 만듬 
+void AEnemyFlyingSaucer::ChangeAnimationFlyingSaucer(const FName& AnimationName)
+{
+	FName NewAnimationName = AnimationName;
+	if (false == AnimationName.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Animation Name is not valid"));
+		return;
+	}
+}
+
+void AEnemyFlyingSaucer::ChangeAnimationMoonBaboon(const FName& AnimationName)
+{
+	FName NewAnimationName = AnimationName;
+	if (false == AnimationName.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Animation Name is not valid"));
+		return;
 	}
 }
 
@@ -281,21 +304,6 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
-void AEnemyFlyingSaucer::StartMotionUpdate(float DeltaTime)
-{
-	FVector CurrentLocation = GetMesh()->GetRelativeLocation();
-	if (CurrentLocation.Z >= StartMotionTargetLocation.Z)
-	{
-		bIsStartMotion = false;
-		return;
-	}
-
-	float MoveSpeed = 150.0f;
-	FVector DeltaMovement = FVector(0.0f, 0.0f, MoveSpeed * DeltaTime);
-	FVector NewLocaiton = CurrentLocation + DeltaMovement;
-
-	GetMesh()->SetRelativeLocation(NewLocaiton);
-}
 
 void AEnemyFlyingSaucer::SetupFsmComponent()
 {
@@ -440,16 +448,22 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (nullptr != CurrentOverlapPlayer)
 			{
+				// 코디이고.
 				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
 				{
+					ACody* PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
+					
+					// 코디가 커진 상태인것도 체크 
 					bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+					CodySize Size = PlayerCody->GetCodySize();
+
 					// 현재 인터랙트 키 눌렀는지 체크
-					if (true == bIsInteract)
+					if (true == bIsInteract && CodySize::BIG == Size)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding"));
+						// UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding Start"));
 
 						// 눌렀으면 ChangeState 
-						FsmComp->ChangeState(EBossState::CodyHolding);
+						FsmComp->ChangeState(EBossState::CodyHoldingStart);
 						return;
 					}
 				}
@@ -462,18 +476,50 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::CodyHolding,
+	FsmComp->CreateState(EBossState::CodyHoldingStart,
 		[this]
 		{
 			// e키 눌렀을 때 여기 들어오고 
 			// 우주선 -> 코디홀딩 시작모션
 			// 원숭이 -> 그 이상한 모션 loop 로 변경
+
+			// 페이즈 종료시점에 추락 + 원숭이 애니메이션 변경 후 
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
+
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+				}
+			}
 		},
 
 		[this](float DT)
 		{
-
-
+			USkeletalMeshComponent* FlyingSaucerMesh = GetMesh();
+			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
+			if (false == FlyingSaucerMesh->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
+			{
+				
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_NotKeyMashing);
+				return;
+			}
 		},
 
 		[this]
@@ -481,8 +527,173 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	
+	// 들고 있는 상태, 키연타 X, 여기서 상호작용키를 한번더 입력했다면 
+	// 각도 변경 상태로 전환 
+	FsmComp->CreateState(EBossState::CodyHoldingProgress_NotKeyMashing,
+		[this]
+		{
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Low_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
 
+			// MoonBaboon 애니메이션 변경
+			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+		},
+
+		[this](float DT)
+		{
+			if (nullptr == OverlapCheckActor)
+			{
+				return;
+			}
+
+			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != CurrentOverlapPlayer)
+			{
+				// 코디이고.
+				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				{
+					// 코디가 커진 상태인것도 체크 
+					bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+
+					// 현재 인터랙트 키 눌렀는지 체크
+					if (true == bIsInteract)
+					{
+						
+
+						// 눌렀으면 ChangeState 
+						FsmComp->ChangeState(EBossState::CodyHoldingProgress_ChangeOfAngle);
+						return;
+					}
+				}
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::CodyHoldingProgress_ChangeOfAngle,
+		[this]
+		{
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer"));
+				if (nullptr != LoadedAnimBlueprint)
+				{
+					// UE_LOG(LogTemp, Warning, TEXT("Change AnimBluerprint"));
+					SkeletalMeshComponent->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
+				}
+			}
+
+			StateCompleteTime = 3.0f;
+			
+		},
+
+		[this](float DT)
+		{
+			if (StateCompleteTime <= 0.0f)
+			{
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_KeyMashing);
+				return;
+			}
+
+			StateCompleteTime -= DT;
+		},
+
+		[this]
+		{
+			StateCompleteTime = 0.0f;
+		});
+
+
+	// 키연타중 
+	FsmComp->CreateState(EBossState::CodyHoldingProgress_KeyMashing,
+		[this]
+		{
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				// 애님인스턴스 받아와서 애니메이션 재생
+				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Anim"));
+				if (nullptr != LoadedAnimationSequence)
+				{
+					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
+				}
+			}
+
+			bIsKeyMashing = true;
+		},
+
+		[this](float DT)
+		{
+			if (KeyMashingTime <= 0.0f)
+			{
+				// UE_LOG(LogTemp, Warning, TEXT("KeyMashing Time : 0.0f"));
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_KeyMashingEnd);
+				return;
+			}
+
+			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != OverlapPlayer)
+			{
+				if (OverlapPlayer->ActorHasTag(TEXT("Cody")))
+				{
+					bool CheckInput = OverlapPlayer->GetIsInteract();
+					if (true == CheckInput)
+					{
+						 // UE_LOG(LogTemp, Warning, TEXT("KeyMashing Time ++"));
+						KeyMashingTime = 0.75f;
+					}
+				}
+			}
+
+			KeyMashingTime -= DT;
+		},
+
+		[this]
+		{
+			bIsKeyMashing = false;
+		});
+
+
+	FsmComp->CreateState(EBossState::CodyHoldingProgress_KeyMashingEnd,
+		[this]
+		{
+			// 고각도에서 다시 내려오는 애니메이션 적용
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 재생완료 시 CodyHoldingProgress_NotKeyMashing 로 변경 
+
+		},
+
+		[this]
+		{
+
+		});
 
 
 
