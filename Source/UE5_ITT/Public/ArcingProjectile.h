@@ -23,13 +23,16 @@ public:
 
 	UFUNCTION()
 	void SetupTargetLocation(FVector Location) { TargetLocation = Location; }
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void SetupComponent();
+
+
+	// overlap event
 	UFUNCTION()
 	void SetupOverlapEvent();
 
@@ -40,27 +43,30 @@ private:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UPROPERTY(EditDefaultsOnly)
-	class USceneComponent* SceneComp = nullptr;
+	bool bIsOverlapEvent = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
-	class UStaticMeshComponent* ProjectileMeshComp = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-	class UProjectileMovementComponent* ProjectileMovementComp = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly)
 	FVector TargetLocation = FVector::ZeroVector;
 
-	// ÆÄÆ¼Å¬
-	UPROPERTY(VisibleAnywhere)
-	class UNiagaraComponent* TrailEffectComp = nullptr;
-
+	// TSubclass
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ABurstEffect> BurstEffectClass;
 
+	// Component
 	UPROPERTY(EditDefaultsOnly)
-	bool bIsOverlapEvent = false;
+	class USceneComponent* SceneComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UStaticMeshComponent* ProjectileMeshComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UProjectileMovementComponent* ProjectileMovementComp = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	class UNiagaraComponent* TrailEffectComp = nullptr;
+	
+	
 
 
-
+	
 };

@@ -2,17 +2,14 @@
 
 
 #include "ArcingProjectile.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "BurstEffect.h"
-#include "Floor.h"
 #include "EnemyFlyingSaucer.h"
-
-// test
-#include "Cody.h"
+#include "Floor.h"
 
 // Sets default values
 AArcingProjectile::AArcingProjectile()
@@ -20,6 +17,25 @@ AArcingProjectile::AArcingProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SetupComponent();
+}
+
+// Called when the game starts or when spawned
+void AArcingProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetupOverlapEvent();
+
+	if (true == HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+}
+
+void AArcingProjectile::SetupComponent()
+{
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SetRootComponent(SceneComp);
 
@@ -34,22 +50,6 @@ AArcingProjectile::AArcingProjectile()
 
 	TrailEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailEffectComponent"));
 	TrailEffectComp->SetupAttachment(SceneComp);
-}
-
-// Called when the game starts or when spawned
-void AArcingProjectile::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SetupOverlapEvent();
-
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
-	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
 }
 
 void AArcingProjectile::SetupOverlapEvent()
@@ -108,7 +108,6 @@ void AArcingProjectile::Tick(float DeltaTime)
 
 void AArcingProjectile::SetupProjectileMovementComponent()
 {
-	// 이후에 플레이어 두명되면 변경해야함 
 	if (nullptr != ProjectileMovementComp)
 	{
 		FVector StartLocation = GetActorLocation(); // 시작 위치
