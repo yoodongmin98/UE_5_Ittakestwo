@@ -197,11 +197,35 @@ public:
 	{
 		return IsPlayerDeath;
 	}
+	//플레이어를 죽어있는 상태로 만듭니다.
+	UFUNCTION(BlueprintCallable)
 	inline void SetPlayerDeath()
 	{
 		IsPlayerDeath = true;
 	}
-
+	//Sit에서 내려오는 시간이 되었는지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCurrentSitTime() const
+	{
+		return CurrentSitTime >= SitStartTime + SitDuration - 0.15f;
+	}
+	//캐릭터가 지면에 있는지를 반환합니다
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsCharacterGround() const
+	{
+		return !GetMovementComponent()->IsFalling();
+	}
+	//Idle로 돌아갈 수 있는 상태인지 반환합니다(Sit)
+	UFUNCTION(BlueprintCallable)
+	inline void SetChangeIdle()
+	{
+		ChangeIdle = true;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline bool GetChangeIdle() const
+	{
+		return ChangeIdle;
+	}
 
 
 
@@ -289,6 +313,10 @@ public:
 	float SitStartTime;
 	float SitDuration;
 	bool CanSit;
+	bool IsSit;
+	float CurrentSitTime;
+
+	bool ChangeIdle;
 	
 	//////////////////////////////////////////////
 

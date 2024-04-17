@@ -73,7 +73,8 @@ void APlayerBase::BeginPlay()
 	IsSprint = false;
 
 	CanSit = true;
-	SitDuration = 0.7f;
+	SitDuration = 0.5f;
+	ChangeIdle = true;
 }
 
 // Called every frame
@@ -104,7 +105,7 @@ void APlayerBase::Tick(float DeltaTime)
 	}
 	if (!CanSit)
 	{
-		float CurrentSitTime = GetWorld()->GetTimeSeconds();
+		CurrentSitTime = GetWorld()->GetTimeSeconds();
 		if (CurrentSitTime >= SitStartTime + SitDuration)
 		{
 			GetCharacterMovement()->GravityScale = 10.0f;
@@ -158,7 +159,7 @@ void APlayerBase::Move(const FInputActionInstance& _Instance)
 	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
 
-	if (bCanDash == false)
+	if (bCanDash == false && ChangeIdle)
 	{
 		ChangeState(Cody_State::MOVE);
 		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
@@ -235,7 +236,7 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 void APlayerBase::DashInput()
 {
 	IsSprint = false;
-	if (!bIsDashing && !bCanDash && BigCanDash)
+	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
 	{
 		ChangeState(Cody_State::DASH);
 		//대쉬 시작시간을 체크
@@ -292,10 +293,12 @@ void APlayerBase::JumpDash()
 
 void APlayerBase::Sit()
 {
-	ChangeState(Cody_State::SIT);
 	SitStartTime = GetWorld()->GetTimeSeconds();
-	if (GetCharacterMovement()->IsFalling() && CanSit)
+	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
 	{
+		ChangeState(Cody_State::SIT);
+		IsSit = true;		
+		ChangeIdle = false;
 		//일단 중력없애
 		GetCharacterMovement()->GravityScale = 0.0f;
 		//일단 멈춰
@@ -308,6 +311,7 @@ void APlayerBase::Sit()
 
 void APlayerBase::SitEnd()
 {
+	IsSit = false;
 	CanSit = true;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 }
