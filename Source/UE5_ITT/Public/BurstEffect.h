@@ -22,6 +22,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void SetupComponent();
 	void EffectDestroy();
 	void SetupDestroyTimerEvent();
 
@@ -43,7 +44,4 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bDestroyValue = false;
-
-
-	
 };

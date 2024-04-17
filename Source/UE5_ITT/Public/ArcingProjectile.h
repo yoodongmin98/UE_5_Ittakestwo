@@ -31,7 +31,6 @@ private:
 	UFUNCTION()
 	void SetupComponent();
 
-
 	// overlap event
 	UFUNCTION()
 	void SetupOverlapEvent();
