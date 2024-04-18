@@ -41,7 +41,10 @@ void ACody::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//Scale Check
-	GetMesh()->SetWorldScale3D(FMath::VInterpTo(GetMesh()->GetComponentScale(), TargetScale, DeltaTime, ScaleSpeed));
+	if (true == HasAuthority())
+	{
+		GetMesh()->SetWorldScale3D(FMath::VInterpTo(GetMesh()->GetComponentScale(), TargetScale, DeltaTime, ScaleSpeed));
+	}
 
 
 
