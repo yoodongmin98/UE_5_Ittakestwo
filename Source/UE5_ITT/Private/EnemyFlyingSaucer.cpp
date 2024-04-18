@@ -31,9 +31,34 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetupComponent();
-	SetupFsmComponent();
-	Tags.Add(FName("Boss"));
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+
+		SetupComponent();
+		SetupFsmComponent();
+		Tags.Add(FName("Boss"));
+	}
+}
+
+// Called when the game starts or when spawned
+void AEnemyFlyingSaucer::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (true == HasAuthority())
+	{
+		// 탑승한 원숭이 세팅
+		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
+		EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+		EnemyMoonBaboon->SetOwner(this);
+
+		FsmComp->ChangeState(EBossState::Phase1Start);
+
+		// 바닥 이동시 같이 이동하기 위해서 액터 부착
+		AttachToActor(GetFloor(), FAttachmentTransformRules::KeepWorldTransform);
+	}
 }
 
 // test code, 추후 삭제 
@@ -47,29 +72,6 @@ void AEnemyFlyingSaucer::BossHitTestFireRocket()
 	TestHomingRocket->SetupTarget(TargetActor);
 	TestHomingRocket->SetActorLocation(FVector(0.0f, 0.0f, 1000.0f));
 	TestHomingRocket->SetOwner(this);
-}
-
-// Called when the game starts or when spawned
-void AEnemyFlyingSaucer::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// 탑승한 원숭이 세팅
-	EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
-	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
-	EnemyMoonBaboon->SetOwner(this);
-
-	FsmComp->ChangeState(EBossState::Phase1Start);
-
-	// 바닥 이동시 같이 이동하기 위해서 액터 부착
-	AttachToActor(GetFloor(), FAttachmentTransformRules::KeepWorldTransform);
-
-	if (true == HasAuthority())
-	{
-		
-		SetReplicates(true);
-		SetReplicateMovement(true);
-	}
 }
 
 // 나중에 만듬 

@@ -26,9 +26,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void SetupComponent();
+
 	UPROPERTY(EditDefaultsOnly)
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 };
