@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACody::ACody()
@@ -31,8 +31,7 @@ void ACody::BeginPlay()
 
 	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
 	
-
-	GetMesh()->AddLocalOffset(NormalSizeCapsule);
+	//GetMesh()->AddLocalOffset(NormalSizeCapsule);
 
 }
 
@@ -46,34 +45,34 @@ void ACody::Tick(float DeltaTime)
 
 
 
-	//Size Setting
-	switch (CodySizes)
-	{
-	case CodySize::BIG :
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
-		GetCapsuleComponent()->SetCapsuleSize(140.0f, 360.0f);
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
-		GetCapsuleComponent()->SetCapsuleSize(35.0f, 90.0f);
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
-		GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
-		if (GetCharacterMovement()->IsFalling())
-		{
-			DashDuration = 0.03f;
-		}
-		break;
-	}
-	default :
-		break;
-	}
+	////Size Setting
+	//switch (CodySizes)
+	//{
+	//case CodySize::BIG :
+	//{
+	//	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+	//	GetCapsuleComponent()->SetCapsuleSize(140.0f, 360.0f);
+	//	break;
+	//}
+	//case CodySize::NORMAL:
+	//{
+	//	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+	//	GetCapsuleComponent()->SetCapsuleSize(35.0f, 90.0f);
+	//	break;
+	//}
+	//case CodySize::SMALL:
+	//{
+	//	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
+	//	GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
+	//	if (GetCharacterMovement()->IsFalling())
+	//	{
+	//		DashDuration = 0.03f;
+	//	}
+	//	break;
+	//}
+	//default :
+	//	break;
+	//}
 
 
 	//SPRINT
@@ -129,8 +128,16 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
-		PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeBigSize);
+		if(true == HasAuthority())
+		{
+			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
+			PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeBigSize);
+		}
+		else
+		{
+			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeServerSmallSize);
+			PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeServerBigSize);
+		}
 	}
 }
 
@@ -150,7 +157,8 @@ void ACody::ChangeBigSize()
 		}
 		case CodySize::NORMAL:
 		{
-			ChangeCodySizeEnum(CodySize::BIG);
+			CodySizes = CodySize::BIG;
+			//ChangeCodySizeEnum(CodySize::BIG);
 			TargetScale = BigSize;
 			GetMesh()->AddLocalOffset(BigSizeCapsule);
 			ACharacter::JumpMaxCount = 1;
@@ -160,7 +168,8 @@ void ACody::ChangeBigSize()
 		}
 		case CodySize::SMALL:
 		{
-			ChangeCodySizeEnum(CodySize::NORMAL);
+			//ChangeCodySizeEnum(CodySize::NORMAL);
+			CodySizes = CodySize::NORMAL;
 			TargetScale = NormalSize;
 			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
 			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
@@ -185,7 +194,9 @@ void ACody::ChangeSmallSize()
 		{
 		case CodySize::BIG:
 		{
-			ChangeCodySizeEnum(CodySize::NORMAL);
+			//ChangeCodySizeEnum(CodySize::NORMAL);
+			CodySizes = CodySize::NORMAL;
+
 			TargetScale = NormalSize;
 			GetMesh()->AddLocalOffset(-BigSizeCapsule);
 			ACharacter::JumpMaxCount = 2;
@@ -195,7 +206,103 @@ void ACody::ChangeSmallSize()
 		}
 		case CodySize::NORMAL:
 		{
-			ChangeCodySizeEnum(CodySize::SMALL);
+			//ChangeCodySizeEnum(CodySize::SMALL);
+			CodySizes = CodySize::SMALL;
+
+			TargetScale = SmallSize;
+			GetMesh()->AddLocalOffset(SmallSizeCapsule);
+			GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+			GetCharacterMovement()->JumpZVelocity = 250.0f;
+			DashDistance = 700.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+
+bool ACody::ChangeServerBigSize_Validate()
+{
+	return true;
+}
+
+void ACody::ChangeServerBigSize_Implementation()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		IsSprint = false;
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			//ChangeCodySizeEnum(CodySize::BIG);
+			CodySizes = CodySize::BIG;
+
+			TargetScale = BigSize;
+			GetMesh()->AddLocalOffset(BigSizeCapsule);
+			ACharacter::JumpMaxCount = 1;
+			BigCanDash = false;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			//ChangeCodySizeEnum(CodySize::NORMAL);
+			CodySizes = CodySize::NORMAL;
+
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
+			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale;
+			GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+			DashDistance = 2500.0f;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+	
+
+bool ACody::ChangeServerSmallSize_Validate()
+{
+	return true;
+}
+void ACody::ChangeServerSmallSize_Implementation()
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		IsSprint = false;
+		switch (CodySizes)
+		{
+		case CodySize::BIG:
+		{
+			//ChangeCodySizeEnum(CodySize::NORMAL);
+			CodySizes = CodySize::NORMAL;
+
+			TargetScale = NormalSize;
+			GetMesh()->AddLocalOffset(-BigSizeCapsule);
+			ACharacter::JumpMaxCount = 2;
+			BigCanDash = true;
+			GetCharacterMovement()->GravityScale = DefaultGravityScale;
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			//ChangeCodySizeEnum(CodySize::SMALL);
+			CodySizes = CodySize::SMALL;
+
 			TargetScale = SmallSize;
 			GetMesh()->AddLocalOffset(SmallSizeCapsule);
 			GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
@@ -253,3 +360,10 @@ void ACody::DashEnd()
 		DashDuration = 0.75f;
 	}
 }
+
+// 소스 파일
+//void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+//{
+//	// MyVariable을 Replicate할 것임을 엔진에게 알려줍니다.
+//	DOREPLIFETIME(ACody, CodySizes);
+//}

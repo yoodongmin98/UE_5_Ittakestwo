@@ -47,13 +47,24 @@ public:
 		return TargetScale;
 	}
 	
-
 	void ChangeBigSize();
+
 	void ChangeSmallSize();
+
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerBigSize();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerSmallSize();
+
+
 	virtual void SprintInput() override;
 	virtual void DashEnd() override;
 
-
+	//UPROPERTY(Replicated)
+	UPROPERTY(EditAnywhere)
 	CodySize CodySizes = CodySize::NONE;
 	//Set Speed
 	float ScaleSpeed;
@@ -74,4 +85,8 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 	
+
+	// GetLifetimeReplicatedProps() 함수 오버라이드
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 };
