@@ -7,6 +7,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AEnemyMoonBaboon::AEnemyMoonBaboon()
@@ -57,5 +58,14 @@ void AEnemyMoonBaboon::Tick(float DeltaTime)
 void AEnemyMoonBaboon::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void AEnemyMoonBaboon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	DOREPLIFETIME(AEnemyMoonBaboon, SceneComp);
+	DOREPLIFETIME(AEnemyMoonBaboon, SkeletalMeshComp);
 }
 

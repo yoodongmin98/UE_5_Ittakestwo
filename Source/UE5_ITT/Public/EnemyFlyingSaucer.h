@@ -20,7 +20,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	// 2페이즈 원형 움직임을 위한 pivot actor 세팅, 부착, 해제 및 회전 관련
 	UFUNCTION(BlueprintCallable)
 	void SetupRotateCenterPivotActor();
@@ -74,14 +74,14 @@ public:
 	void BossHitTestFireRocket();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
-
 private:
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_TestFunction();
+
 	enum class EBossState
 	{
 		None,
@@ -133,7 +133,7 @@ private:
 	float KeyMashingMaxTime = 1.25f;
 	
 	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 67.0f;
+	float CurrentHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
@@ -176,21 +176,25 @@ private:
 	float RotateCenterPivotActorMoveSpeed = 9.0f;
 
 	// 보스가 생성하는 액터 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	class AFloor* FloorObject = nullptr;
 	
 	UPROPERTY(EditAnywhere)
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
 	// Component
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UFsmComponent* FsmComp = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UInteractionUIComponent* UIComp = nullptr;
+
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
+	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
+
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateUIComponent();
@@ -206,15 +210,24 @@ private:
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
 	// 보스 공격 생성 지점 컴포넌트 
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh1 = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh2 = nullptr;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Components")
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
+
+	UPROPERTY(Replicated, VisibleAnywhere)
+	class UAnimInstance* AnimInstance = nullptr;
+
+	UPROPERTY(Replicated, VisibleAnywhere)
+	class UAnimSequence* AnimSequence = nullptr;
+
+	// 원숭이부착관련 
+	bool bIsMoonBaboonAttach = false;
 };

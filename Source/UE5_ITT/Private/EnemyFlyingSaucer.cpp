@@ -58,7 +58,14 @@ void AEnemyFlyingSaucer::BeginPlay()
 		FsmComp->ChangeState(EBossState::Phase1Start);
 
 		// 바닥 이동시 같이 이동하기 위해서 액터 부착
-		AttachToActor(GetFloor(), FAttachmentTransformRules::KeepWorldTransform);
+		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
+
+
+		FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
+		UE_LOG(LogTemp, Warning, TEXT("BeginPlay Location : %s"), *MoonBaboonLocation.ToString());
+
+		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
+		UE_LOG(LogTemp, Warning, TEXT("BeginPlay Rotation : %s"), *MoonBaboonRotation.ToString());
 	}
 }
 
@@ -80,12 +87,16 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	DOREPLIFETIME(AEnemyFlyingSaucer, EnemyMoonBaboon);
 	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, UIComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserSpawnPointMesh);
 	DOREPLIFETIME(AEnemyFlyingSaucer, HomingRocketSpawnPointMesh1);
 	DOREPLIFETIME(AEnemyFlyingSaucer, HomingRocketSpawnPointMesh2);
 	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileSpawnPointMesh);
+	DOREPLIFETIME(AEnemyFlyingSaucer, AnimInstance);
+	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
+	DOREPLIFETIME(AEnemyFlyingSaucer, SkeletalMeshComp);
 }
 
 // 나중에 만듬 
@@ -117,7 +128,34 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
+		if (false == bIsMoonBaboonAttach)
+		{
+			//EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+			bIsMoonBaboonAttach = true;
+		}
+
+		
 		DrawDebugMesh();
+
+		/*FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
+		UE_LOG(LogTemp, Warning, TEXT("Server : %s"), *MoonBaboonLocation.ToString());
+
+		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
+		UE_LOG(LogTemp, Warning, TEXT("Server : %s"), *MoonBaboonRotation.ToString());*/
+	}
+	else
+	{
+		if (false == bIsMoonBaboonAttach)
+		{
+			// EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+			bIsMoonBaboonAttach = true;
+		}
+
+	/*	FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
+		UE_LOG(LogTemp, Warning, TEXT("Client : %s"), *MoonBaboonLocation.ToString());
+
+		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
+		UE_LOG(LogTemp, Warning, TEXT("Client : %s"), *MoonBaboonRotation.ToString());*/
 	}
 }
 
@@ -237,7 +275,7 @@ void AEnemyFlyingSaucer::SetupComponent()
 	GetArrowComponent()->SetupAttachment(CapsuleComp);
 	GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
 	
-	USkeletalMeshComponent* SkeletalMeshComp = GetMesh();
+	SkeletalMeshComp = GetMesh();
 	SkeletalMeshComp->SetupAttachment(CapsuleComp);
 
 	LaserSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserSpawnPointMesh"));
@@ -330,31 +368,33 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1Start,
 		[this]
 		{
-			// 메시받아오기
-			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-			if (nullptr != SkeletalMeshComponent)
-			{
-				// 애님인스턴스 받아와서 애니메이션 재생
-				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
-				if (nullptr != LoadedAnimationSequence)
-				{
-					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
-				}
-			}
+			//// 메시받아오기
+			//USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			//if (nullptr != SkeletalMeshComponent)
+			//{
+			//	// 애님인스턴스 받아와서 애니메이션 재생
+			//	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+			//	UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
+			//	if (nullptr != LoadedAnimationSequence)
+			//	{
+			//		SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+			//	}
+			//}
 
-			// MoonBaboon 애니메이션 변경
-			SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
-			if (nullptr != SkeletalMeshComponent)
-			{
-				// 애님인스턴스 받아와서 애니메이션 재생
-				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
-				if (nullptr != LoadedAnimationSequence)
-				{
-					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
-				}
-			}
+			Multicast_TestFunction();
+
+			//// MoonBaboon 애니메이션 변경
+			//SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
+			//if (nullptr != SkeletalMeshComponent)
+			//{
+			//	// 애님인스턴스 받아와서 애니메이션 재생
+			//	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
+			//	UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
+			//	if (nullptr != LoadedAnimationSequence)
+			//	{
+			//		SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
+			//	}
+			//}
 		},
 
 		[this](float DT)
@@ -811,3 +851,24 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
 }
 
+void AEnemyFlyingSaucer::Multicast_TestFunction_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("DDDDDD"));
+
+	// 로케이션도 변경가능 
+	
+	// 메시받아오기
+	if (nullptr != SkeletalMeshComp)
+	{
+		// 애님인스턴스 받아와서 애니메이션 재생
+		AnimInstance = SkeletalMeshComp->GetAnimInstance();
+		AnimSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
+		if (nullptr != AnimSequence)
+		{
+			SkeletalMeshComp->PlayAnimation(AnimSequence, false);
+		}
+
+		AnimInstance = nullptr;
+		AnimSequence = nullptr;
+	}
+}
