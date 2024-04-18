@@ -73,9 +73,13 @@ public:
 	// test, 보스 테스트 끝나면 삭제 
 	void BossHitTestFireRocket();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	
 
 private:
 	enum class EBossState
@@ -125,7 +129,8 @@ private:
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyMashing = false;
-	float KeyMashingTime = 1.25f;
+	float KeyMashingTime = 0.0f;
+	float KeyMashingMaxTime = 1.25f;
 	
 	UPROPERTY(EditDefaultsOnly)
 	float CurrentHp = 67.0f;
@@ -181,10 +186,10 @@ private:
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
 	// Component
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UFsmComponent* FsmComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UInteractionUIComponent* UIComp = nullptr;
 
 	UFUNCTION(BlueprintCallable)
@@ -201,15 +206,15 @@ private:
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
 	// 보스 공격 생성 지점 컴포넌트 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh1 = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh2 = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, Category = "Components", Replicated)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
 };

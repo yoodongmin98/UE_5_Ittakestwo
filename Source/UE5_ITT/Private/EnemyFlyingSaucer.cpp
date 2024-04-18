@@ -23,6 +23,7 @@
 #include "OverlapCheckActor.h"
 #include "PlayerBase.h"
 #include "Cody.h"
+#include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 
 // Sets default values
@@ -33,12 +34,12 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 
 	if (true == HasAuthority())
 	{
-		bReplicates = true;
-		SetReplicateMovement(true);
-
 		SetupComponent();
 		SetupFsmComponent();
 		Tags.Add(FName("Boss"));
+
+		bReplicates = true;
+		SetReplicateMovement(true);
 	}
 }
 
@@ -72,6 +73,19 @@ void AEnemyFlyingSaucer::BossHitTestFireRocket()
 	TestHomingRocket->SetupTarget(TargetActor);
 	TestHomingRocket->SetActorLocation(FVector(0.0f, 0.0f, 1000.0f));
 	TestHomingRocket->SetOwner(this);
+}
+
+void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, UIComp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserSpawnPointMesh);
+	DOREPLIFETIME(AEnemyFlyingSaucer, HomingRocketSpawnPointMesh1);
+	DOREPLIFETIME(AEnemyFlyingSaucer, HomingRocketSpawnPointMesh2);
+	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileSpawnPointMesh);
 }
 
 // 나중에 만듬 
@@ -603,7 +617,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
 			if (nullptr != SkeletalMeshComponent)
 			{
-				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer"));
+				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_CodyHoldingRotation"));
 				if (nullptr != LoadedAnimBlueprint)
 				{
 					// UE_LOG(LogTemp, Warning, TEXT("Change AnimBluerprint"));
@@ -649,6 +663,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			bIsKeyMashing = true;
+			KeyMashingTime = KeyMashingMaxTime;
 		},
 
 		[this](float DT)
@@ -680,6 +695,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsKeyMashing = false;
+			KeyMashingTime = KeyMashingMaxTime;
 		});
 
 
@@ -687,17 +703,44 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			// 고각도에서 다시 내려오는 애니메이션 적용
+			UE_LOG(LogTemp, Warning, TEXT("CodyHoldingProgress_KeyMashingEnd Start"));
+
+			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
+			if (nullptr != SkeletalMeshComponent)
+			{
+				UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_CodyHoldingRotationReverse"));
+				if (nullptr != LoadedAnimBlueprint)
+				{
+					// UE_LOG(LogTemp, Warning, TEXT("Change AnimBluerprint"));
+					SkeletalMeshComponent->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
+				}
+			}
+
+			StateCompleteTime = 2.0f;
 		},
 
 		[this](float DT)
 		{
 			// 애니메이션 재생완료 시 CodyHoldingProgress_NotKeyMashing 로 변경 
 
+			// 1. 블렌드스페이스 역재생 만들어야함. 완
+			// start 에서 애니메이션 적용 완
+			// tick 에서 애니메이션 종료시 notkeymashing 으로 변경
+			// 여기서 애니메이션 종료되었는지 체크 
+			
+			if (StateCompleteTime <= 0.0f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("CodyHoldingProgress_NotKeyMashingEnd Start"));
+				FsmComp->ChangeState(EBossState::CodyHoldingProgress_NotKeyMashing);
+				return;
+			}
+
+			StateCompleteTime -= DT;
 		},
 
 		[this]
 		{
-
+			StateCompleteTime = 0.0f;
 		});
 
 

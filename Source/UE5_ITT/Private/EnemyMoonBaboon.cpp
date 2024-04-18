@@ -16,10 +16,9 @@ AEnemyMoonBaboon::AEnemyMoonBaboon()
 
 	if (true == HasAuthority())
 	{
+		SetupComponent();
 		bReplicates = true;
 		SetReplicateMovement(true);
-
-		SetupComponent();
 	}
 }
 
