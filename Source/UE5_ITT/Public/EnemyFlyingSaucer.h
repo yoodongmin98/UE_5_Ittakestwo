@@ -80,7 +80,7 @@ protected:
 
 private:
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_TestFunction();
+	void Client_TestFunction();
 
 	enum class EBossState
 	{
@@ -124,6 +124,8 @@ private:
 	void ChangeAnimationMoonBaboon(const FName& AnimationName);
 
 	void SetupComponent();
+
+	UFUNCTION(BlueprintCallable)
 	void SetupFsmComponent();
 	
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 

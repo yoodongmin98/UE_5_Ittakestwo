@@ -52,20 +52,10 @@ void AEnemyFlyingSaucer::BeginPlay()
 	{
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
-		EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+		
 		EnemyMoonBaboon->SetOwner(this);
-
-		FsmComp->ChangeState(EBossState::Phase1Start);
-
-		// 바닥 이동시 같이 이동하기 위해서 액터 부착
+		FsmComp->ChangeState(EBossState::None);
 		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
-
-
-		FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
-		UE_LOG(LogTemp, Warning, TEXT("BeginPlay Location : %s"), *MoonBaboonLocation.ToString());
-
-		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
-		UE_LOG(LogTemp, Warning, TEXT("BeginPlay Rotation : %s"), *MoonBaboonRotation.ToString());
 	}
 }
 
@@ -365,9 +355,31 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 void AEnemyFlyingSaucer::SetupFsmComponent()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComponent"));
+	FsmComp->CreateState(EBossState::None,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+			if (3.0f <= FsmComp->GetStateLiveTime())
+			{
+				FsmComp->ChangeState(EBossState::Phase1Start);
+				return;
+			}
+		},
+
+		[this]
+		{
+			EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
+			EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+		});
+
+
 	FsmComp->CreateState(EBossState::Phase1Start,
 		[this]
 		{
+			
 			//// 메시받아오기
 			//USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
 			//if (nullptr != SkeletalMeshComponent)
@@ -381,7 +393,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			//	}
 			//}
 
-			Multicast_TestFunction();
+			Client_TestFunction();
 
 			//// MoonBaboon 애니메이션 변경
 			//SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
@@ -851,13 +863,10 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
 }
 
-void AEnemyFlyingSaucer::Multicast_TestFunction_Implementation()
+void AEnemyFlyingSaucer::Client_TestFunction_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DDDDDD"));
-
-	// 로케이션도 변경가능 
 	
-	// 메시받아오기
+
 	if (nullptr != SkeletalMeshComp)
 	{
 		// 애님인스턴스 받아와서 애니메이션 재생
