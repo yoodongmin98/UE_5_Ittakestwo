@@ -11,8 +11,8 @@
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "FsmComponent.h"
 #include "InteractionUIComponent.h"
+#include "FsmComponent.h"
 #include "HomingRocket.h"
 #include "EnemyMoonBaboon.h"
 #include "ArcingProjectile.h"
@@ -36,6 +36,7 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	Tags.Add(FName("Boss"));
 }
 
+// test code, 추후 삭제 
 void AEnemyFlyingSaucer::BossHitTestFireRocket()
 {
 	// 1번로켓 세팅
@@ -53,17 +54,19 @@ void AEnemyFlyingSaucer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// 탑승한 원숭이 세팅
 	EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	EnemyMoonBaboon->SetOwner(this);
 
 	FsmComp->ChangeState(EBossState::Phase1Start);
-	// BossHitTestFireRocket();
 
-	// 네트워크 권한을 확인하는 코드
+	// 바닥 이동시 같이 이동하기 위해서 액터 부착
+	AttachToActor(GetFloor(), FAttachmentTransformRules::KeepWorldTransform);
+
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		
 		SetReplicates(true);
 		SetReplicateMovement(true);
 	}
@@ -98,9 +101,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
-
-		//DrawDebugMesh();
+		DrawDebugMesh();
 	}
 }
 
@@ -112,6 +113,8 @@ void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 {
+	// 여기서 현재 어태치된 액터 해제해야하고 부착해야할 수 도 있음. 체크 
+
 	RotateCenterPivotActor = GetWorld()->SpawnActor<ABossRotatePivotActor>(RotateCenterPivotActorClass, FVector::ZeroVector,FRotator::ZeroRotator);
 	if (nullptr != RotateCenterPivotActor)
 	{
@@ -122,6 +125,7 @@ void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 			PrimitiveComp->SetEnableGravity(false);
 		}
 		AttachToActor(RotateCenterPivotActor, FAttachmentTransformRules::KeepWorldTransform);
+		
 	}
 }
 
@@ -133,7 +137,6 @@ void AEnemyFlyingSaucer::DetachRotateCenterPivotActor()
 		RotateCenterPivotActor->Destroy();
 	}
 }
-
 
 void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 {
