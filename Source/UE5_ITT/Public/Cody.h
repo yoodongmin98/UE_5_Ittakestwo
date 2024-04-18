@@ -47,8 +47,10 @@ public:
 		return TargetScale;
 	}
 	
+	UFUNCTION(NetMulticast, Reliable)
 	void ChangeBigSize();
 
+	UFUNCTION(NetMulticast, Reliable)
 	void ChangeSmallSize();
 
 
@@ -74,9 +76,9 @@ public:
 	FVector BigSize;
 	FVector NormalSize;
 	FVector SmallSize;
-	FVector BigSizeCapsule;
-	FVector NormalSizeCapsule;
-	FVector SmallSizeCapsule;
+	//FVector BigSizeCapsule;
+	//FVector NormalSizeCapsule;
+	//FVector SmallSizeCapsule;
 	//Transform
 	FTransform CodyCapsuleComponent;
 	FTransform CodyTransform;
