@@ -47,8 +47,14 @@ public:
 		return TargetScale;
 	}
 	
+	//UFUNCTION(Client, Reliable, WithValidation)
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ChangeBigSize();
 
+	//UFUNCTION(Client, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ChangeSmallSize();
 
 
@@ -63,20 +69,23 @@ public:
 	virtual void SprintInput() override;
 	virtual void DashEnd() override;
 
-	//UPROPERTY(Replicated)
-	UPROPERTY(EditAnywhere)
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// Enum 값을 포함한 변수
+	//UPROPERTY(Replicated, EditAnywhere, Replicated)
 	CodySize CodySizes = CodySize::NONE;
 	//Set Speed
 	float ScaleSpeed;
 	float CameraSpeed;
+	//UPROPERTY(Replicated)
 	FVector TargetScale;
 	//Size
-	FVector BigSize;
-	FVector NormalSize;
-	FVector SmallSize;
-	FVector BigSizeCapsule;
-	FVector NormalSizeCapsule;
-	FVector SmallSizeCapsule;
+	FVector CustomBigSize;
+	FVector CustomNormalSize;
+	FVector CustomSmallSize;
+	//FVector CustomBigSizeCapsule;
+	//FVector CustomNormalSizeCapsule;
+	//FVector CustomSmallSizeCapsule;
 	//Transform
 	FTransform CodyCapsuleComponent;
 	FTransform CodyTransform;
@@ -85,8 +94,6 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 	
-
-	// GetLifetimeReplicatedProps() 함수 오버라이드
-	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	FVector BeforeSize;
+	float LerpTime;
 };
