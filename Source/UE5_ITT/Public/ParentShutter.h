@@ -24,6 +24,9 @@ public:
 	void SetShutterOpen();
 	void SetDone();
 
+	UFUNCTION(NetMulticast,Reliable)
+	void SpawnActor();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -33,6 +36,15 @@ private:
 	TSubclassOf<class ACoreShutter> CoreShutterClass;
 
 	TArray<class ACoreShutter*> ArrayCoreShutter;
+
+	UPROPERTY(EditAnywhere)
+	class ACoreShutter* Shutter0= nullptr;
+	UPROPERTY(EditAnywhere)
+	class ACoreShutter* Shutter1= nullptr;
+	UPROPERTY(EditAnywhere)
+	class ACoreShutter* Shutter2= nullptr;
+	UPROPERTY(EditAnywhere)
+	class ACoreShutter* Shutter3= nullptr;
 
 	float MovingSize = 170.f;
 };

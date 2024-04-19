@@ -26,15 +26,19 @@ void AParentShutter::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		ArrayCoreShutter.Reserve(4);
-
+		////SpawnActor_Implementation();
+		ArrayCoreShutter.SetNum(4);
+		//
+		ArrayCoreShutter[0] = Shutter0;
+		ArrayCoreShutter[1] = Shutter1;
+		ArrayCoreShutter[2] = Shutter2;
+		ArrayCoreShutter[3] = Shutter3;
 		for (int32 i = 0; i < 4; i++)
 		{
-			ArrayCoreShutter.Push(GetWorld()->SpawnActor<ACoreShutter>(CoreShutterClass));
-			ArrayCoreShutter[i]->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 			ArrayCoreShutter[i]->SetActorRelativeRotation({ 0.f, 90.f * i,0.f });
 			ArrayCoreShutter[i]->SetPivotPos(GetActorLocation());
 		}
+
 		ArrayCoreShutter[0]->SetOpenPos({ -MovingSize,MovingSize ,0.f });
 		ArrayCoreShutter[1]->SetOpenPos({ -MovingSize,-MovingSize ,0.f });
 		ArrayCoreShutter[2]->SetOpenPos({ MovingSize,-MovingSize ,0.f });
@@ -62,6 +66,13 @@ void AParentShutter::SetDone()
 	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
 	{
 		ArrayCoreShutter[i]->SetDone();
+	}
+}
+
+void AParentShutter::SpawnActor_Implementation()
+{
+	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
+	{
 	}
 }
 
