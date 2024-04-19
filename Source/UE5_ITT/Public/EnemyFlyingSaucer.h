@@ -84,38 +84,17 @@ private:
 	{
 		None,
 
-		Intro,
-		Phase1_Progress,
+		Intro,						 
+		Phase1_Progress,			 
 		Phase1_BreakThePattern,
-		
-		
 
-		// 얘 할 차례
-		CodyHoldingStart,
+		CodyHolding_Enter,
+		CodyHolding_Low,
+		CodyHolding_ChangeOfAngle,
+		CodyHolding_InputKey,
+		CodyHolding_ChangeOfAngle_Reverse,
 
 
-
-
-		Phase1End,
-
-		CodyHoldingProgress_NotKeyMashing,
-
-		CodyHoldingProgress_ChangeOfAngle,
-
-		CodyHoldingProgress_KeyMashing,
-
-		CodyHoldingProgress_KeyMashingEnd,
-
-		CodyHoldingProgress,
-		CodyHoldingEnd,
-
-		Phase2Start,
-		Phase2Progress,
-		Phase2End,
-
-		Phase3Start,
-		Phase3Progress,
-		Phase3End,
 
 		FireHomingRocket,
 		FireArcingProjectile,
@@ -134,11 +113,16 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float ServerDelayTime = 4.0f;
 
+	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationMoonBaboon(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CheckCodyKeyPressedAndChangeState();
+
 
 	void SetupComponent();
 
@@ -147,10 +131,11 @@ private:
 	
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
-	bool bIsKeyMashing = false;
-	float KeyMashingTime = 0.0f;
-	float KeyMashingMaxTime = 1.25f;
-	
+	bool bIsKeyInput = false;
+	float KeyInputTime = 0.0f;
+	float KeyInputMaxTime = 1.25f;
+	float KeyInputAdditionalTime = 0.75f;
+
 	UPROPERTY(EditDefaultsOnly)
 	float CurrentHp = 67.0f;
 
@@ -222,7 +207,7 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnOverlapCheckActor();
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AOverlapCheckActor* OverlapCheckActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
