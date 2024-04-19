@@ -12,7 +12,6 @@ AFloor::AFloor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	SetupFsm();
 
 	Tags.Add(FName("Floor"));
 
@@ -22,6 +21,7 @@ AFloor::AFloor()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
+		SetupFsm();
 	}
 }
 
