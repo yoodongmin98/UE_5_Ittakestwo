@@ -56,7 +56,6 @@ void AFxElectric::SetupFsm()
 			
 			if (GetWorld()->GetTimeSeconds() > 3.f)
 			{
-				UE_LOG(LogTemp, Display, TEXT("StartEffect"));
 				FsmComp->ChangeState(Fsm::Wait);
 			}
 		},
