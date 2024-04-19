@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -56,13 +57,16 @@ void APlayerBase::BeginPlay()
 			Subsystem->AddMappingContext(CodyMappingContext, 0);
 		}
 	}
-
+	ITTPlayerState = Cody_State::IDLE;
 	//Set
 	PlayerHP = FullHP; //Player기본 Hp설정
 	DashDuration = 0.7f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
+
+
+	IsMoveEnd = true;
 
 	bIsDashing = false;
 	bIsDashingStart = false;
@@ -82,6 +86,8 @@ void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//점프 횟수 확인
+	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
 	if (GetCharacterMovement()->GravityScale <=5.5f)
 	{
@@ -131,7 +137,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move);
+		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move_Implementation);
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::None, this, &APlayerBase::Idle);
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
@@ -154,7 +160,7 @@ void APlayerBase::Idle(const FInputActionInstance& _Instance)
 		ChangeState(Cody_State::IDLE);
 }
 
-void APlayerBase::Move(const FInputActionInstance& _Instance)
+void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
@@ -345,4 +351,22 @@ void APlayerBase::PlayerDeathCheck()
 		IsPlayerDeath = false;
 		ChangeState(Cody_State::IDLE);
 	}
+}
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, ITTPlayerState);
+	DOREPLIFETIME(APlayerBase, IsMoveEnd);
+	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, IsSit);
+	DOREPLIFETIME(APlayerBase, CanSit);
+	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
+	DOREPLIFETIME(APlayerBase, DefaultGravityScale);
+	
+	/*DOREPLIFETIME(APlayerBase, GetMovementComponent()->IsFalling());*/
+	DOREPLIFETIME(APlayerBase, ChangeIdle);
 }

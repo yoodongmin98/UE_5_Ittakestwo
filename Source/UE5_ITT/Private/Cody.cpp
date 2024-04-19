@@ -58,6 +58,8 @@ void ACody::Tick(float DeltaTime)
 			}
 			case CodySize::NORMAL:
 			{
+				BigCanDash = true;
+				ACharacter::JumpMaxCount = 2;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale;
 				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
 				DashDistance = 2500.0f;
@@ -80,6 +82,11 @@ void ACody::Tick(float DeltaTime)
 			CurCodySize = NextCodySize;
 		}
 	}
+	else
+	{
+		GetMesh()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	}
+	
 	//SPRINT
 	if (IsSprint)
 	{

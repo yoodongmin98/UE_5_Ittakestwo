@@ -10,14 +10,7 @@
 
 
 
-UENUM(BlueprintType)
-enum class CodySize : uint8
-{
-	NONE UMETA(DisPlayName = "NONE"),
-	BIG UMETA(DisPlayName = "BIG"),
-	NORMAL UMETA(DisPlayName = "NORMAL"),
-	SMALL UMETA(DisPlayName = "SMALL"),
-};
+
 
 UCLASS()
 class UE5_ITT_API ACody : public APlayerBase
@@ -67,8 +60,7 @@ public:
 
 	//UPROPERTY(Replicated)
 	UPROPERTY(EditAnywhere)
-	CodySize CurCodySize = CodySize::NONE;
-	CodySize NextCodySize = CodySize::NONE;
+	
 
 	//Size
 	FVector BigSize;
@@ -83,6 +75,4 @@ public:
 
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
-	
-
 };

@@ -10,7 +10,14 @@
 
 #include "PlayerBase.generated.h"
 
-
+UENUM(BlueprintType)
+enum class CodySize : uint8
+{
+	NONE UMETA(DisPlayName = "NONE"),
+	BIG UMETA(DisPlayName = "BIG"),
+	NORMAL UMETA(DisPlayName = "NORMAL"),
+	SMALL UMETA(DisPlayName = "SMALL"),
+};
 UENUM(BlueprintType)
 enum class Cody_State : uint8
 {
@@ -226,7 +233,17 @@ public:
 	{
 		return ChangeIdle;
 	}
-
+	//현재 캐릭터가 몇번째 점프를 하고있는지를 반환합니다
+	UFUNCTION(BlueprintCallable)
+	inline int32 GetCharacterJumpCount() const
+	{
+		return CharacterJumpCount;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsSit() const
+	{
+		return IsSit;
+	}
 
 
 	//////////////////////////////////////////
@@ -234,6 +251,7 @@ public:
 	//마우스 돌아가는 스피드
 	float RotationInterpSpeed = 2.0f;
 	//상호작용
+	UPROPERTY(Replicated)
 	bool IsInteract = false;
 
 	//////////////////////////////////////////
@@ -243,7 +261,7 @@ public:
 
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
-	void Move(const FInputActionInstance& _Instance);
+	void Move_Implementation(const FInputActionInstance& _Instance);
 	void Look(const FInputActionInstance& _Instance);
 	void DashInput();
 	void GroundDash();
@@ -265,8 +283,8 @@ public:
 	//////////////////////////////////////////////
 
 	///////////////////State/////////////////////
-	UPROPERTY(EditAnywhere, Category = State)
-	Cody_State ITTPlayerState = Cody_State::IDLE;
+	UPROPERTY(Replicated)
+	Cody_State ITTPlayerState;
 	//////////////////////////////////////////////
 
 	///////////////////Player/////////////////////
@@ -297,14 +315,19 @@ public:
 	bool IsDGravity;
 
 	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
-	bool IsMoveEnd = true; //움직임이 끝났는지
+	UPROPERTY(Replicated)
+	bool IsMoveEnd; //움직임이 끝났는지
 	float DashDuration; // 앞구르기 지속 시간
 	float DashStartTime;//앞구르기 시작시간 체크
+
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
+	UPROPERTY(Replicated)
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
+	UPROPERTY(Replicated)
 	bool bCanDash; //대쉬가 가능한 상태인지
 	FTimerHandle DashTimerHandle; // 앞구르기 타이머 핸들
 	float DefaultGroundFriction; // 기본 지면 마찰력
+	UPROPERTY(Replicated)
 	float DefaultGravityScale; //기본 중력
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 
@@ -312,15 +335,27 @@ public:
 
 	float SitStartTime;
 	float SitDuration;
+	UPROPERTY(Replicated)
 	bool CanSit;
+	UPROPERTY(Replicated)
 	bool IsSit;
 	float CurrentSitTime;
-
+	UPROPERTY(Replicated)
 	bool ChangeIdle;
+	UPROPERTY(Replicated)
+	int32 CharacterJumpCount;
 	
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////
+	UPROPERTY(Replicated)
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+
+
+	CodySize CurCodySize = CodySize::NONE;
+	CodySize NextCodySize = CodySize::NONE;
 };
