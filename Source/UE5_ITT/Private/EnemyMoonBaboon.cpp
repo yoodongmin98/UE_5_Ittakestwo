@@ -38,8 +38,8 @@ void AEnemyMoonBaboon::SetupComponent()
 {
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 	SetRootComponent(SceneComp);
-	GetArrowComponent()->SetupAttachment(SceneComp);
-	GetMesh()->SetupAttachment(SceneComp);
+	// GetArrowComponent()->SetupAttachment(SceneComp);
+	// GetMesh()->SetupAttachment(SceneComp);
 }
 
 // Called every frame
