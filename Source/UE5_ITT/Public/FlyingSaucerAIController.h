@@ -79,13 +79,22 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	FVector PrevTargetLocation = FVector::ZeroVector;
+	
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
+	
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	bool bPrevTargetLocationValid = false;
+	
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	float LaserLerpRatio = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	float LaserLerpRate = 25.0f;
 		
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	int32 PatternMatchCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)

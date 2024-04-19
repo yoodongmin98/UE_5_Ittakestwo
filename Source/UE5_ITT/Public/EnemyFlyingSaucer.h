@@ -50,8 +50,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
-	UFUNCTION(BlueprintCallable)
-	AEnergyChargeEffect* CreateEnergyChargeEffect();
+	// 멀티캐스트로 변경
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_CreateEnergyChargeEffect();
 
 	// 체력(임시) 
 	UFUNCTION(BlueprintCallable)
@@ -137,7 +138,7 @@ private:
 	float KeyInputAdditionalTime = 0.75f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 67.0f;
+	float CurrentHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
@@ -186,7 +187,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
 	// Component
@@ -196,7 +197,7 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UInteractionUIComponent* UIComp = nullptr;
 
-	UPROPERTY(Replicated, EditDefaultsOnly)
+	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
 

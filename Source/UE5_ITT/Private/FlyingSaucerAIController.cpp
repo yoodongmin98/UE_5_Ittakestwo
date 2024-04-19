@@ -41,6 +41,14 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase3);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTree);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTreeComp);
+
+	DOREPLIFETIME(AFlyingSaucerAIController, PrevTargetLocation);
+	DOREPLIFETIME(AFlyingSaucerAIController, PrevTargetLocationBuffer);
+	DOREPLIFETIME(AFlyingSaucerAIController, bPrevTargetLocationValid);
+	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRatio);
+	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRate);
+	DOREPLIFETIME(AFlyingSaucerAIController, PatternMatchCount);
+
 }
 
 void AFlyingSaucerAIController::BeginPlay()
