@@ -17,7 +17,12 @@ AArcingProjectile::AArcingProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetupComponent();
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+		SetupComponent();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -25,12 +30,9 @@ void AArcingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetupOverlapEvent();
-
 	if (true == HasAuthority())
 	{
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		SetupOverlapEvent();
 	}
 }
 

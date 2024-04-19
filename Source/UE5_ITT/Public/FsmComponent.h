@@ -52,6 +52,7 @@ public:
 		MapState[Index].End.BindLambda(BindEnd);
 	};
 
+
 	template<class T>
 	void ChangeState(T Index)
 	{
@@ -83,7 +84,6 @@ protected:
 
 private:
 	TMap<int32, FStateParam> MapState;
-
 	int32 CurState = -1;
 
 	float StateLiveTime = 0.f;

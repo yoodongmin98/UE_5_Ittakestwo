@@ -20,7 +20,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	// 2페이즈 원형 움직임을 위한 pivot actor 세팅, 부착, 해제 및 회전 관련
 	UFUNCTION(BlueprintCallable)
 	void SetupRotateCenterPivotActor();
@@ -73,6 +73,8 @@ public:
 	// test, 보스 테스트 끝나면 삭제 
 	void BossHitTestFireRocket();
 
+	// 추후 사용가능성 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -81,52 +83,59 @@ private:
 	enum class EBossState
 	{
 		None,
-		Phase1Start,
-		Phase1Progress,
-		Phase1End,
 
-		CodyHoldingStart,
-		CodyHoldingProgress_NotKeyMashing,
+		Intro,						 
+		Phase1_Progress,			 
+		Phase1_BreakThePattern,
 
-		CodyHoldingProgress_ChangeOfAngle,
+		CodyHolding_Enter,
+		CodyHolding_Low,
+		CodyHolding_ChangeOfAngle,
+		CodyHolding_InputKey,
+		CodyHolding_ChangeOfAngle_Reverse,
 
-		CodyHoldingProgress_KeyMashing,
 
-		CodyHoldingProgress_KeyMashingEnd,
-
-		CodyHoldingProgress,
-		CodyHoldingEnd,
-
-		Phase2Start,
-		Phase2Progress,
-		Phase2End,
-
-		Phase3Start,
-		Phase3Progress,
-		Phase3End,
 
 		FireHomingRocket,
 		FireArcingProjectile,
 
 	};
+
+	enum class EAnimationAssetType : uint8
+	{
+		None,
+		Sequence,
+		Blueprint,
+	};
 	// 디버그 
 	void DrawDebugMesh();
 
-	// 추후작성, State 에서 변경되는 애니메이션 관련 변경 함수 
-	UFUNCTION()
-	void ChangeAnimationFlyingSaucer(const FName& AnimationName);
+	UPROPERTY(EditDefaultsOnly)
+	float ServerDelayTime = 4.0f;
 
-	UFUNCTION()
-	void ChangeAnimationMoonBaboon(const FName& AnimationName);
+	// multicast 함수 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ChangeAnimationMoonBaboon(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CheckCodyKeyPressedAndChangeState();
+
 
 	void SetupComponent();
+
+	UFUNCTION(BlueprintCallable)
 	void SetupFsmComponent();
 	
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
-	bool bIsKeyMashing = false;
-	float KeyMashingTime = 1.25f;
-	
+	bool bIsKeyInput = false;
+	float KeyInputTime = 0.0f;
+	float KeyInputMaxTime = 1.25f;
+	float KeyInputAdditionalTime = 0.75f;
+
 	UPROPERTY(EditDefaultsOnly)
 	float CurrentHp = 67.0f;
 
@@ -171,21 +180,25 @@ private:
 	float RotateCenterPivotActorMoveSpeed = 9.0f;
 
 	// 보스가 생성하는 액터 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
 	
 	UPROPERTY(EditAnywhere)
 	class AEnergyChargeEffect* EnergyChargeEffect = nullptr;
 
 	// Component
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UFsmComponent* FsmComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UInteractionUIComponent* UIComp = nullptr;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
+
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateUIComponent();
@@ -194,22 +207,28 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void SpawnOverlapCheckActor();
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AOverlapCheckActor* OverlapCheckActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
 	// 보스 공격 생성 지점 컴포넌트 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh1 = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* HomingRocketSpawnPointMesh2 = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* ArcingProjectileSpawnPointMesh = nullptr;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	class UAnimInstance* AnimInstance = nullptr;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	class UAnimSequence* AnimSequence = nullptr;
 };

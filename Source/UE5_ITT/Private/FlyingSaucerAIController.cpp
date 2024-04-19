@@ -11,18 +11,36 @@
 #include "TimerManager.h"
 #include "EnemyMoonBaboon.h"
 #include "ITTGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 AFlyingSaucerAIController::AFlyingSaucerAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+		CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
+	}
 }
 
 void AFlyingSaucerAIController::AddPatternMatchCount()
 {
 	++PatternMatchCount;
 	GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
+}
+
+void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase1);
+	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase2);
+	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase3);
+	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTree);
+	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTreeComp);
 }
 
 void AFlyingSaucerAIController::BeginPlay()
@@ -32,9 +50,6 @@ void AFlyingSaucerAIController::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
 	}
 }
 
