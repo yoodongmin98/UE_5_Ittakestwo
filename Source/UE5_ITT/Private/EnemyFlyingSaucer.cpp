@@ -326,8 +326,6 @@ void AEnemyFlyingSaucer::SetupComponent()
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	SetRootComponent(CapsuleComp);
 	
-	//GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
-	
 	SkeletalMeshComp = GetMesh();
 	SkeletalMeshComp->SetupAttachment(CapsuleComp);
 
