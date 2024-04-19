@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ACody::ACody()
@@ -18,21 +18,15 @@ void ACody::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	CodySizes = CodySize::NORMAL;
-	ScaleSpeed = 2.0f;
-	CameraSpeed = 1.5f;
+	CurCodySize = CodySize::NORMAL;
+	NextCodySize = CodySize::NORMAL;
+
 	BigSize = FVector(4.0f, 4.0f, 4.0f);
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
-	SmallSize= FVector(0.1f, 0.1f, 0.1f);
+	SmallSize= FVector(0.1111111111f, 0.1111111111f, 0.1111111111f);
 	TargetScale = NormalSize;
-	BigSizeCapsule = FVector(0.0f, 0.0f, -270.0f);
-	NormalSizeCapsule = FVector(0.0f, 0.0f, -90.0f);
-	SmallSizeCapsule = FVector(0.0f, 0.0f, 72.0f);
-
 	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
 	
-
-	GetMesh()->AddLocalOffset(NormalSizeCapsule);
 
 }
 
@@ -40,46 +34,56 @@ void ACody::BeginPlay()
 void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	GetCapsuleComponent()->MarkRenderStateDirty();
 
 	//Scale Check
-	GetMesh()->SetWorldScale3D(FMath::VInterpTo(GetMesh()->GetComponentScale(), TargetScale, DeltaTime, ScaleSpeed));
+	if (true == HasAuthority())
+	{
 
-
-
-	//Size Setting
-	switch (CodySizes)
-	{
-	case CodySize::BIG :
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
-		GetCapsuleComponent()->SetCapsuleSize(140.0f, 360.0f);
-		break;
-	}
-	case CodySize::NORMAL:
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
-		GetCapsuleComponent()->SetCapsuleSize(35.0f, 90.0f);
-		break;
-	}
-	case CodySize::SMALL:
-	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed*2.0f);
-		GetCapsuleComponent()->SetCapsuleSize(7.0f, 18.0f);
-		if (GetCharacterMovement()->IsFalling())
+		if (CurCodySize != NextCodySize)
 		{
-			DashDuration = 0.03f;
+			switch (NextCodySize)
+			{
+			case CodySize::NONE:
+				break;
+			case CodySize::BIG:
+			{
+				ACharacter::JumpMaxCount = 1;
+				BigCanDash = false;
+				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+				GetCapsuleComponent()->SetWorldScale3D(BigSize);
+				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+				SpringArm->TargetArmLength = BigLength;
+				break;
+			}
+			case CodySize::NORMAL:
+			{
+				GetCharacterMovement()->GravityScale = DefaultGravityScale;
+				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+				DashDistance = 2500.0f;
+				GetCapsuleComponent()->SetWorldScale3D(NormalSize);
+				SpringArm->TargetArmLength = NormalLength;
+				break;
+			}
+			case CodySize::SMALL:
+			{
+				GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+				GetCharacterMovement()->JumpZVelocity = 250.0f;
+				DashDistance = 700.0f;
+				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
+				SpringArm->TargetArmLength = SmallLength;
+				break;
+			}
+			default:
+				break;
+			}
+			CurCodySize = NextCodySize;
 		}
-		break;
 	}
-	default :
-		break;
-	}
-
-
 	//SPRINT
 	if (IsSprint)
 	{
-		switch (CodySizes)
+		switch (CurCodySize)
 		{
 		case CodySize::BIG:
 		{
@@ -101,7 +105,7 @@ void ACody::Tick(float DeltaTime)
 	}
 	else
 	{
-		switch (CodySizes)
+		switch (CurCodySize)
 		{
 		case CodySize::BIG:
 		{
@@ -129,20 +133,28 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
-		PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeBigSize);
+		if(true == HasAuthority())
+		{
+			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
+			PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeBigSize);
+		}
+		else
+		{
+			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeServerSmallSize);
+			PlayerInput->BindAction(RightMAction, ETriggerEvent::Triggered, this, &ACody::ChangeServerBigSize);
+		}
 	}
 }
 
 
 
-void ACody::ChangeBigSize()
+void ACody::ChangeBigSize_Implementation()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		IsSprint = false;
-		switch (CodySizes)
+		switch (CurCodySize)
 		{
 		case CodySize::BIG:
 		{
@@ -150,23 +162,12 @@ void ACody::ChangeBigSize()
 		}
 		case CodySize::NORMAL:
 		{
-			ChangeCodySizeEnum(CodySize::BIG);
-			TargetScale = BigSize;
-			GetMesh()->AddLocalOffset(BigSizeCapsule);
-			ACharacter::JumpMaxCount = 1;
-			BigCanDash = false;
-			GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+			NextCodySize = CodySize::BIG;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			ChangeCodySizeEnum(CodySize::NORMAL);
-			TargetScale = NormalSize;
-			GetMesh()->AddLocalOffset(-SmallSizeCapsule);
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
-			GetCharacterMovement()->GravityScale = DefaultGravityScale;
-			GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
-			DashDistance = 2500.0f;
+			NextCodySize = CodySize::NORMAL;
 			break;
 		}
 		default:
@@ -175,32 +176,85 @@ void ACody::ChangeBigSize()
 	}
 }
 
-void ACody::ChangeSmallSize()
+void ACody::ChangeSmallSize_Implementation()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("left function called"));
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		IsSprint = false;
-		switch (CodySizes)
+		switch (CurCodySize)
 		{
 		case CodySize::BIG:
 		{
-			ChangeCodySizeEnum(CodySize::NORMAL);
-			TargetScale = NormalSize;
-			GetMesh()->AddLocalOffset(-BigSizeCapsule);
-			ACharacter::JumpMaxCount = 2;
-			BigCanDash = true;
-			GetCharacterMovement()->GravityScale = DefaultGravityScale;
+			NextCodySize = CodySize::NORMAL;
 			break;
 		}
 		case CodySize::NORMAL:
 		{
-			ChangeCodySizeEnum(CodySize::SMALL);
-			TargetScale = SmallSize;
-			GetMesh()->AddLocalOffset(SmallSizeCapsule);
-			GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
-			GetCharacterMovement()->JumpZVelocity = 250.0f;
-			DashDistance = 700.0f;
+			NextCodySize = CodySize::SMALL;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+
+bool ACody::ChangeServerBigSize_Validate()
+{
+	return true;
+}
+
+void ACody::ChangeServerBigSize_Implementation()
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		IsSprint = false;
+		switch (CurCodySize)
+		{
+		case CodySize::BIG:
+		{
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			NextCodySize = CodySize::BIG;
+			break;
+		}
+		case CodySize::SMALL:
+		{
+			NextCodySize = CodySize::NORMAL;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+	
+
+bool ACody::ChangeServerSmallSize_Validate()
+{
+	return true;
+}
+void ACody::ChangeServerSmallSize_Implementation()
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		IsSprint = false;
+		switch (CurCodySize)
+		{
+		case CodySize::BIG:
+		{
+			NextCodySize = CodySize::NORMAL;
+			break;
+		}
+		case CodySize::NORMAL:
+		{
+			NextCodySize = CodySize::SMALL;
 			break;
 		}
 		case CodySize::SMALL:
@@ -222,7 +276,7 @@ void ACody::SprintInput()
 void ACody::DashEnd()
 {
 	//대쉬가 끝나면 기본으로 적용된 중력,지면 마찰력으로 다시 적용
-	switch (CodySizes)
+	switch (CurCodySize)
 	{
 	case CodySize::BIG:
 	{

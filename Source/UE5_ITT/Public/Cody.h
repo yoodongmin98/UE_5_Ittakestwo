@@ -32,13 +32,13 @@ public:
 	//CodySize Enum을 변경합니다
 	void ChangeCodySizeEnum(CodySize _Enum)
 	{
-		CodySizes = _Enum;
+		NextCodySize = _Enum;
 	}
 	//Cody의 Size를 Enum으로 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline CodySize GetCodySize() const
 	{
-		return CodySizes;
+		return CurCodySize;
 	}
 	//변환하고자하는 Size의 TargetScale을 반환합니다
 	UFUNCTION(BlueprintCallable)
@@ -47,25 +47,35 @@ public:
 		return TargetScale;
 	}
 	
-
+	UFUNCTION(NetMulticast, Reliable)
 	void ChangeBigSize();
+
+	UFUNCTION(NetMulticast, Reliable)
 	void ChangeSmallSize();
+
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerBigSize();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerSmallSize();
+
+
 	virtual void SprintInput() override;
 	virtual void DashEnd() override;
 
+	//UPROPERTY(Replicated)
+	UPROPERTY(EditAnywhere)
+	CodySize CurCodySize = CodySize::NONE;
+	CodySize NextCodySize = CodySize::NONE;
 
-	CodySize CodySizes = CodySize::NONE;
-	//Set Speed
-	float ScaleSpeed;
-	float CameraSpeed;
-	FVector TargetScale;
 	//Size
 	FVector BigSize;
 	FVector NormalSize;
 	FVector SmallSize;
-	FVector BigSizeCapsule;
-	FVector NormalSizeCapsule;
-	FVector SmallSizeCapsule;
+	FVector TargetScale;
+
 	//Transform
 	FTransform CodyCapsuleComponent;
 	FTransform CodyTransform;
@@ -74,4 +84,5 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 	
+
 };
