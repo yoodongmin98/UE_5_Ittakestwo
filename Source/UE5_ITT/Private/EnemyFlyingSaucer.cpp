@@ -53,6 +53,7 @@ void AEnemyFlyingSaucer::BeginPlay()
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 		EnemyMoonBaboon->SetOwner(this);
+		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
 		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
@@ -87,6 +88,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimInstance);
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
 	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
+	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
 	
 }
 // Multicast 함수 
@@ -202,6 +204,13 @@ void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementat
 	}
 }
 
+void AEnemyFlyingSaucer::Multicast_CreateEnergyChargeEffect_Implementation()
+{
+	EnergyChargeEffect = nullptr;
+	EnergyChargeEffect = GetWorld()->SpawnActor<AEnergyChargeEffect>(EnergyChargeEffectClass, LaserSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
+	EnergyChargeEffect->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("EnergyChargeEffectSpawnPointSocket"));
+}
+
 // Called every frame
 void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
@@ -312,14 +321,7 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	}
 }
 
-AEnergyChargeEffect* AEnemyFlyingSaucer::CreateEnergyChargeEffect()
-{
-	EnergyChargeEffect = nullptr;
-	EnergyChargeEffect = GetWorld()->SpawnActor<AEnergyChargeEffect>(EnergyChargeEffectClass,LaserSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
-	EnergyChargeEffect->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("EnergyChargeEffectSpawnPointSocket"));
 
-	return EnergyChargeEffect;
-}
 
 void AEnemyFlyingSaucer::SetupComponent()
 {
@@ -425,7 +427,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Intro);
+				FsmComp->ChangeState(EBossState::Phase1_Progress);
 				return;
 			}
 		},
@@ -434,33 +436,32 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
 			EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+			EnemyMoonBaboon->GetMesh()->SetVisibility(true);
 		});
 
-	FsmComp->CreateState(EBossState::Intro,
-		[this]
-		{
-			// 인트로 애니메이션 재생
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
-			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, false);
-		},
+	//FsmComp->CreateState(EBossState::Intro,
+	//	[this]
+	//	{
+	//		// 인트로 애니메이션 재생
+	//		Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
+	//		Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, false);
+	//	},
 
-		[this](float DT)
-		{
-			// 애니메이션 종료 체크 
-			bool bIsAnimationPlaying = GetMesh()->IsPlaying();
-			if (!bIsAnimationPlaying)
-			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress);
-				return;
-			}
-		},
+	//	[this](float DT)
+	//	{
+	//		// 애니메이션 종료 체크 
+	//		bool bIsAnimationPlaying = GetMesh()->IsPlaying();
+	//		if (!bIsAnimationPlaying)
+	//		{
+	//			FsmComp->ChangeState(EBossState::Phase1_Progress);
+	//			return;
+	//		}
+	//	},
 
-		[this]
-		{
-			
-		});
-
-
+	//	[this]
+	//	{
+	//		
+	//	});
 
 	FsmComp->CreateState(EBossState::Phase1_Progress,
 		[this]
