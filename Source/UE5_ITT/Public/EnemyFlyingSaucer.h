@@ -83,11 +83,21 @@ private:
 	enum class EBossState
 	{
 		None,
-		Phase1Start,
-		Phase1Progress,
+
+		Intro,
+		Phase1_Progress,
+		Phase1_BreakThePattern,
+		
+		
+
+		// 얘 할 차례
+		CodyHoldingStart,
+
+
+
+
 		Phase1End,
 
-		CodyHoldingStart,
 		CodyHoldingProgress_NotKeyMashing,
 
 		CodyHoldingProgress_ChangeOfAngle,
@@ -121,6 +131,9 @@ private:
 	// 디버그 
 	void DrawDebugMesh();
 
+	UPROPERTY(EditDefaultsOnly)
+	float ServerDelayTime = 4.0f;
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
 
@@ -139,7 +152,7 @@ private:
 	float KeyMashingMaxTime = 1.25f;
 	
 	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 100.0f;
+	float CurrentHp = 67.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)

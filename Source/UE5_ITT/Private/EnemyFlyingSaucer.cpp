@@ -187,7 +187,6 @@ void AEnemyFlyingSaucer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 {
 	// 여기서 현재 어태치된 액터 해제해야하고 부착해야할 수 도 있음. 체크 
-
 	RotateCenterPivotActor = GetWorld()->SpawnActor<ABossRotatePivotActor>(RotateCenterPivotActorClass, FVector::ZeroVector,FRotator::ZeroRotator);
 	if (nullptr != RotateCenterPivotActor)
 	{
@@ -389,9 +388,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			if (3.0f <= FsmComp->GetStateLiveTime())
+			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
+			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1Start);
+				FsmComp->ChangeState(EBossState::Intro);
 				return;
 			}
 		},
@@ -402,10 +402,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 		});
 
-
-	FsmComp->CreateState(EBossState::Phase1Start,
+	FsmComp->CreateState(EBossState::Intro,
 		[this]
 		{
+			// 인트로 애니메이션 재생
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, false);
 		},
@@ -416,54 +416,32 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bool bIsAnimationPlaying = GetMesh()->IsPlaying();
 			if (!bIsAnimationPlaying)
 			{
-				FsmComp->ChangeState(EBossState::Phase1Progress);
+				FsmComp->ChangeState(EBossState::Phase1_Progress);
 				return;
 			}
-
-		
 		},
 
 		[this]
 		{
-			// MoonBaboon 애니메이션 변경
-			USkeletalMeshComponent* SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
-			if (nullptr != SkeletalMeshComponent)
-			{
-				// 애님인스턴스 받아와서 애니메이션 재생
-				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"));
-				if (nullptr != LoadedAnimationSequence)
-				{
-					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
-				}
-			}
+			
 		});
 
-	FsmComp->CreateState(EBossState::Phase1Progress,
+
+
+	FsmComp->CreateState(EBossState::Phase1_Progress,
 		[this]
 		{
-			// FlyingSaucer 애니메이션 변경
-			USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-			if (nullptr != SkeletalMeshComponent)
-			{
-				// 애님인스턴스 받아와서 애니메이션 재생
-				UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-				UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"));
-				if (nullptr != LoadedAnimationSequence)
-				{
-					SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, true);
-				}
-			}
-
-			
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
 
 		[this](float DT)
 		{
-			// 페이즈 종료 검사 임시 
+			// 체력이 67 이하, 33퍼센트 이하로 떨어졌다면 1페이즈 종료, 패턴파훼 
 			if (CurrentHp <= 67.0f)
 			{
-				FsmComp->ChangeState(EBossState::Phase1End);
+				UE_LOG(LogTemp, Warning, TEXT("Change State PhaseProgress End"));
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
 		},
@@ -472,6 +450,62 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 
 		});
+
+	FsmComp->CreateState(EBossState::Phase1_BreakThePattern,
+		[this]
+		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
+
+			// UI Component Activate
+			FTimerHandle TimerHandle;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateUIComponent, 4.5f, false);
+
+			// OverlapActor Spawn : 변경예정
+			FTimerHandle TimerHandle2;
+			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
+		},
+
+		[this](float DT)
+		{
+			if (nullptr == OverlapCheckActor)
+			{
+				return;
+			}
+
+			// 체크 함수 자체가 그거여야된다. 멀티캐스트 
+			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != CurrentOverlapPlayer)
+			{
+				// 코디이고.
+				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				{
+					ACody* PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
+
+					// 코디가 커진 상태인것도 체크 
+					bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+					CodySize Size = PlayerCody->GetCodySize();
+
+					// 현재 인터랙트 키 눌렀는지 체크
+					if (true == bIsInteract && CodySize::BIG == Size)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding Start"));
+						FsmComp->ChangeState(EBossState::CodyHoldingStart);
+						return;
+					}
+				}
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+
+
+
+
 
 	FsmComp->CreateState(EBossState::Phase1End,
 		[this]
