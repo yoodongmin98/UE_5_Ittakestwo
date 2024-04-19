@@ -321,14 +321,12 @@ AEnergyChargeEffect* AEnemyFlyingSaucer::CreateEnergyChargeEffect()
 	return EnergyChargeEffect;
 }
 
-
-
 void AEnemyFlyingSaucer::SetupComponent()
 {
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
 	SetRootComponent(CapsuleComp);
-	GetArrowComponent()->SetupAttachment(CapsuleComp);
-	GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
+	
+	//GetCharacterMovement()->SetUpdatedComponent(GetCapsuleComponent());
 	
 	SkeletalMeshComp = GetMesh();
 	SkeletalMeshComp->SetupAttachment(CapsuleComp);
