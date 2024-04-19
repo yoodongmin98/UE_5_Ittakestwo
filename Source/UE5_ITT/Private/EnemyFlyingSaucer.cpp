@@ -52,7 +52,6 @@ void AEnemyFlyingSaucer::BeginPlay()
 	{
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
-		
 		EnemyMoonBaboon->SetOwner(this);
 		FsmComp->ChangeState(EBossState::None);
 		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
@@ -89,24 +88,81 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, SkeletalMeshComp);
 }
 
-// 나중에 만듬 
-void AEnemyFlyingSaucer::ChangeAnimationFlyingSaucer(const FName& AnimationName)
+// 우주선 애니메이션 변경 
+void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
 {
-	FName NewAnimationName = AnimationName;
-	if (false == AnimationName.IsValid())
+	if (nullptr == SkeletalMeshComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Animation Name is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("SkeletalMeshComp is nullptr"));
 		return;
 	}
+
+	EAnimationAssetType AnimationAssetType = static_cast<EAnimationAssetType>(AnimType);
+	switch (AnimationAssetType)
+	{
+	case AEnemyFlyingSaucer::EAnimationAssetType::Sequence:
+	{
+		UAnimInstance* AnimationInstance = SkeletalMeshComp->GetAnimInstance();
+		UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, *AnimationPath);
+		if (nullptr == LoadedAnimationSequence)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Animation Sequence is nullptr"));
+			return;
+		}
+		SkeletalMeshComp->PlayAnimation(LoadedAnimationSequence, AnimationLoop);
+	}
+		break;
+	case AEnemyFlyingSaucer::EAnimationAssetType::Blueprint:
+	{
+		UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, *AnimationPath);
+		if (nullptr != LoadedAnimBlueprint)
+		{
+			// UE_LOG(LogTemp, Warning, TEXT("Change AnimBluerprint"));
+			SkeletalMeshComp->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
+		}
+	}
+		break;
+	}
+	
 }
 
-void AEnemyFlyingSaucer::ChangeAnimationMoonBaboon(const FName& AnimationName)
+// 원숭이 애니메이션 변경
+void AEnemyFlyingSaucer::Multicast_ChangeAnimationMoonBaboon_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
 {
-	FName NewAnimationName = AnimationName;
-	if (false == AnimationName.IsValid())
+	if (nullptr == EnemyMoonBaboon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Animation Name is not valid"));
+		UE_LOG(LogTemp, Warning, TEXT("EnemyMoonBaboon is nullptr"));
 		return;
+	}
+
+	EAnimationAssetType AnimationType = static_cast<EAnimationAssetType>(AnimType);
+	switch (AnimationType)
+	{
+	case AEnemyFlyingSaucer::EAnimationAssetType::Sequence:
+	{
+		UAnimInstance* AnimationInstance = SkeletalMeshComp->GetAnimInstance();
+		UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, *AnimationPath);
+		if (nullptr == LoadedAnimationSequence)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Animation Sequence is nullptr"));
+			return;
+		}
+
+		EnemyMoonBaboon->GetMesh()->PlayAnimation(LoadedAnimationSequence, AnimationLoop);
+	}
+	break;
+	case AEnemyFlyingSaucer::EAnimationAssetType::Blueprint:
+	{
+		UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, *AnimationPath);
+		if (nullptr == LoadedAnimBlueprint)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprint is nullptr"));
+			return;
+		}
+
+		EnemyMoonBaboon->GetMesh()->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
+	}
+	break;
 	}
 }
 
@@ -118,34 +174,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		if (false == bIsMoonBaboonAttach)
-		{
-			//EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
-			bIsMoonBaboonAttach = true;
-		}
-
-		
-		DrawDebugMesh();
-
-		/*FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
-		UE_LOG(LogTemp, Warning, TEXT("Server : %s"), *MoonBaboonLocation.ToString());
-
-		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
-		UE_LOG(LogTemp, Warning, TEXT("Server : %s"), *MoonBaboonRotation.ToString());*/
-	}
-	else
-	{
-		if (false == bIsMoonBaboonAttach)
-		{
-			// EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
-			bIsMoonBaboonAttach = true;
-		}
-
-	/*	FVector MoonBaboonLocation = EnemyMoonBaboon->GetActorLocation();
-		UE_LOG(LogTemp, Warning, TEXT("Client : %s"), *MoonBaboonLocation.ToString());
-
-		FRotator MoonBaboonRotation = EnemyMoonBaboon->GetActorRotation();
-		UE_LOG(LogTemp, Warning, TEXT("Client : %s"), *MoonBaboonRotation.ToString());*/
+			
 	}
 }
 
@@ -169,7 +198,6 @@ void AEnemyFlyingSaucer::SetupRotateCenterPivotActor()
 			PrimitiveComp->SetEnableGravity(false);
 		}
 		AttachToActor(RotateCenterPivotActor, FAttachmentTransformRules::KeepWorldTransform);
-		
 	}
 }
 
@@ -351,7 +379,6 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
-
 void AEnemyFlyingSaucer::SetupFsmComponent()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComponent"));
@@ -379,34 +406,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1Start,
 		[this]
 		{
-			
-			//// 메시받아오기
-			//USkeletalMeshComponent* SkeletalMeshComponent = GetMesh();
-			//if (nullptr != SkeletalMeshComponent)
-			//{
-			//	// 애님인스턴스 받아와서 애니메이션 재생
-			//	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-			//	UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
-			//	if (nullptr != LoadedAnimationSequence)
-			//	{
-			//		SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
-			//	}
-			//}
-
-			Client_TestFunction();
-
-			//// MoonBaboon 애니메이션 변경
-			//SkeletalMeshComponent = EnemyMoonBaboon->GetMesh();
-			//if (nullptr != SkeletalMeshComponent)
-			//{
-			//	// 애님인스턴스 받아와서 애니메이션 재생
-			//	UAnimInstance* AnimInstance = SkeletalMeshComponent->GetAnimInstance();
-			//	UAnimSequence* LoadedAnimationSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"));
-			//	if (nullptr != LoadedAnimationSequence)
-			//	{
-			//		SkeletalMeshComponent->PlayAnimation(LoadedAnimationSequence, false);
-			//	}
-			//}
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, false);
 		},
 
 		[this](float DT)
@@ -861,23 +862,4 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
 	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
 	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
-}
-
-void AEnemyFlyingSaucer::Client_TestFunction_Implementation()
-{
-	
-
-	if (nullptr != SkeletalMeshComp)
-	{
-		// 애님인스턴스 받아와서 애니메이션 재생
-		AnimInstance = SkeletalMeshComp->GetAnimInstance();
-		AnimSequence = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"));
-		if (nullptr != AnimSequence)
-		{
-			SkeletalMeshComp->PlayAnimation(AnimSequence, false);
-		}
-
-		AnimInstance = nullptr;
-		AnimSequence = nullptr;
-	}
 }
