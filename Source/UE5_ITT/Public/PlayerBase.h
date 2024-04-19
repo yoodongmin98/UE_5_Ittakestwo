@@ -239,10 +239,17 @@ public:
 	{
 		return CharacterJumpCount;
 	}
+	//앉기시작하는모션이 가능한지 여부를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline bool GetIsSit() const
 	{
 		return IsSit;
+	}
+	//Cody가 큰 사이즈인지를 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsBig() const
+	{
+		return IsBig;
 	}
 
 
@@ -274,6 +281,7 @@ public:
 	virtual void SprintNoneInput() {};
 	void Sit();
 	void SitEnd();
+
 	///////////////////////////////////////////////////////
 
 
@@ -358,4 +366,8 @@ public:
 
 	CodySize CurCodySize = CodySize::NONE;
 	CodySize NextCodySize = CodySize::NONE;
+
+	//CodySize
+	UPROPERTY(Replicated)
+	bool IsBig;
 };

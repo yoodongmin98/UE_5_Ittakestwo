@@ -365,8 +365,6 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, IsSit);
 	DOREPLIFETIME(APlayerBase, CanSit);
 	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
-	DOREPLIFETIME(APlayerBase, DefaultGravityScale);
-	
-	/*DOREPLIFETIME(APlayerBase, GetMovementComponent()->IsFalling());*/
+	DOREPLIFETIME(APlayerBase, IsBig);
 	DOREPLIFETIME(APlayerBase, ChangeIdle);
 }

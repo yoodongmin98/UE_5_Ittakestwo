@@ -48,6 +48,7 @@ void ACody::Tick(float DeltaTime)
 				break;
 			case CodySize::BIG:
 			{
+				IsBig = true;
 				ACharacter::JumpMaxCount = 1;
 				BigCanDash = false;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
@@ -58,6 +59,7 @@ void ACody::Tick(float DeltaTime)
 			}
 			case CodySize::NORMAL:
 			{
+				IsBig = false;
 				BigCanDash = true;
 				ACharacter::JumpMaxCount = 2;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale;
