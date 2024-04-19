@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
 
 #include "PlayerBase.generated.h"
 
@@ -359,6 +361,9 @@ public:
 	UPROPERTY(Replicated)
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
+
+	void GetOnlineSubsystem();
+	IOnlineSessionPtr OnlineSeesioninterface;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
