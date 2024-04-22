@@ -362,8 +362,7 @@ public:
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
 
-	void GetOnlineSubsystem();
-	IOnlineSessionPtr OnlineSeesioninterface;
+
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
@@ -375,4 +374,28 @@ public:
 	//CodySize
 	UPROPERTY(Replicated)
 	bool IsBig;
+
+	void GetOnlineSubsystem();
+	IOnlineSessionPtr OnlineSessionInterface;
+
+protected:
+
+	UFUNCTION(BlueprintCallable)
+	void CreateGameSession();
+
+	UFUNCTION(BlueprintCallable)
+	void JoinGameSession();
+
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+	void OnFindSessionComplete(bool bWasSuccessful);
+	void OnJoinSessionComplate(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
+
+private:
+	TSharedPtr<FOnlineSessionSearch>	SessionSearch;
+
+	FOnCreateSessionCompleteDelegate	CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate		FindSessionCompleteDelegate;
+	FOnJoinSessionCompleteDelegate		JoinSessionCompleteDelegate;
+
 };
