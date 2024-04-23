@@ -126,8 +126,8 @@ void APlayerBase::Tick(float DeltaTime)
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
-		float CurrentTime = GetWorld()->GetTimeSeconds();
-		if (CurrentTime >= DashStartTime + DashDuration)
+		DashCurrentTime = GetWorld()->GetTimeSeconds();
+		if (DashCurrentTime >= DashStartTime + DashDuration)
 		{
 			// 대시 지속 시간이 지나면 대시 종료
 			DashEnd();
@@ -314,6 +314,44 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 void APlayerBase::DashInput()
 {
 	IsSprint = false;
+	if (HasAuthority() == true)
+	{
+		CustomClientDash();
+	}
+	else
+	{
+		CustomServerDash();
+	}
+}
+
+
+void APlayerBase::CustomClientDash_Implementation()
+{
+	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
+	{
+		ChangeState(Cody_State::DASH);
+		//대쉬 시작시간을 체크
+		DashStartTime = GetWorld()->GetTimeSeconds();
+		//지면에 닿아있는지를 체크하여 실행할 함수 변경
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			GroundDash();
+		}
+		else
+		{
+			DashDuration = 0.2f;
+			JumpDash();
+		}
+		bIsDashing = true;
+		bCanDash = true;
+	}
+}
+bool APlayerBase::CustomServerDash_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerDash_Implementation()
+{
 	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
 	{
 		ChangeState(Cody_State::DASH);
@@ -344,11 +382,11 @@ void APlayerBase::GroundDash()
 	// 마찰력 없앰
 	GetCharacterMovement()->GroundFriction = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 벡터Normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance;
+	DashVelocity = DashDirection * DashDistance;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -358,11 +396,11 @@ void APlayerBase::JumpDash()
 	// 중력 없앰
 	GetCharacterMovement()->GravityScale = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance * 0.8f;
+	DashVelocity = DashDirection * DashDistance * 0.8f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -446,5 +484,14 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
 	DOREPLIFETIME(APlayerBase, WorldForwardVector);
 	DOREPLIFETIME(APlayerBase, WorldRightVector);
+	DOREPLIFETIME(APlayerBase, DashDirection)
+	DOREPLIFETIME(APlayerBase, DashDistance);
+	DOREPLIFETIME(APlayerBase, DashVelocity);
+	DOREPLIFETIME(APlayerBase, bIsDashing);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, DashDuration);
+	DOREPLIFETIME(APlayerBase, DashStartTime);
+	DOREPLIFETIME(APlayerBase, DashCurrentTime);
 }
 

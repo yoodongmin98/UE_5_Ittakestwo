@@ -287,6 +287,10 @@ public:
 
 	void Look(const FInputActionInstance& _Instance);
 	void DashInput();
+	UFUNCTION(Client, Reliable)
+	void CustomClientDash();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerDash();
 	void GroundDash();
 	virtual void DashEnd() {};
 	void JumpDash();
@@ -333,32 +337,19 @@ public:
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
-	UPROPERTY(EditAnywhere, Category = "Dash")
+	UPROPERTY(Replicated)
 	float DashDistance = 2500.0f; // 앞구르기 거리
-	
 	bool IsDGravity;
-
 	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
-
-
-
 	UPROPERTY(Replicated=OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
 	UFUNCTION()
 	void OnRep_IsMoveEnd();
-
-
-
-
-
-
-
-
-
-
+	UPROPERTY(Replicated)
 	float DashDuration; // 앞구르기 지속 시간
+	UPROPERTY(Replicated)
 	float DashStartTime;//앞구르기 시작시간 체크
-
+	UPROPERTY(Replicated)
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	UPROPERTY(Replicated)
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
@@ -369,7 +360,8 @@ public:
 	UPROPERTY(Replicated)
 	float DefaultGravityScale; //기본 중력
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
-
+	UPROPERTY(Replicated)
+	float DashCurrentTime;
 	bool IsSprint; //달리기 여부
 
 	float SitStartTime;
@@ -395,6 +387,10 @@ public:
 	FVector WorldForwardVector;
 	UPROPERTY(Replicated)
 	FVector WorldRightVector;
+	UPROPERTY(Replicated)
+	FVector DashDirection;
+	UPROPERTY(Replicated)
+	FVector DashVelocity;
 
 	
 	//////////////////////////////////////////////
