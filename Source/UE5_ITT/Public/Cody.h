@@ -40,10 +40,10 @@ public:
 		return TargetScale;
 	}
 	
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	void ChangeBigSize();
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	void ChangeSmallSize();
 
 

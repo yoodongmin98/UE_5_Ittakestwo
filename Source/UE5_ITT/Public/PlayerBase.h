@@ -7,7 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Interfaces/OnlineSessionInterface.h"
+//#include "Interfaces/OnlineSessionInterface.h"
 
 
 #include "PlayerBase.generated.h"
@@ -270,7 +270,16 @@ public:
 
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
-	void Move_Implementation(const FInputActionInstance& _Instance);
+
+	void CustomMove(const FInputActionInstance& _Instance);
+
+	UFUNCTION(Client,Reliable)
+	void ChangeClientDir(FRotator _TargetRotation);
+	UFUNCTION(Server,Reliable, WithValidation)
+	void ChangeServerDir(FRotator _TargetRotation);
+
+	
+
 	void Look(const FInputActionInstance& _Instance);
 	void DashInput();
 	void GroundDash();
@@ -354,6 +363,7 @@ public:
 	bool ChangeIdle;
 	UPROPERTY(Replicated)
 	int32 CharacterJumpCount;
+	FVector MoveDirection;
 	
 	//////////////////////////////////////////////
 
@@ -362,8 +372,8 @@ public:
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
 
-	void GetOnlineSubsystem();
-	IOnlineSessionPtr OnlineSeesioninterface;
+	//void GetOnlineSubsystem();
+	//IOnlineSessionPtr OnlineSeesioninterface;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
@@ -375,4 +385,8 @@ public:
 	//CodySize
 	UPROPERTY(Replicated)
 	bool IsBig;
+
+
+	UPROPERTY(Replicated)
+	FRotator TestRotator;
 };

@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
-#include "OnlineSubsystem.h"
+//#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -14,7 +14,6 @@ APlayerBase::APlayerBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Tags.Add(FName("Player"));
-
 
 	BigLength = 2000.0f;
 	NormalLength = 1200.0f;
@@ -43,29 +42,29 @@ APlayerBase::APlayerBase()
 
 }
 
-void APlayerBase::GetOnlineSubsystem()
-{
-
-	// OnlineSubsystem에 Access
-	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
-	if (CurOnlineSubsystem)
-	{
-		// 온라인 세션 받아오기
-		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
-
-		if (GEngine)
-		{
-			// OnlineSubsystem 이름 출력하기
-			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
-		}
-	}
-}
+//void APlayerBase::GetOnlineSubsystem()
+//{
+//
+//	// OnlineSubsystem에 Access
+//	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
+//	if (CurOnlineSubsystem)
+//	{
+//		// 온라인 세션 받아오기
+//		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
+//
+//		if (GEngine)
+//		{
+//			// OnlineSubsystem 이름 출력하기
+//			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
+//		}
+//	}
+//}
 
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	GetOnlineSubsystem();
+	//GetOnlineSubsystem();
 	//입력
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)
@@ -99,13 +98,20 @@ void APlayerBase::BeginPlay()
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
+
+	TestRotator = FRotator::ZeroRotator;
 }
 
 // Called every frame
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (HasAuthority() == false)
+	{
+		SetActorRotation(TestRotator);
+	}
 
+	
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
@@ -157,7 +163,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move_Implementation);
+		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::CustomMove);
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::None, this, &APlayerBase::Idle);
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
@@ -180,23 +186,27 @@ void APlayerBase::Idle(const FInputActionInstance& _Instance)
 		ChangeState(Cody_State::IDLE);
 }
 
-void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
+void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
 	IsMoveEnd = true;
-
 	if (bCanDash == false && ChangeIdle)
 	{
+		if (HasAuthority() == true)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HelloServer"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HelloClient"));
+		}
+	
 		ChangeState(Cody_State::MOVE);
-		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
-		// 
 		// 컨트롤러의 회전 방향을 가져옴
 		FRotator ControllerRotation = Controller->GetControlRotation();
-
-		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
 		FRotator TargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
-		SetActorRotation(TargetRotation);
-
+		
+		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
 
 		// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
 		FVector WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
@@ -211,10 +221,10 @@ void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
 			MoveInput = MoveInput.GetSafeNormal();
 
 			// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
-			FVector MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+			MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
 			FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
-			SetActorRotation(CodyRotation);
-
+			//SetActorRotation(CodyRotation);
+			TargetRotation = CodyRotation;
 
 			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
 			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
@@ -223,7 +233,33 @@ void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
 			// 입력 방향에 따라 캐릭터를 이동시킴
 			AddMovementInput(MoveDirection);
 		}
+		if (HasAuthority() == true)
+		{
+			ChangeClientDir(TargetRotation);
+		}
+		else
+		{
+			ChangeServerDir(TargetRotation);
+		}
 	}
+}
+
+void APlayerBase::ChangeClientDir_Implementation(FRotator _TargetRotation)
+{
+	TestRotator = _TargetRotation;
+	SetActorRotation(_TargetRotation);
+}
+
+bool APlayerBase::ChangeServerDir_Validate(FRotator _TargetRotation)
+{
+	return true;
+}
+
+void APlayerBase::ChangeServerDir_Implementation(FRotator _TargetRotation)
+{
+	UE_LOG(LogTemp, Warning, TEXT("FRotation as string: %s"), *_TargetRotation.ToString());
+	TestRotator = _TargetRotation;
+	SetActorRotation(_TargetRotation);
 }
 
 
@@ -387,4 +423,5 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
 	DOREPLIFETIME(APlayerBase, IsBig);
 	DOREPLIFETIME(APlayerBase, ChangeIdle);
+	DOREPLIFETIME(APlayerBase, TestRotator);
 }
