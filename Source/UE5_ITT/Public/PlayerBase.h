@@ -271,15 +271,17 @@ public:
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
 	
-	/*void CustomClientIdle();
-	void CunstomServerIdle();*/
+	UFUNCTION(Client, Reliable)
+	void CustomClientIdle();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerIdle();
 
 	void CustomMove(const FInputActionInstance& _Instance);
 
 	UFUNCTION(Client,Reliable)
-	void ChangeClientDir(FRotator _TargetRotation);
+	void ChangeClientDir(const FInputActionInstance& _Instance,FRotator _Rotator);
 	UFUNCTION(Server,Reliable, WithValidation)
-	void ChangeServerDir(FRotator _TargetRotation);
+	void ChangeServerDir(const FInputActionInstance& _Instance, FRotator _Rotator);
 
 	
 
@@ -337,8 +339,23 @@ public:
 	bool IsDGravity;
 
 	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
-	UPROPERTY(Replicated)
+
+
+
+	UPROPERTY(Replicated=OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
+	UFUNCTION()
+	void OnRep_IsMoveEnd();
+
+
+
+
+
+
+
+
+
+
 	float DashDuration; // 앞구르기 지속 시간
 	float DashStartTime;//앞구르기 시작시간 체크
 
@@ -366,7 +383,19 @@ public:
 	bool ChangeIdle;
 	UPROPERTY(Replicated)
 	int32 CharacterJumpCount;
+	UPROPERTY(Replicated)
 	FVector MoveDirection;
+	UPROPERTY(Replicated)
+	FVector2D MoveInput;
+	UPROPERTY(Replicated)
+	FRotator ControllerRotation;
+	UPROPERTY(Replicated)
+	FRotator CustomTargetRotation;
+	UPROPERTY(Replicated)
+	FVector WorldForwardVector;
+	UPROPERTY(Replicated)
+	FVector WorldRightVector;
+
 	
 	//////////////////////////////////////////////
 
