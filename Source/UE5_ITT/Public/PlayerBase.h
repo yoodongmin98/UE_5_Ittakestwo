@@ -270,6 +270,9 @@ public:
 
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
+	
+	/*void CustomClientIdle();
+	void CunstomServerIdle();*/
 
 	void CustomMove(const FInputActionInstance& _Instance);
 

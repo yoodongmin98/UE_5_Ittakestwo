@@ -106,12 +106,7 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (HasAuthority() == false)
-	{
-		SetActorRotation(TestRotator);
-	}
-
-	
+	SetActorRotation(TestRotator);
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
@@ -180,11 +175,24 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 //새로운 입력 Action
 void APlayerBase::Idle(const FInputActionInstance& _Instance)
 {
+	//if (HasAuthority() == true)
+	//{
+	//	CustomClientIdle();
+	//}
+	//else
+	//{
+	//	CunstomServerIdle();
+	//}
 	IsSprint = false;
 	IsMoveEnd = false;
 	if (bCanDash == false)
 		ChangeState(Cody_State::IDLE);
 }
+
+//void APlayerBase::CustomClientIdle_Implementation()
+//{
+//
+//}
 
 void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 {
@@ -257,7 +265,6 @@ bool APlayerBase::ChangeServerDir_Validate(FRotator _TargetRotation)
 
 void APlayerBase::ChangeServerDir_Implementation(FRotator _TargetRotation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("FRotation as string: %s"), *_TargetRotation.ToString());
 	TestRotator = _TargetRotation;
 	SetActorRotation(_TargetRotation);
 }
