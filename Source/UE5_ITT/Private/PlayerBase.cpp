@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
-#include "OnlineSubsystem.h"
+//#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -43,29 +43,13 @@ APlayerBase::APlayerBase()
 
 }
 
-void APlayerBase::GetOnlineSubsystem()
-{
 
-	// OnlineSubsystem에 Access
-	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
-	if (CurOnlineSubsystem)
-	{
-		// 온라인 세션 받아오기
-		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
-
-		if (GEngine)
-		{
-			// OnlineSubsystem 이름 출력하기
-			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
-		}
-	}
-}
 
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	GetOnlineSubsystem();
+	//GetOnlineSubsystem();
 	//입력
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)

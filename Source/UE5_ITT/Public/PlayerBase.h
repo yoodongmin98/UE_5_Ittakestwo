@@ -7,8 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Interfaces/OnlineSessionInterface.h"
-
+#include "NetPlayerBase.h"
 
 #include "PlayerBase.generated.h"
 
@@ -33,7 +32,7 @@ enum class Cody_State : uint8
 };
 
 UCLASS()
-class UE5_ITT_API APlayerBase : public ACharacter
+class UE5_ITT_API APlayerBase : public ANetPlayerBase
 {
 	GENERATED_BODY()
 	UInputComponent* Input;
@@ -362,8 +361,7 @@ public:
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
 
-	void GetOnlineSubsystem();
-	IOnlineSessionPtr OnlineSeesioninterface;
+
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
