@@ -184,7 +184,7 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	class AFloor* FloorObject = nullptr;
 	
 	UPROPERTY(Replicated, EditDefaultsOnly)
