@@ -26,6 +26,10 @@
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 
+// test
+#include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
+
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 {
@@ -55,8 +59,10 @@ void AEnemyFlyingSaucer::BeginPlay()
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
-		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
+		
 	}
+
+
 }
 
 // test code, 추후 삭제 
@@ -89,6 +95,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
 	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
+	
 	
 }
 // Multicast 함수 
@@ -225,6 +233,15 @@ void AEnemyFlyingSaucer::Multicast_SetFocusTarget_Implementation()
 		}
 	}
 }
+
+void AEnemyFlyingSaucer::Multicast_AttachToMoonBaboonActorAndFloor_Implementation()
+{
+	EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
+	EnemyMoonBaboon->GetMesh()->SetVisibility(true);
+	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+	AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
+}
+
 
 
 // Called every frame
@@ -453,9 +470,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
-			EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
-			EnemyMoonBaboon->GetMesh()->SetVisibility(true);
+			Multicast_AttachToMoonBaboonActorAndFloor();
+
+
+			
 		});
 
 	//FsmComp->CreateState(EBossState::Intro,

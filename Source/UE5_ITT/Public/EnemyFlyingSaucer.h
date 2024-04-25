@@ -50,13 +50,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
-	// 멀티캐스트로 변경
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_CreateEnergyChargeEffect();
 
-	// 멀티캐스트로 변경
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_SetFocusTarget();
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_AttachToMoonBaboonActorAndFloor();
+
+
+	/*UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_ChaseLaserBeam();*/
 
 
 	// 체력(임시) 
@@ -147,8 +152,8 @@ private:
 	float KeyInputMaxTime = 1.25f;
 	float KeyInputAdditionalTime = 0.75f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 60.0f;
+	UPROPERTY(EditAnywhere)
+	float CurrentHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
