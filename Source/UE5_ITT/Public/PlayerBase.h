@@ -7,7 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Interfaces/OnlineSessionInterface.h"
+//#include "Interfaces/OnlineSessionInterface.h"
 
 
 #include "PlayerBase.generated.h"
@@ -270,9 +270,27 @@ public:
 
 	///////////////////Key Bind Function///////////////////
 	void Idle(const FInputActionInstance& _Instance);
-	void Move_Implementation(const FInputActionInstance& _Instance);
+	
+	UFUNCTION(Client, Reliable)
+	void CustomClientIdle();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerIdle();
+
+	void CustomMove(const FInputActionInstance& _Instance);
+
+	UFUNCTION(Client,Reliable)
+	void ChangeClientDir(const FInputActionInstance& _Instance,FRotator _Rotator);
+	UFUNCTION(Server,Reliable, WithValidation)
+	void ChangeServerDir(const FInputActionInstance& _Instance, FRotator _Rotator);
+
+	
+
 	void Look(const FInputActionInstance& _Instance);
 	void DashInput();
+	UFUNCTION(Client, Reliable)
+	void CustomClientDash();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerDash();
 	void GroundDash();
 	virtual void DashEnd() {};
 	void JumpDash();
@@ -287,7 +305,7 @@ public:
 	///////////////////////////////////////////////////////
 
 
-
+	
 	/////////////////Controller///////////////////
 	APlayerController* CodyController = nullptr;
 	//////////////////////////////////////////////
@@ -319,17 +337,19 @@ public:
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
-	UPROPERTY(EditAnywhere, Category = "Dash")
-	float DashDistance = 2500.0f; // 앞구르기 거리
-	
-	bool IsDGravity;
-
-	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
 	UPROPERTY(Replicated)
+	float DashDistance = 2500.0f; // 앞구르기 거리
+	bool IsDGravity;
+	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
+	UPROPERTY(Replicated=OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
+	UFUNCTION()
+	void OnRep_IsMoveEnd();
+	UPROPERTY(Replicated)
 	float DashDuration; // 앞구르기 지속 시간
+	UPROPERTY(Replicated)
 	float DashStartTime;//앞구르기 시작시간 체크
-
+	UPROPERTY(Replicated)
 	bool bIsDashing; // 앞구르기 중 여부를 나타내는 플래그
 	UPROPERTY(Replicated)
 	bool bIsDashingStart; //앞구르기 시작단계를 나타내는 플래그
@@ -340,7 +360,8 @@ public:
 	UPROPERTY(Replicated)
 	float DefaultGravityScale; //기본 중력
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
-
+	UPROPERTY(Replicated)
+	float DashCurrentTime;
 	bool IsSprint; //달리기 여부
 
 	float SitStartTime;
@@ -354,6 +375,25 @@ public:
 	bool ChangeIdle;
 	UPROPERTY(Replicated)
 	int32 CharacterJumpCount;
+	UPROPERTY(Replicated)
+	FVector MoveDirection;
+	UPROPERTY(Replicated)
+	FVector2D MoveInput;
+	UPROPERTY(Replicated)
+	FRotator ControllerRotation;
+	UPROPERTY(Replicated)
+	FRotator CustomTargetRotation;
+	UPROPERTY(Replicated)
+	FVector WorldForwardVector;
+	UPROPERTY(Replicated)
+	FVector WorldRightVector;
+	UPROPERTY(Replicated)
+	FVector DashDirection;
+	UPROPERTY(Replicated)
+	FVector DashVelocity;
+
+	UPROPERTY(Replicated)
+	int32 CustomPlayerJumpCount;
 	
 	//////////////////////////////////////////////
 
@@ -362,8 +402,8 @@ public:
 	bool CurrentAnimationEnd; 
 	//////////////////////////////////////////////
 
-	void GetOnlineSubsystem();
-	IOnlineSessionPtr OnlineSeesioninterface;
+	//void GetOnlineSubsystem();
+	//IOnlineSessionPtr OnlineSeesioninterface;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
@@ -375,4 +415,8 @@ public:
 	//CodySize
 	UPROPERTY(Replicated)
 	bool IsBig;
+
+
+	UPROPERTY(Replicated)
+	FRotator TestRotator;
 };

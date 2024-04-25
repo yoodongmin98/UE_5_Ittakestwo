@@ -35,7 +35,7 @@ void ACody::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	GetCapsuleComponent()->MarkRenderStateDirty();
-
+	ACharacter::JumpMaxCount = CustomPlayerJumpCount;
 	//Scale Check
 	if (true == HasAuthority())
 	{
@@ -49,7 +49,6 @@ void ACody::Tick(float DeltaTime)
 			case CodySize::BIG:
 			{
 				IsBig = true;
-				ACharacter::JumpMaxCount = 1;
 				BigCanDash = false;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
@@ -61,7 +60,6 @@ void ACody::Tick(float DeltaTime)
 			{
 				IsBig = false;
 				BigCanDash = true;
-				ACharacter::JumpMaxCount = 2;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale;
 				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
 				DashDistance = 2500.0f;
@@ -159,7 +157,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACody::ChangeBigSize_Implementation()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("right function called"));
 	if (!GetCharacterMovement()->IsFalling())
 	{
 		IsSprint = false;
@@ -171,6 +168,7 @@ void ACody::ChangeBigSize_Implementation()
 		}
 		case CodySize::NORMAL:
 		{
+			CustomPlayerJumpCount = 1;
 			NextCodySize = CodySize::BIG;
 			break;
 		}
@@ -194,6 +192,7 @@ void ACody::ChangeSmallSize_Implementation()
 		{
 		case CodySize::BIG:
 		{
+			CustomPlayerJumpCount = 2;
 			NextCodySize = CodySize::NORMAL;
 			break;
 		}
@@ -230,6 +229,7 @@ void ACody::ChangeServerBigSize_Implementation()
 		}
 		case CodySize::NORMAL:
 		{
+			CustomPlayerJumpCount = 1;
 			NextCodySize = CodySize::BIG;
 			break;
 		}
@@ -258,6 +258,7 @@ void ACody::ChangeServerSmallSize_Implementation()
 		{
 		case CodySize::BIG:
 		{
+			CustomPlayerJumpCount = 2;
 			NextCodySize = CodySize::NORMAL;
 			break;
 		}

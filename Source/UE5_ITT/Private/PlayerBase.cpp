@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
-#include "OnlineSubsystem.h"
+//#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -14,7 +14,6 @@ APlayerBase::APlayerBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Tags.Add(FName("Player"));
-
 
 	BigLength = 2000.0f;
 	NormalLength = 1200.0f;
@@ -43,29 +42,29 @@ APlayerBase::APlayerBase()
 
 }
 
-void APlayerBase::GetOnlineSubsystem()
-{
-
-	// OnlineSubsystem에 Access
-	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
-	if (CurOnlineSubsystem)
-	{
-		// 온라인 세션 받아오기
-		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
-
-		if (GEngine)
-		{
-			// OnlineSubsystem 이름 출력하기
-			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
-		}
-	}
-}
+//void APlayerBase::GetOnlineSubsystem()
+//{
+//
+//	// OnlineSubsystem에 Access
+//	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
+//	if (CurOnlineSubsystem)
+//	{
+//		// 온라인 세션 받아오기
+//		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
+//
+//		if (GEngine)
+//		{
+//			// OnlineSubsystem 이름 출력하기
+//			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
+//		}
+//	}
+//}
 
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	GetOnlineSubsystem();
+	//GetOnlineSubsystem();
 	//입력
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)
@@ -86,7 +85,7 @@ void APlayerBase::BeginPlay()
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
 
 
-	IsMoveEnd = true;
+	IsMoveEnd = false;
 
 	bIsDashing = false;
 	bIsDashingStart = false;
@@ -99,13 +98,17 @@ void APlayerBase::BeginPlay()
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
+	TestRotator = FRotator::ZeroRotator;
+
+
+	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
 }
 
 // Called every frame
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	SetActorRotation(TestRotator);
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
@@ -122,8 +125,8 @@ void APlayerBase::Tick(float DeltaTime)
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
-		float CurrentTime = GetWorld()->GetTimeSeconds();
-		if (CurrentTime >= DashStartTime + DashDuration)
+		DashCurrentTime = GetWorld()->GetTimeSeconds();
+		if (DashCurrentTime >= DashStartTime + DashDuration)
 		{
 			// 대시 지속 시간이 지나면 대시 종료
 			DashEnd();
@@ -157,7 +160,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move_Implementation);
+		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::CustomMove);
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::None, this, &APlayerBase::Idle);
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
@@ -174,48 +177,69 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 //새로운 입력 Action
 void APlayerBase::Idle(const FInputActionInstance& _Instance)
 {
+	if (HasAuthority() == true)
+	{
+		CustomClientIdle();
+	}
+	else
+	{
+		CustomServerIdle();
+	}
+}
+
+void APlayerBase::CustomClientIdle_Implementation()
+{
 	IsSprint = false;
 	IsMoveEnd = false;
 	if (bCanDash == false)
 		ChangeState(Cody_State::IDLE);
 }
 
-void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
+bool APlayerBase::CustomServerIdle_Validate()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
-	IsMoveEnd = true;
+	return true;
+}
+void APlayerBase::CustomServerIdle_Implementation()
+{
+	OnRep_IsMoveEnd();
+}
 
+void APlayerBase::OnRep_IsMoveEnd()
+{
+	IsSprint = false;
+	IsMoveEnd = false;
+	if (bCanDash == false)
+		ChangeState(Cody_State::IDLE);
+}
+void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
+{
 	if (bCanDash == false && ChangeIdle)
 	{
 		ChangeState(Cody_State::MOVE);
-		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
-		// 
 		// 컨트롤러의 회전 방향을 가져옴
-		FRotator ControllerRotation = Controller->GetControlRotation();
-
+		ControllerRotation = Controller->GetControlRotation();
+		CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
 		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
-		FRotator TargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
-		SetActorRotation(TargetRotation);
-
 
 		// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
-		FVector WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+		WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
 		// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
-		FVector WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
+		WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
 
 		// 캐릭터를 입력 방향으로 이동시킴
-		FVector2D MoveInput = _Instance.GetValue().Get<FVector2D>();
+		MoveInput = _Instance.GetValue().Get<FVector2D>();
 		if (!MoveInput.IsNearlyZero())
 		{
 			// 입력 방향 노말라이즈
 			MoveInput = MoveInput.GetSafeNormal();
 
 			// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
-			FVector MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+			MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
 			FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
-			SetActorRotation(CodyRotation);
-
-
+			//SetActorRotation(CodyRotation);
+			CustomTargetRotation = CodyRotation;
+		
 			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
 			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
 			MoveDirection.Normalize();
@@ -224,6 +248,31 @@ void APlayerBase::Move_Implementation(const FInputActionInstance& _Instance)
 			AddMovementInput(MoveDirection);
 		}
 	}
+	if (HasAuthority() == true)
+	{
+		ChangeClientDir(_Instance, CustomTargetRotation);
+	}
+	else
+	{
+		ChangeServerDir(_Instance, CustomTargetRotation);
+	}
+}
+
+void APlayerBase::ChangeClientDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	TestRotator = _Rotator;
+}
+
+bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	return true;
+}
+
+void APlayerBase::ChangeServerDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	TestRotator = _Rotator;
 }
 
 
@@ -262,6 +311,44 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 void APlayerBase::DashInput()
 {
 	IsSprint = false;
+	if (HasAuthority() == true)
+	{
+		CustomClientDash();
+	}
+	else
+	{
+		CustomServerDash();
+	}
+}
+
+
+void APlayerBase::CustomClientDash_Implementation()
+{
+	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
+	{
+		ChangeState(Cody_State::DASH);
+		//대쉬 시작시간을 체크
+		DashStartTime = GetWorld()->GetTimeSeconds();
+		//지면에 닿아있는지를 체크하여 실행할 함수 변경
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			GroundDash();
+		}
+		else
+		{
+			DashDuration = 0.2f;
+			JumpDash();
+		}
+		bIsDashing = true;
+		bCanDash = true;
+	}
+}
+bool APlayerBase::CustomServerDash_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerDash_Implementation()
+{
 	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
 	{
 		ChangeState(Cody_State::DASH);
@@ -292,11 +379,11 @@ void APlayerBase::GroundDash()
 	// 마찰력 없앰
 	GetCharacterMovement()->GroundFriction = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 벡터Normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance;
+	DashVelocity = DashDirection * DashDistance;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -306,11 +393,11 @@ void APlayerBase::JumpDash()
 	// 중력 없앰
 	GetCharacterMovement()->GravityScale = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance * 0.8f;
+	DashVelocity = DashDirection * DashDistance * 0.8f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -387,4 +474,24 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
 	DOREPLIFETIME(APlayerBase, IsBig);
 	DOREPLIFETIME(APlayerBase, ChangeIdle);
+	DOREPLIFETIME(APlayerBase, TestRotator);
+	DOREPLIFETIME(APlayerBase, MoveDirection);
+	DOREPLIFETIME(APlayerBase, MoveInput);
+	DOREPLIFETIME(APlayerBase, ControllerRotation);
+	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
+	DOREPLIFETIME(APlayerBase, WorldForwardVector);
+	DOREPLIFETIME(APlayerBase, WorldRightVector);
+	DOREPLIFETIME(APlayerBase, DashDirection)
+	DOREPLIFETIME(APlayerBase, DashDistance);
+	DOREPLIFETIME(APlayerBase, DashVelocity);
+	DOREPLIFETIME(APlayerBase, bIsDashing);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, DashDuration);
+	DOREPLIFETIME(APlayerBase, DashStartTime);
+	DOREPLIFETIME(APlayerBase, DashCurrentTime);
+	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
+	DOREPLIFETIME(APlayerBase, IsInteract);
+
 }
+
