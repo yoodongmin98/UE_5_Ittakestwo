@@ -38,11 +38,11 @@ public:
 	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 	void OnStartSessionComplete(FName SessionName, bool bWasSuccessful);
 
-	FMultiOnCreateSessionComplete MultiOnCreateSessionComplete;
-	FMultiOnFindSessionComplete MultiOnFindSessionComplete;
-	FMultiOnJoinSessionComplete MultiOnJoinSessionComplete;
-	FMultiOnStartSessionComplete MultiOnStartSessionComplete;
-	FMultiOnDestroySessionComplete MultiOnDestroySessionComplete;
+	FMultiOnCreateSessionComplete	MultiOnCreateSessionComplete;
+	FMultiOnFindSessionComplete		MultiOnFindSessionComplete;
+	FMultiOnJoinSessionComplete		MultiOnJoinSessionComplete;
+	FMultiOnStartSessionComplete	MultiOnStartSessionComplete;
+	FMultiOnDestroySessionComplete	MultiOnDestroySessionComplete;
 
 private:
 	IOnlineSessionPtr ITTSessionInterface;
