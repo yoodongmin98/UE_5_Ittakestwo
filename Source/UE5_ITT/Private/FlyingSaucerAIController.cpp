@@ -41,13 +41,7 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase3);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTree);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTreeComp);
-
-	/*DOREPLIFETIME(AFlyingSaucerAIController, PrevTargetLocation);
-	DOREPLIFETIME(AFlyingSaucerAIController, PrevTargetLocationBuffer);
-	DOREPLIFETIME(AFlyingSaucerAIController, bPrevTargetLocationValid);
-	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRatio);
-	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRate);
-	DOREPLIFETIME(AFlyingSaucerAIController, PatternMatchCount);*/
+	DOREPLIFETIME(AFlyingSaucerAIController, PatternMatchCount);
 }
 
 
@@ -55,8 +49,6 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
 	
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
@@ -77,12 +69,6 @@ void AFlyingSaucerAIController::Tick(float DeltaTime)
 		{
 			SetupPlayerRefAndBehaviorTreePhase1();
 		}
-
-		// 셋팅이 되었다면 그때부터 동작
-		else if (true == bIsSetupPlayerRef)
-		{
-			// UpdateLerpRatioForLaserBeam(DeltaTime);
-		}
 	}
 }
 
@@ -99,7 +85,6 @@ void AFlyingSaucerAIController::SetupPlayerRefAndBehaviorTreePhase1()
 		PlayerRef1 = PlayerController0->GetPawn();
 		PlayerRef2 = PlayerController1->GetPawn();
 		SetupStartBehaviorTreePhase1();
-		//GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
 		bIsSetupPlayerRef = true;
 	}
 }
@@ -140,50 +125,3 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase3()
 	}
 }
 
-//void AFlyingSaucerAIController::SavePreviousTargetLocation()
-//{
-//	APawn* TargetPawn = Cast<APawn>(GetBlackboardComponent()->GetValueAsObject(TEXT("LaserBeamTarget")));
-//	
-//	if (nullptr != TargetPawn)
-//	{
-//		FVector CurrentTargetLocation = TargetPawn->GetActorLocation();
-//
-//		// 이전 타겟 위치가 유효하다면 
-//		if (true == bPrevTargetLocationValid)
-//		{
-//			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
-//			PrevTargetLocation = PrevTargetLocationBuffer;
-//			bPrevTargetLocationValid = false;
-//		}
-//
-//		else
-//		{
-//			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
-//			PrevTargetLocation = CurrentTargetLocation;
-//		}
-//
-//		// 타겟위치를 세팅
-//		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
-//		PrevTargetLocationBuffer = CurrentTargetLocation;
-//		bPrevTargetLocationValid = true;
-//	}
-//
-//}
-//
-//void AFlyingSaucerAIController::UpdateLerpRatioForLaserBeam(float DeltaTime)
-//{
-//	LaserLerpRatio += DeltaTime * LaserLerpRate;
-//	if (1.0f <= LaserLerpRatio)
-//	{
-//		GetBlackboardComponent()->SetValueAsVector(TEXT("PrevLaserAttackLocation"), PrevTargetLocation);
-//		SavePreviousTargetLocation();
-//		LaserLerpRatio -= 1.0f;
-//		if (0.1f <= LaserLerpRatio)
-//		{
-//			LaserLerpRatio = 0.0f;
-//		}
-//	}
-//
-//	GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);
-//}
-//

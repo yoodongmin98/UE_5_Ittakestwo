@@ -85,7 +85,7 @@ public:
 	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
 
 
-	// 레이저 추적 로직 이관중
+	// 레이저 추적 로직 관련 변수
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	FVector PrevTargetLocation = FVector::ZeroVector;
 
@@ -101,10 +101,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRate = 25.0f;
 
-	// 임시 타겟 액터 설정
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
-	class AActor* PlayerRef1 = nullptr;
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	int32 LaserFireCount = 0;
 
+	// 이거 랜덤 타겟으로 변경해야함. 
+	UPROPERTY(VisibleDefaultsOnly)
+	class AActor* LaserTargetActor = nullptr;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	TArray<AActor*> PlayerActors;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -267,10 +272,10 @@ private:
 	bool bIsCodyHoldingEnter = false;
 
 
-	// 레이저 추적 로직 관련 변수 
+	// 레이저 추적 로직 관련
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 	void SavePreviousTargetLocation();
 
-	
-
+	UFUNCTION(BlueprintCallable)
+	void SetupLaserTargetActor();
 };
