@@ -23,8 +23,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-
-	AEnemyFlyingSaucer* EnemyBoss;
+	UPROPERTY(EditAnywhere)
+	AEnemyFlyingSaucer* EnemyBoss = nullptr;
 
 
 	//CodySize Enum을 변경합니다
@@ -79,4 +79,7 @@ public:
 
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool CodyHoldEnemy = false;
 };

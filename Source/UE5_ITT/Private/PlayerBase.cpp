@@ -169,6 +169,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(InteractAction, ETriggerEvent::None, this, &APlayerBase::InteractNoneInput);
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerBase::SprintInput);
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::None, this, &APlayerBase::SprintNoneInput);
+
+		PlayerInput->BindAction(TestAction, ETriggerEvent::Triggered, this, &APlayerBase::TestFunction);
 	}
 }
 
@@ -492,6 +494,16 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, DashCurrentTime);
 	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
 	DOREPLIFETIME(APlayerBase, IsInteract);
+
+}
+
+
+
+
+
+
+void APlayerBase::TestFunction()
+{
 
 }
 

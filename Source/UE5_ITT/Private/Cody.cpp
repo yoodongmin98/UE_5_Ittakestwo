@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -27,7 +28,8 @@ void ACody::BeginPlay()
 	TargetScale = NormalSize;
 	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
 	
-
+	AActor* FoundBoss = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
+	EnemyBoss = Cast<AEnemyFlyingSaucer>(FoundBoss);
 }
 
 // Called every frame
@@ -36,6 +38,12 @@ void ACody::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	GetCapsuleComponent()->MarkRenderStateDirty();
 	ACharacter::JumpMaxCount = CustomPlayerJumpCount;
+
+	if (EnemyBoss->IsCodyHoldingEnter() == true)
+	{
+		CodyHoldEnemy = true;
+		ChangeState(Cody_State::HoldEnemy);
+	}
 	//Scale Check
 	if (true == HasAuthority())
 	{

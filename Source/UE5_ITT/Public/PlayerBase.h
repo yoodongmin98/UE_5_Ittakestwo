@@ -30,6 +30,8 @@ enum class Cody_State : uint8
 	DASH UMETA(DisPlayName = "DASH"),
 	DASHEND UMETA(DisPlayName = "DASHEND"),
 	PlayerDeath UMETA(DisPlayName = "PlayerDeath"),
+	HoldEnemy UMETA(DisPlayName = "HoldEnemy"),
+	FLYING UMETA(DisPlayName = "FLYING"),
 };
 
 UCLASS()
@@ -77,6 +79,8 @@ public:
 	UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* SprintAction;
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* TestAction;
 
 
 	//Cody의 현재 state를 반환합니다.
@@ -301,6 +305,8 @@ public:
 	virtual void SprintNoneInput() {};
 	void Sit();
 	void SitEnd();
+
+	void TestFunction();
 
 	///////////////////////////////////////////////////////
 
