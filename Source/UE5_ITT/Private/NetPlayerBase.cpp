@@ -7,12 +7,11 @@
 
 // Sets default values
 ANetPlayerBase::ANetPlayerBase()
-	:CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this,&ThisClass::OnCreateSessionComplete))
+	: CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ANetPlayerBase::OnCreateSessionComplete))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	GetOnlineSubsystem();
+	//GetOnlineSubsystem();
 
 }
 
@@ -98,4 +97,32 @@ void ANetPlayerBase::CreateGameSession()
 
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
+}
+
+void ANetPlayerBase::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	// 세션 생성 성공!
+	if (bWasSuccessful)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Created session : %s"), *SessionName.ToString()));
+		}
+
+		// 로비 맵으로 이동
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			//World->ServerTravel(FString("/Game/ThirdPerson/Maps/Lobby?listen"));
+		}
+	}
+
+	// 세선 생성 실패
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to create session!")));
+		}
+	}
 }
