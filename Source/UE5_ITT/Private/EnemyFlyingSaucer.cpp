@@ -54,6 +54,10 @@ void AEnemyFlyingSaucer::BeginPlay()
 
 	if (true == HasAuthority())
 	{
+		// 테스트 세팅
+		PlayerRef1 = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerBase::StaticClass());
+
+
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 		EnemyMoonBaboon->SetOwner(this);
@@ -95,6 +99,12 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
+
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocationBuffer);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bPrevTargetLocationValid);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRatio);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
 	
 	
 }
@@ -251,7 +261,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-			
+		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
 
@@ -721,4 +731,48 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
 	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
 	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
+}
+
+void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
+{
+	LaserLerpRatio += DeltaTime * LaserLerpRate;
+	if (1.0f <= LaserLerpRatio)
+	{
+		// GetBlackboardComponent()->SetValueAsVector(TEXT("PrevLaserAttackLocation"), PrevTargetLocation);
+		SavePreviousTargetLocation();
+		LaserLerpRatio -= 1.0f;
+		if (0.1f <= LaserLerpRatio)
+		{
+			LaserLerpRatio = 0.0f;
+		}
+	}
+
+	// GetBlackboardComponent()->SetValueAsFloat(TEXT("LaserLerpRatio"), LaserLerpRatio);
+}
+
+void AEnemyFlyingSaucer::SavePreviousTargetLocation()
+{
+	if (nullptr != PlayerRef1)
+	{
+		FVector CurrentTargetLocation = PlayerRef1->GetActorLocation();
+
+		// 이전 타겟 위치가 유효하다면 
+		if (true == bPrevTargetLocationValid)
+		{
+			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
+			PrevTargetLocation = PrevTargetLocationBuffer;
+			bPrevTargetLocationValid = false;
+		}
+
+		else
+		{
+			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
+			PrevTargetLocation = CurrentTargetLocation;
+		}
+
+		// 타겟위치를 세팅
+		// GetBlackboardComponent()->SetValueAsVector(TEXT("PrevTargetLocation"), PrevTargetLocation);
+		PrevTargetLocationBuffer = CurrentTargetLocation;
+		bPrevTargetLocationValid = true;
+	}
 }

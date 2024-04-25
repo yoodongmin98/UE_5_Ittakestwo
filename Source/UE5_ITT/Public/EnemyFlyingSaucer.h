@@ -59,11 +59,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_AttachToMoonBaboonActorAndFloor();
 
-
-	/*UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_ChaseLaserBeam();*/
-
-
 	// 체력(임시) 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
@@ -84,11 +79,31 @@ public:
 	// test, 보스 테스트 끝나면 삭제 
 	void BossHitTestFireRocket();
 
-	// 추후 사용가능성 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
+
+
+	// 레이저 추적 로직 이관중
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector PrevTargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector PrevTargetLocationBuffer = FVector::ZeroVector;	
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bPrevTargetLocationValid = false;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpRatio = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpRate = 25.0f;
+
+	// 임시 타겟 액터 설정
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
+	class AActor* PlayerRef1 = nullptr;
 
 protected:
 	// Called when the game starts or when spawned
@@ -122,12 +137,7 @@ private:
 		Sequence,
 		Blueprint,
 	};
-	// 디버그 
-	void DrawDebugMesh();
-
-	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 4.0f;
-
+	
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -138,6 +148,10 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_CheckCodyKeyPressedAndChangeState();
 
+	void DrawDebugMesh();
+
+	UPROPERTY(EditDefaultsOnly)
+	float ServerDelayTime = 4.0f;
 
 	void SetupComponent();
 
@@ -251,5 +265,12 @@ private:
 
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	bool bIsCodyHoldingEnter = false;
+
+
+	// 레이저 추적 로직 관련 변수 
+	void UpdateLerpRatioForLaserBeam(float DeltaTime);
+	void SavePreviousTargetLocation();
+
+	
 
 };

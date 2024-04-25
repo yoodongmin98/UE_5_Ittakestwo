@@ -28,8 +28,8 @@ public:
 	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
 
 	
-	UFUNCTION(BlueprintCallable)
-	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }
+	/*UFUNCTION(BlueprintCallable)
+	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }*/
 
 	UFUNCTION(BlueprintCallable)
 	void AddPatternMatchCount();
@@ -50,8 +50,10 @@ private:
 	void SetupStartBehaviorTreePhase2();
 	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase3();
-	void SavePreviousTargetLocation();
-	void UpdateLerpRatioForLaserBeam(float DeltaTime);
+
+	// 코드이전중
+	/*void SavePreviousTargetLocation();
+	void UpdateLerpRatioForLaserBeam(float DeltaTime);*/
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef1;
@@ -80,7 +82,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Replicated)
+	/*UPROPERTY(EditDefaultsOnly, Replicated)
 	FVector PrevTargetLocation = FVector::ZeroVector;
 	
 	UPROPERTY(EditDefaultsOnly, Replicated)
@@ -93,7 +95,7 @@ private:
 	float LaserLerpRatio = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly, Replicated)
-	float LaserLerpRate = 25.0f;
+	float LaserLerpRate = 25.0f;*/
 		
 	UPROPERTY(EditDefaultsOnly, Replicated)
 	int32 PatternMatchCount = 0;
