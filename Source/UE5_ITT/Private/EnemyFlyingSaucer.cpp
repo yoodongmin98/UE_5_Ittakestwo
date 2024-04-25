@@ -198,6 +198,7 @@ void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementat
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding_Enter Start"));
 				FsmComp->ChangeState(EBossState::CodyHolding_Enter);
+				bIsCodyHoldingEnter = true;
 				return;
 			}
 		}
@@ -543,7 +544,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			
+			bIsCodyHoldingEnter = false;
 		});
 
 	// 코디가 들고 있는 상태고 

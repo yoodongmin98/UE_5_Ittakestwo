@@ -76,6 +76,11 @@ public:
 
 	// 추후 사용가능성 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -232,4 +237,8 @@ private:
 
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UAnimSequence* AnimSequence = nullptr;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	bool bIsCodyHoldingEnter = false;
+
 };
