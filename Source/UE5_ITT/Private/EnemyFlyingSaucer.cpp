@@ -59,7 +59,6 @@ void AEnemyFlyingSaucer::BeginPlay()
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
-		
 	}
 
 
