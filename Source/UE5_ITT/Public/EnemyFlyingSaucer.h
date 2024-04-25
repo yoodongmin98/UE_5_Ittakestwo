@@ -90,7 +90,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
 
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -228,6 +227,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
+
+	
 
 	// 보스 공격 생성 지점 컴포넌트 
 	UPROPERTY(Replicated, EditDefaultsOnly)

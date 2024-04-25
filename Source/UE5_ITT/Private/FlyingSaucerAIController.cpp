@@ -19,9 +19,9 @@ AFlyingSaucerAIController::AFlyingSaucerAIController()
 
 	if (true == HasAuthority())
 	{
+		CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
 		bReplicates = true;
 		SetReplicateMovement(true);
-		CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
 	}
 }
 
@@ -55,6 +55,8 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 void AFlyingSaucerAIController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	
 	
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
