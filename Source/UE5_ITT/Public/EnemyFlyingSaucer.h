@@ -54,6 +54,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_CreateEnergyChargeEffect();
 
+	// 멀티캐스트로 변경
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_SetFocusTarget();
+
+
 	// 체력(임시) 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }

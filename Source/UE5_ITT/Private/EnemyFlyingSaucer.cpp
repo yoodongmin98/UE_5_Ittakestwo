@@ -211,6 +211,21 @@ void AEnemyFlyingSaucer::Multicast_CreateEnergyChargeEffect_Implementation()
 	EnergyChargeEffect->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("EnergyChargeEffectSpawnPointSocket"));
 }
 
+void AEnemyFlyingSaucer::Multicast_SetFocusTarget_Implementation()
+{
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	if (nullptr != AIController)
+	{
+		UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+		if (nullptr != BlackboardComp)
+		{
+			UObject* TargetObj = BlackboardComp->GetValueAsObject(TEXT("LaserBeamTarget"));
+			AIController->SetFocus(Cast<AActor>(TargetObj));
+		}
+	}
+}
+
+
 // Called every frame
 void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
@@ -320,6 +335,9 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 		Projectile->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
+
+
+
 
 
 
