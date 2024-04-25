@@ -143,7 +143,7 @@ private:
 	float KeyInputAdditionalTime = 0.75f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 100.0f;
+	float CurrentHp = 60.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
