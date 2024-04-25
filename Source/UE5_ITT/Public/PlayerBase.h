@@ -422,6 +422,7 @@ public:
 	UPROPERTY(Replicated)
 	bool IsBig;
 
+	bool IsFly = false;
 
 	UPROPERTY(Replicated)
 	FRotator TestRotator;

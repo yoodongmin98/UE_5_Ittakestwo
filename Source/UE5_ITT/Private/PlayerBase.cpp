@@ -215,48 +215,55 @@ void APlayerBase::OnRep_IsMoveEnd()
 }
 void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 {
-	if (bCanDash == false && ChangeIdle)
+	if (IsFly == true)
 	{
-		ChangeState(Cody_State::MOVE);
-		// 컨트롤러의 회전 방향을 가져옴
-		ControllerRotation = Controller->GetControlRotation();
-		CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
-		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
-		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
-
-		// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
-		WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
-		// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
-		WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
-
-		// 캐릭터를 입력 방향으로 이동시킴
-		MoveInput = _Instance.GetValue().Get<FVector2D>();
-		if (!MoveInput.IsNearlyZero())
-		{
-			// 입력 방향 노말라이즈
-			MoveInput = MoveInput.GetSafeNormal();
-
-			// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
-			MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
-			FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
-			//SetActorRotation(CodyRotation);
-			CustomTargetRotation = CodyRotation;
-		
-			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
-			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
-			MoveDirection.Normalize();
-
-			// 입력 방향에 따라 캐릭터를 이동시킴
-			AddMovementInput(MoveDirection);
-		}
-	}
-	if (HasAuthority() == true)
-	{
-		ChangeClientDir(_Instance, CustomTargetRotation);
+		//작성중
 	}
 	else
 	{
-		ChangeServerDir(_Instance, CustomTargetRotation);
+		if (bCanDash == false && ChangeIdle)
+		{
+			ChangeState(Cody_State::MOVE);
+			// 컨트롤러의 회전 방향을 가져옴
+			ControllerRotation = Controller->GetControlRotation();
+			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+			// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+			// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
+
+			// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
+			WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+			// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
+			WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
+
+			// 캐릭터를 입력 방향으로 이동시킴
+			MoveInput = _Instance.GetValue().Get<FVector2D>();
+			if (!MoveInput.IsNearlyZero())
+			{
+				// 입력 방향 노말라이즈
+				MoveInput = MoveInput.GetSafeNormal();
+
+				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
+				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+				FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
+				//SetActorRotation(CodyRotation);
+				CustomTargetRotation = CodyRotation;
+
+				// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
+				MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
+				MoveDirection.Normalize();
+
+				// 입력 방향에 따라 캐릭터를 이동시킴
+				AddMovementInput(MoveDirection);
+			}
+		}
+		if (HasAuthority() == true)
+		{
+			ChangeClientDir(_Instance, CustomTargetRotation);
+		}
+		else
+		{
+			ChangeServerDir(_Instance, CustomTargetRotation);
+		}
 	}
 }
 
@@ -504,6 +511,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void APlayerBase::TestFunction()
 {
-
+	ChangeState(Cody_State::FLYING);
+	IsFly = true;
 }
 
