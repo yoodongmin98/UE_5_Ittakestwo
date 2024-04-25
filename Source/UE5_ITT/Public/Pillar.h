@@ -109,8 +109,15 @@ private:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
-	// Niagara 
-	void SetupNiagaraEffect();
+
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_SpawnNiagaraEffect();
+
+
+	// Explosion Effect
+	
+	void SpawnNiagaraEffect();
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACoreExplosionEffect> ExplosionEffectClass = nullptr;

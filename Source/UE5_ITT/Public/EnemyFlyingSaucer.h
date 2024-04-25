@@ -50,14 +50,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
-	// 멀티캐스트로 변경
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_CreateEnergyChargeEffect();
 
-	// 멀티캐스트로 변경
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_SetFocusTarget();
 
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_AttachToMoonBaboonActorAndFloor();
 
 	// 체력(임시) 
 	UFUNCTION(BlueprintCallable)
@@ -79,13 +79,37 @@ public:
 	// test, 보스 테스트 끝나면 삭제 
 	void BossHitTestFireRocket();
 
-	// 추후 사용가능성 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
 
 
+	// 레이저 추적 로직 관련 변수
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector PrevTargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector PrevTargetLocationBuffer = FVector::ZeroVector;	
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bPrevTargetLocationValid = false;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpRatio = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpRate = 25.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	int32 LaserFireCount = 0;
+
+	// 이거 랜덤 타겟으로 변경해야함. 
+	UPROPERTY(VisibleDefaultsOnly)
+	class AActor* LaserTargetActor = nullptr;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	TArray<AActor*> PlayerActors;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -118,12 +142,7 @@ private:
 		Sequence,
 		Blueprint,
 	};
-	// 디버그 
-	void DrawDebugMesh();
-
-	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 4.0f;
-
+	
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -134,6 +153,10 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_CheckCodyKeyPressedAndChangeState();
 
+	void DrawDebugMesh();
+
+	UPROPERTY(EditDefaultsOnly)
+	float ServerDelayTime = 4.0f;
 
 	void SetupComponent();
 
@@ -147,8 +170,8 @@ private:
 	float KeyInputMaxTime = 1.25f;
 	float KeyInputAdditionalTime = 0.75f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float CurrentHp = 60.0f;
+	UPROPERTY(EditAnywhere)
+	float CurrentHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
@@ -224,6 +247,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
+	
+
 	// 보스 공격 생성 지점 컴포넌트 
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
@@ -246,4 +271,11 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	bool bIsCodyHoldingEnter = false;
 
+
+	// 레이저 추적 로직 관련
+	void UpdateLerpRatioForLaserBeam(float DeltaTime);
+	void SavePreviousTargetLocation();
+
+	UFUNCTION(BlueprintCallable)
+	void SetupLaserTargetActor();
 };

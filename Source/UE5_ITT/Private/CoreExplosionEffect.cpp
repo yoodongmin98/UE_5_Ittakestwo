@@ -10,11 +10,19 @@ ACoreExplosionEffect::ACoreExplosionEffect()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SetRootComponent(SceneComp);
+	if (true == HasAuthority())
+	{
+		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+		SetRootComponent(SceneComp);
 
-	ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CoreExplosionEffectComponent"));
-	ExplosionEffectComp->SetupAttachment(SceneComp);
+		ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CoreExplosionEffectComponent"));
+		ExplosionEffectComp->SetupAttachment(SceneComp);
+
+		bReplicates = true;
+		SetReplicateMovement(true);
+	}
+		
+
 }
 
 // Called when the game starts or when spawned
@@ -22,7 +30,10 @@ void ACoreExplosionEffect::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetupDestroyTimerEvent();
+	if (true == HasAuthority())
+	{
+		SetupDestroyTimerEvent();
+	}
 }
 
 void ACoreExplosionEffect::EffectDestroy()

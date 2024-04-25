@@ -26,6 +26,10 @@
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 
+// test
+#include "Kismet/GameplayStatics.h"
+#include "EngineUtils.h"
+
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 {
@@ -50,13 +54,18 @@ void AEnemyFlyingSaucer::BeginPlay()
 
 	if (true == HasAuthority())
 	{
+		// 테스트 세팅(랜덤타겟으로 변경예정)
+		// LaserTargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerBase::StaticClass());
+
+
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
-		AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
+
+
 }
 
 // test code, 추후 삭제 
@@ -89,7 +98,13 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
 	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
-	
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocationBuffer);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bPrevTargetLocationValid);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRatio);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserFireCount);
 }
 // Multicast 함수 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -129,7 +144,6 @@ void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(co
 	
 }
 
-// 원숭이 애니메이션 변경
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationMoonBaboon_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
 {
 	if (nullptr == EnemyMoonBaboon)
@@ -220,11 +234,19 @@ void AEnemyFlyingSaucer::Multicast_SetFocusTarget_Implementation()
 		UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
 		if (nullptr != BlackboardComp)
 		{
-			UObject* TargetObj = BlackboardComp->GetValueAsObject(TEXT("LaserBeamTarget"));
-			AIController->SetFocus(Cast<AActor>(TargetObj));
+			AIController->SetFocus(Cast<AActor>(LaserTargetActor));
 		}
 	}
 }
+
+void AEnemyFlyingSaucer::Multicast_AttachToMoonBaboonActorAndFloor_Implementation()
+{
+	EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
+	EnemyMoonBaboon->GetMesh()->SetVisibility(true);
+	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
+	AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
+}
+
 
 
 // Called every frame
@@ -235,7 +257,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-			
+		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
 
@@ -453,34 +475,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			EnemyMoonBaboon->SetActorRelativeLocation(FVector::ZeroVector);
-			EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
-			EnemyMoonBaboon->GetMesh()->SetVisibility(true);
+			Multicast_AttachToMoonBaboonActorAndFloor();
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), PlayerActors);
+			if (0 == PlayerActors.Num())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Player Actors Size : 0"));
+			}
 		});
-
-	//FsmComp->CreateState(EBossState::Intro,
-	//	[this]
-	//	{
-	//		// 인트로 애니메이션 재생
-	//		Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
-	//		Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, false);
-	//	},
-
-	//	[this](float DT)
-	//	{
-	//		// 애니메이션 종료 체크 
-	//		bool bIsAnimationPlaying = GetMesh()->IsPlaying();
-	//		if (!bIsAnimationPlaying)
-	//		{
-	//			FsmComp->ChangeState(EBossState::Phase1_Progress);
-	//			return;
-	//		}
-	//	},
-
-	//	[this]
-	//	{
-	//		
-	//	});
 
 	FsmComp->CreateState(EBossState::Phase1_Progress,
 		[this]
@@ -704,4 +705,84 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
 	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
 	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
+}
+
+void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
+{
+	LaserLerpRatio += DeltaTime * LaserLerpRate;
+	if (1.0f <= LaserLerpRatio)
+	{
+		SavePreviousTargetLocation();
+		LaserLerpRatio -= 1.0f;
+		if (0.1f <= LaserLerpRatio)
+		{
+			LaserLerpRatio = 0.0f;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::SavePreviousTargetLocation()
+{
+	// 여기서 현재 타겟이 누구냐에 따라서 세팅될 수 있도록.
+	if (nullptr != LaserTargetActor)
+	{
+		FVector CurrentTargetLocation = LaserTargetActor->GetActorLocation();
+
+		// 이전 타겟 위치가 유효하다면 
+		if (true == bPrevTargetLocationValid)
+		{
+			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
+			PrevTargetLocation = PrevTargetLocationBuffer;
+			bPrevTargetLocationValid = false;
+		}
+
+		else
+		{
+			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
+			PrevTargetLocation = CurrentTargetLocation;
+		}
+
+		// 타겟위치를 세팅
+		PrevTargetLocationBuffer = CurrentTargetLocation;
+		bPrevTargetLocationValid = true;
+	}
+}
+
+void AEnemyFlyingSaucer::SetupLaserTargetActor()
+{
+	// 메이, 코디, 메이 순으로 추후 변경
+	switch (LaserFireCount)
+	{
+	case 0:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
+			{
+				LaserTargetActor = Actor;
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
+			}
+		}
+	
+		break;
+	case 1:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
+			{
+				LaserTargetActor = Actor;
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : Cody"));
+			}
+		}
+		break;
+	case 2:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
+			{
+				LaserTargetActor = Actor;
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
+			}
+		}
+		break;
+	}
 }
