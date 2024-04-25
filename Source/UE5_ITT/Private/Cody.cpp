@@ -42,7 +42,7 @@ void ACody::Tick(float DeltaTime)
 	if (EnemyBoss->IsCodyHoldingEnter() == true)
 	{
 		CodyHoldEnemy = true;
-		ChangeState(Cody_State::HoldEnemy);
+		ChangeState(Cody_State::HOLDENEMY);
 	}
 	//Scale Check
 	if (true == HasAuthority())

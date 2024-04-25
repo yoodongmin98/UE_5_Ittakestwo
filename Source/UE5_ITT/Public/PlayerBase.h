@@ -30,7 +30,7 @@ enum class Cody_State : uint8
 	DASH UMETA(DisPlayName = "DASH"),
 	DASHEND UMETA(DisPlayName = "DASHEND"),
 	PlayerDeath UMETA(DisPlayName = "PlayerDeath"),
-	HoldEnemy UMETA(DisPlayName = "HoldEnemy"),
+	HOLDENEMY UMETA(DisPlayName = "HoldEnemy"),
 	FLYING UMETA(DisPlayName = "FLYING"),
 };
 
