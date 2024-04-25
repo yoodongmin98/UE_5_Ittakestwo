@@ -22,6 +22,7 @@ void ACody::BeginPlay()
 	CurCodySize = CodySize::NORMAL;
 	NextCodySize = CodySize::NORMAL;
 
+	CameraSpeed = 1.5f;
 	BigSize = FVector(4.0f, 4.0f, 4.0f);
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
 	SmallSize= FVector(0.1111111111f, 0.1111111111f, 0.1111111111f);
@@ -38,7 +39,27 @@ void ACody::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	GetCapsuleComponent()->MarkRenderStateDirty();
 	ACharacter::JumpMaxCount = CustomPlayerJumpCount;
-
+	//Size Setting
+	switch (NextCodySize)
+	{
+	case CodySize::BIG:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed * 2.0f);
+		break;
+	}
+	default:
+		break;
+	}
 	if (EnemyBoss->IsCodyHoldingEnter() == true)
 	{
 		CodyHoldEnemy = true;
@@ -61,7 +82,6 @@ void ACody::Tick(float DeltaTime)
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
 				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
-				SpringArm->TargetArmLength = BigLength;
 				break;
 			}
 			case CodySize::NORMAL:
@@ -72,7 +92,6 @@ void ACody::Tick(float DeltaTime)
 				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
 				DashDistance = 2500.0f;
 				GetCapsuleComponent()->SetWorldScale3D(NormalSize);
-				SpringArm->TargetArmLength = NormalLength;
 				break;
 			}
 			case CodySize::SMALL:
@@ -81,7 +100,6 @@ void ACody::Tick(float DeltaTime)
 				GetCharacterMovement()->JumpZVelocity = 250.0f;
 				DashDistance = 700.0f;
 				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
-				SpringArm->TargetArmLength = SmallLength;
 				break;
 			}
 			default:
@@ -165,7 +183,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACody::ChangeBigSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling())
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -193,7 +211,7 @@ void ACody::ChangeBigSize_Implementation()
 
 void ACody::ChangeSmallSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling())
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -226,7 +244,7 @@ bool ACody::ChangeServerBigSize_Validate()
 
 void ACody::ChangeServerBigSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling())
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -259,7 +277,7 @@ bool ACody::ChangeServerSmallSize_Validate()
 }
 void ACody::ChangeServerSmallSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling())
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
 	{
 		IsSprint = false;
 		switch (CurCodySize)

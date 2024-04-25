@@ -82,4 +82,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool CodyHoldEnemy = false;
+
+	float CameraSpeed;
 };
