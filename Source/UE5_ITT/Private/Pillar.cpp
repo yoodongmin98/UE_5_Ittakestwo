@@ -217,7 +217,7 @@ void APillar::SetupFsm()
 			{
 				//레이저 타격 체크 필요
 				FsmComp->ChangeState(Fsm::Boom);
-				SetupNiagaraEffect();
+				Multicast_SpawnNiagaraEffect();
 				return;
 			}
 		},
@@ -350,7 +350,7 @@ void APillar::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 	}
 }
 
-void APillar::SetupNiagaraEffect()
+void APillar::Multicast_SpawnNiagaraEffect_Implementation()
 {
 	if (nullptr != EnergyCoreActor)
 	{

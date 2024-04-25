@@ -759,7 +759,7 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
 			{
 				LaserTargetActor = Actor;
-				UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
 			}
 		}
 	
@@ -770,7 +770,7 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
 			{
 				LaserTargetActor = Actor;
-				UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : Cody"));
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : Cody"));
 			}
 		}
 		break;
@@ -780,7 +780,7 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
 			{
 				LaserTargetActor = Actor;
-				UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
+				//UE_LOG(LogTemp, Warning, TEXT("Target Actor Setting : May"));
 			}
 		}
 		break;
