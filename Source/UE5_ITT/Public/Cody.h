@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PlayerBase.h"
+#include "EnemyFlyingSaucer.h"
 #include "Cody.generated.h"
 
 
@@ -21,6 +22,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+
+	AEnemyFlyingSaucer* EnemyBoss;
+
 
 	//CodySize Enum을 변경합니다
 	void ChangeCodySizeEnum(CodySize _Enum)
@@ -59,7 +64,6 @@ public:
 	virtual void DashEnd() override;
 
 	//UPROPERTY(Replicated)
-	UPROPERTY(EditAnywhere)
 	
 
 	//Size

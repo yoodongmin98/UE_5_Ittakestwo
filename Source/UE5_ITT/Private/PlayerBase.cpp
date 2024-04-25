@@ -491,5 +491,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, DashStartTime);
 	DOREPLIFETIME(APlayerBase, DashCurrentTime);
 	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
+	DOREPLIFETIME(APlayerBase, IsInteract);
+
 }
 
