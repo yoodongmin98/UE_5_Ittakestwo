@@ -60,10 +60,13 @@ void ACody::Tick(float DeltaTime)
 	default:
 		break;
 	}
-	if (EnemyBoss->IsCodyHoldingEnter() == true)
+	if (EnemyBoss != nullptr)
 	{
-		CodyHoldEnemy = true;
-		ChangeState(Cody_State::HOLDENEMY);
+		if (EnemyBoss->IsCodyHoldingEnter() == true)
+		{
+			CodyHoldEnemy = true;
+			ChangeState(Cody_State::HOLDENEMY);
+		}
 	}
 	//Scale Check
 	if (true == HasAuthority())
@@ -342,4 +345,12 @@ void ACody::DashEnd()
 		bCanDash = false;
 		DashDuration = 0.75f;
 	}
+}
+
+void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACody, CodyHoldEnemy);
+
 }

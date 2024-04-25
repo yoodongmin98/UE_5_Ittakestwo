@@ -59,6 +59,12 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ChangeServerSmallSize();
 
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCodyHoldEnemy() const
+	{
+		return CodyHoldEnemy;
+	}
+
 
 	virtual void SprintInput() override;
 	virtual void DashEnd() override;
@@ -80,8 +86,10 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated)
 	bool CodyHoldEnemy = false;
 
 	float CameraSpeed;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };
