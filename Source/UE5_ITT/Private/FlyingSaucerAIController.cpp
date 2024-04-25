@@ -48,8 +48,9 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRatio);
 	DOREPLIFETIME(AFlyingSaucerAIController, LaserLerpRate);
 	DOREPLIFETIME(AFlyingSaucerAIController, PatternMatchCount);
-
 }
+
+
 
 void AFlyingSaucerAIController::BeginPlay()
 {
