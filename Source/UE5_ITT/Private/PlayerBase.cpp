@@ -98,11 +98,10 @@ void APlayerBase::BeginPlay()
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
-
-
-
-	//Test
 	TestRotator = FRotator::ZeroRotator;
+
+
+	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
 }
 
 // Called every frame
@@ -491,5 +490,6 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, DashDuration);
 	DOREPLIFETIME(APlayerBase, DashStartTime);
 	DOREPLIFETIME(APlayerBase, DashCurrentTime);
+	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
 }
 
