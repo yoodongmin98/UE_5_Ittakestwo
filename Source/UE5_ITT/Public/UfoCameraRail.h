@@ -17,6 +17,8 @@ class UE5_ITT_API AUfoCameraRail : public ACameraRig_Rail
 public:
 	AUfoCameraRail(const FObjectInitializer& ObjectInitializer);
 
+	virtual bool ShouldTickIfViewportsOnly() const override;
+
 	enum class Fsm
 	{
 		Wait,

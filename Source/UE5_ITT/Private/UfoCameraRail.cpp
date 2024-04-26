@@ -23,6 +23,11 @@ AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 	}
 }
 
+bool AUfoCameraRail::ShouldTickIfViewportsOnly() const
+{
+	return false;
+}
+
 
 void AUfoCameraRail::Tick(float DeltaTime)
 {
@@ -36,6 +41,7 @@ void AUfoCameraRail::BeginPlay()
 
 	if (true == HasAuthority())
 	{
+		FsmComp->ChangeState(Fsm::Wait);
 	}
 }
 
@@ -66,12 +72,11 @@ void AUfoCameraRail::SetupFsm()
 		[this](float DT)
 		{			
 			CurrentPositionOnRail += DT*0.1;
-			UE_LOG(LogTemp, Display, TEXT("Cur Rail Pos %f"), CurrentPositionOnRail);
+
 			CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail,ESplineCoordinateSpace::World));
 		},
 
 		[this]
 		{
 		});
-	FsmComp->ChangeState(Fsm::Wait);
 }
