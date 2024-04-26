@@ -159,9 +159,6 @@ private:
 		Phase1_Progress_ArcingProjectile_2,
 
 		Phase1_Progress_LaserBeam_3,
-		Phase1_Progress_LaserBeam_3_Destroy,
-		Phase1_Progress_ArcingProjectile_3,
-
 		Phase1_BreakThePattern,
 
 		CodyHolding_Enter,

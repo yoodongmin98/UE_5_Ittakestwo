@@ -494,7 +494,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 
 
-			UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_1"));
+			//UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_1"));
 		},
 
 		[this](float DT)
@@ -515,7 +515,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1_Destroy,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_1_Destroy"));
+			// UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_1_Destroy"));
 			SetDamage(CoreExplodeDamage);
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Laser_HitPod_Anim"), 1, false);
@@ -583,7 +583,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (2 == PatternDestroyCount)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_2_Destroy"));
+				// UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_2_Destroy"));
 				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2_Destroy);
 				return;
 			}
@@ -619,11 +619,61 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
+	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_2,
+		[this]
+		{
 
 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
+		},
+
+		[this](float DT)
+		{
+			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_3);
+			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
+			{
+				// UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_LaserBeam_3"));
+
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
+				return;
+			}
+
+			ArcingProjectileFireTime -= DT;
+			if (ArcingProjectileFireTime <= 0.0f)
+			{
+				FireArcingProjectile();
+				ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
+			}
+		},
+
+		[this]
+		{
+			ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
+		});
 
 
+	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_3,
+		[this]
+		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
+		},
 
+		[this](float DT)
+		{
+			if (3 == PatternDestroyCount)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_BreakThePattern"));
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
 
 
 

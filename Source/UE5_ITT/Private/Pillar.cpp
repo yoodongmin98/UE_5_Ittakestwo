@@ -274,7 +274,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::Boom,
 		[this]
 		{
-
+			EnergyCoreActor->Destroy();
 		},
 
 		[this](float DT)
