@@ -117,6 +117,10 @@ public:
 	UPROPERTY(VisibleDefaultsOnly)
 	TArray<AActor*> PlayerActors;
 
+	UPROPERTY(VisibleDefaultsOnly)
+	int32 CurrentArcingProjectileTargetIndex = 0;
+
+
 	UPROPERTY(BlueprintReadWrite)
 	float CoreExplodeDamage = 11.0f;
 

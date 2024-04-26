@@ -329,25 +329,27 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
-	++ArcingProjectileFireCount;
+	if (nullptr == FloorObject)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FloorObject nullptr"));
+	}
 
-	AActor* FloorActor = Cast<AActor>(GetFloor());
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
 	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 	if (nullptr != Projectile && nullptr != AIController)
 	{
 		FVector TargetLocation = FVector::ZeroVector;
-		if (ArcingProjectileFireCount % 2 == 0)
+		if (0 == CurrentArcingProjectileTargetIndex)
 		{
-			AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerCody")));
+			AActor* TargetActor = PlayerActors[0];
 			TargetLocation = TargetActor->GetActorLocation();
-			
+			++CurrentArcingProjectileTargetIndex;
 		}
-
-		else if (ArcingProjectileFireCount % 2 == 1)
+		else
 		{
-			AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerMay")));
+			AActor* TargetActor = PlayerActors[1];
 			TargetLocation = TargetActor->GetActorLocation();
+			CurrentArcingProjectileTargetIndex = 0;
 		}
 
 		Projectile->SetupTargetLocation(TargetLocation);
@@ -357,7 +359,7 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	Projectile->SetOwner(this);
 	if (Projectile != nullptr)
 	{
-		Projectile->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+		Projectile->AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
 }
 
