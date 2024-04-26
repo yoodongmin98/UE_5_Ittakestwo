@@ -81,6 +81,8 @@ public:
 	UInputAction* SprintAction;
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* TestAction;
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction* FlyMoveAction;
 
 
 	//Cody의 현재 state를 반환합니다.
@@ -282,6 +284,8 @@ public:
 
 	void CustomMove(const FInputActionInstance& _Instance);
 
+	void CustomFlyMove(const FInputActionInstance& _Instance);
+
 	UFUNCTION(Client,Reliable)
 	void ChangeClientDir(const FInputActionInstance& _Instance,FRotator _Rotator);
 	UFUNCTION(Server,Reliable, WithValidation)
@@ -422,7 +426,17 @@ public:
 	UPROPERTY(Replicated)
 	bool IsBig;
 
+	//Fly
 	bool IsFly = false;
+	FVector CurrentDirection;
+	float FlyingSpeed;
+
+
+
+
+
+
+
 
 	UPROPERTY(Replicated)
 	FRotator TestRotator;
