@@ -105,6 +105,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRatio);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserFireCount);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PatternDestroyCount);
+	
 }
 // Multicast 함수 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -468,7 +470,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				return;
 			}
 		},
@@ -483,7 +485,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress,
+	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -492,11 +494,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 체력이 67 이하, 33퍼센트 이하로 떨어졌다면 1페이즈 종료, 패턴파훼 (임시) 
-			if (CurrentHp <= 67.0f)
+			if (1 == PatternDestroyCount)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Change State PhaseProgress End"));
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				UE_LOG(LogTemp, Warning, TEXT("Change State Phase1_Progress_LaserBeam_1_Destroy"));
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1_Destroy);
 				return;
 			}
 		},
@@ -505,6 +506,80 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 
 		});
+
+	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1_Destroy,
+		[this]
+		{
+			SetDamage(CoreExplodeDamage);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Laser_HitPod_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
+			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase1_Progress_ArcingProjectile_1);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+
+
+
+	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_1,
+		[this]
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_Progress_ArcingProjectile_1"));
+
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
+		},
+
+		[this](float DT)
+		{
+			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_2);
+			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
+			{
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2);
+				return;
+			}
+
+			ArcingProjectileFireTime -= DT;
+			if (ArcingProjectileFireTime <= 0.0f)
+			{
+				FireArcingProjectile();
+				ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
+			}
+		},
+
+		[this]
+		{
+			ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
+		});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	FsmComp->CreateState(EBossState::Phase1_BreakThePattern,
 		[this]
@@ -751,7 +826,7 @@ void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 void AEnemyFlyingSaucer::SetupLaserTargetActor()
 {
 	// 메이, 코디, 메이 순으로 추후 변경
-	switch (LaserFireCount)
+	switch (PatternDestroyCount)
 	{
 	case 0:
 		for (AActor* Actor : PlayerActors)
@@ -785,4 +860,14 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 		}
 		break;
 	}
+}
+
+int32 AEnemyFlyingSaucer::GetFloorCurrentState()
+{
+	if (nullptr == FloorObject)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Floor Object is nullptr"));
+	}
+
+	return FloorObject->GetCurrentPhase();
 }

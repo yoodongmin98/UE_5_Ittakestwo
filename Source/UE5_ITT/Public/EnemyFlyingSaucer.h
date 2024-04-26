@@ -50,6 +50,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float ArcingProjectileFireTime = 3.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float ArcingProjectileMaxFireTime = 3.0f;
+
+
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_CreateEnergyChargeEffect();
 
@@ -103,13 +110,32 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	int32 LaserFireCount = 0;
-
-	// 이거 랜덤 타겟으로 변경해야함. 
+ 
 	UPROPERTY(VisibleDefaultsOnly)
 	class AActor* LaserTargetActor = nullptr;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	TArray<AActor*> PlayerActors;
+
+	UPROPERTY(BlueprintReadWrite)
+	float CoreExplodeDamage = 11.0f;
+
+	UFUNCTION(BlueprintCallable)
+	void SetDamage(const float Damage)
+	{
+		CurrentHp -= Damage;
+		if (CurrentHp <= 0.0f)
+		{
+			CurrentHp = 0.0f;
+		}
+	}
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	int32 PatternDestroyCount = 0;
+
+	UFUNCTION(BlueprintCallable)
+	void AddPatternDestoryCount() { ++PatternDestroyCount; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -120,7 +146,18 @@ private:
 		None,
 
 		Intro,						 
-		Phase1_Progress,			 
+		Phase1_Progress_LaserBeam_1,			
+		Phase1_Progress_LaserBeam_1_Destroy,
+		Phase1_Progress_ArcingProjectile_1,
+
+		Phase1_Progress_LaserBeam_2,			
+		Phase1_Progress_LaserBeam_2_Destroy,
+		Phase1_Progress_ArcingProjectile_2,
+
+		Phase1_Progress_LaserBeam_3,
+		Phase1_Progress_LaserBeam_3_Destroy,
+		Phase1_Progress_ArcingProjectile_3,
+
 		Phase1_BreakThePattern,
 
 		CodyHolding_Enter,
@@ -142,6 +179,9 @@ private:
 		Sequence,
 		Blueprint,
 	};
+
+	// 바닥상태값 받아오기
+	int32 GetFloorCurrentState();
 	
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
@@ -172,6 +212,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHp = 100.0f;
+
+	UPROPERTY(EditAnywhere)
+	float MaxHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)
