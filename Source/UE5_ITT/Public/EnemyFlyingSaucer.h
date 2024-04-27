@@ -282,17 +282,8 @@ private:
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
 
-	UFUNCTION(BlueprintCallable)
-	void ActivateCodyHoldingUIComponent();
-
-	UFUNCTION(BlueprintCallable)
-	void InActivateCodyHoldingUIComponent();
-
-	UFUNCTION(BlueprintCallable)
-	void ActivateMayLaserDestroyUIComponent();
-
-	UFUNCTION(BlueprintCallable)
-	void InActivateMayLaserDestroyUIComponent();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
 
 
 	// 오버랩 체크 관련 

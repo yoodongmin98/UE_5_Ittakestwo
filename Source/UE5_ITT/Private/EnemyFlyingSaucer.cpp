@@ -439,11 +439,11 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	CodyHoldingUIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("CodyHoldingUIComponent"));
 	CodyHoldingUIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("CodyUISocket"));
-	InActivateCodyHoldingUIComponent();
+	CodyHoldingUIComp->SetVisibility(false, true);
 
 	MayLaserDestroyUIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("MayLaserDestroyUIComponent"));
 	MayLaserDestroyUIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("MayUISocket"));
-	InActivateMayLaserDestroyUIComponent();
+	MayLaserDestroyUIComp->SetVisibility(false, true);
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -742,9 +742,15 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
 
+
 			// UI Component Activate
 			FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateCodyHoldingUIComponent, 4.5f, false);
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindUFunction(this, TEXT("Multicast_SetActivateUIComponent"), CodyHoldingUIComp, true, true);
+			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
+			
+			// 기존코드 
+			// GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateCodyHoldingUIComponent, 4.5f, false);
 
 			// OverlapActor Spawn : 변경예정
 			FTimerHandle TimerHandle2;
@@ -872,7 +878,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			KeyInputTime = KeyInputMaxTime;
 
 			// 여기들어왔을때 메이 UI On
-			ActivateMayLaserDestroyUIComponent();
+			Multicast_SetActivateUIComponent(MayLaserDestroyUIComp, true, true);
 		},
 
 		[this](float DT)
@@ -907,7 +913,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bIsKeyInput = false;
 			KeyInputTime = KeyInputMaxTime;
 
-			InActivateMayLaserDestroyUIComponent();
+			Multicast_SetActivateUIComponent(MayLaserDestroyUIComp, false, true);
 		});
 
 	FsmComp->CreateState(EBossState::CodyHolding_ChangeOfAngle_Reverse,
@@ -936,36 +942,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 }
 
-// 나중에 타이머핸들 인자전달하는법 체크해서 함수 네개 하나로 가능하도록 수정 예정.
-void AEnemyFlyingSaucer::ActivateCodyHoldingUIComponent()
+void AEnemyFlyingSaucer::Multicast_SetActivateUIComponent_Implementation(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate)
 {
-	if (nullptr != CodyHoldingUIComp)
+	if (nullptr != UIComponent)
 	{
-		CodyHoldingUIComp->SetVisibility(true, true);
-	}
-}
-
-void AEnemyFlyingSaucer::InActivateCodyHoldingUIComponent()
-{
-	if (nullptr != CodyHoldingUIComp)
-	{
-		CodyHoldingUIComp->SetVisibility(false, true);
-	}
-}
-
-void AEnemyFlyingSaucer::ActivateMayLaserDestroyUIComponent()
-{
-	if (nullptr != MayLaserDestroyUIComp)
-	{
-		MayLaserDestroyUIComp->SetVisibility(true, true);
-	}
-}
-
-void AEnemyFlyingSaucer::InActivateMayLaserDestroyUIComponent()
-{
-	if (nullptr != MayLaserDestroyUIComp)
-	{
-		MayLaserDestroyUIComp->SetVisibility(false, true);
+		UIComponent->SetVisibility(ParentUIActivate, ChildUIActivate);
 	}
 }
 
