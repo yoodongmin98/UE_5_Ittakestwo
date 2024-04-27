@@ -272,14 +272,28 @@ private:
 	class UFsmComponent* FsmComp = nullptr;
 
 	UPROPERTY(Replicated, EditDefaultsOnly)
-	class UInteractionUIComponent* UIComp = nullptr;
+	class UInteractionUIComponent* CodyHoldingUIComp = nullptr;
+
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	class UInteractionUIComponent* MayLaserDestroyUIComp = nullptr;
+
 
 	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
 
 	UFUNCTION(BlueprintCallable)
-	void ActivateUIComponent();
+	void ActivateCodyHoldingUIComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void InActivateCodyHoldingUIComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void ActivateMayLaserDestroyUIComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void InActivateMayLaserDestroyUIComponent();
+
 
 	// 오버랩 체크 관련 
 	UFUNCTION(BlueprintCallable)
