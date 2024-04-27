@@ -198,7 +198,7 @@ void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementat
 		// 코디이고.
 		if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
 		{
-			ACody* PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
+			PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
 
 			// 코디가 커진 상태인것도 체크 
 			bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
@@ -215,6 +215,7 @@ void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementat
 				UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding_Enter Start"));
 				FsmComp->ChangeState(EBossState::CodyHolding_Enter);
 				bIsCodyHoldingEnter = true;
+
 				return;
 			}
 		}
@@ -247,6 +248,52 @@ void AEnemyFlyingSaucer::Multicast_AttachToMoonBaboonActorAndFloor_Implementatio
 	EnemyMoonBaboon->GetMesh()->SetVisibility(true);
 	EnemyMoonBaboon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("ChairSocket"));
 	AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
+}
+
+void AEnemyFlyingSaucer::Multicast_SetFocusHoldingCody_Implementation()
+{
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	if (nullptr != AIController)
+	{
+		UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+		if (nullptr != BlackboardComp)
+		{
+			AIController->SetFocus(Cast<AActor>(PlayerCody));
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::Multicast_UnPossess_Implementation()
+{
+	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+	if (nullptr != AIController)
+	{
+		AIController->UnPossess();
+	}
+}
+
+
+void AEnemyFlyingSaucer::SetCodyHoldingEnter_CodyLocation()
+{
+	if (true == bIsCodyHoldingLerpEnd)
+	{
+		return;
+	}
+
+
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+	CodyLerpRatio += DeltaTime / 4.0f;
+	if (CodyLerpRatio >= 1.0f)
+	{
+		CodyLerpRatio = 1.0f;
+		bIsCodyHoldingLerpEnd = true;
+	}
+
+	FVector StartLocation = PlayerCody->GetActorLocation();
+	FVector EndLocation = FVector(CodyLerpEndLocation.X, CodyLerpEndLocation.Y, StartLocation.Z);
+
+	FVector TargetLocation = FMath::Lerp(StartLocation, EndLocation, CodyLerpRatio);
+	PlayerCody->SetActorLocation(TargetLocation);
 }
 
 
@@ -472,7 +519,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+
+				// 보스 1페이즈 파훼 후 테스트 코드
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+
+
+				// 기존코드 
+				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				return;
 			}
 		},
@@ -717,25 +770,35 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("CodyHolding_Enter Start"));
+			// Multicast_SetFocusHoldingCody();
+			// 코디도 보스방향을 쳐다봐야함
+			// PlayerCody->GetController();
+
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
+			UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
 		},
 
 		[this](float DT)
 		{
 			// 둘다 애니메이션 종료됐으면, Low, 애니메이션 반복재생상태로 변경
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
-			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
+			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying() && true == bIsCodyHoldingLerpEnd)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding_Low"));
 				FsmComp->ChangeState(EBossState::CodyHolding_Low);
 				return;
 			}
+
+			SetCodyHoldingEnter_CodyLocation();
 		},
 
 		[this]
 		{
 			bIsCodyHoldingEnter = false;
+			bIsCodyHoldingLerpEnd = false;
+
+			Multicast_UnPossess();
 		});
 
 	// 코디가 들고 있는 상태고 
@@ -958,6 +1021,8 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 		break;
 	}
 }
+
+
 
 int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 {
