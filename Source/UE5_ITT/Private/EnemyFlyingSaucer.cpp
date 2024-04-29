@@ -23,6 +23,7 @@
 #include "OverlapCheckActor.h"
 #include "PlayerBase.h"
 #include "Cody.h"
+#include "May.h"
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
 
@@ -109,6 +110,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserFireCount);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PatternDestroyCount);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
 }
 // Multicast 함수 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -823,7 +825,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			bool IsPressed = OverlapCheckActor->GetCurrentOverlapPlayer()->GetIsInteract();
+			bool IsPressed = PlayerCody->GetIsInteract();
 			if (true == IsPressed)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle);
@@ -883,21 +885,44 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle_Reverse);
 				return;
 			}
-
-			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-			if (nullptr != OverlapPlayer)
+				
+			bool CodyInput = PlayerCody->GetIsInteract();
+			if (true == CodyInput)
 			{
-				if (OverlapPlayer->ActorHasTag(TEXT("Cody")))
-				{
-					bool CheckInput = OverlapPlayer->GetIsInteract();
-					if (true == CheckInput)
-					{
-						//UE_LOG(LogTemp, Warning, TEXT("Key Input : true"));
-						KeyInputTime = KeyInputAdditionalTime;
-					}
-				}
+				//UE_LOG(LogTemp, Warning, TEXT("Key Input : true"));
+				KeyInputTime = KeyInputAdditionalTime;
 			}
 
+			if (2.5f <= FsmComp->GetStateLiveTime())
+			{
+				FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
+				return;
+			}
+
+
+			// 현재 메이 인터랙트 인풋바인딩 제대로 동작안해서 테스트불가능 임시로 2초뒤에 페이즈변경하는 형태로 테스트.
+			/*UE_LOG(LogTemp, Warning, TEXT("CodyHolding_InputKey Tick"));
+			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();*/
+			/*if (OverlapPlayer != nullptr)
+			{
+				if (true == OverlapPlayer->ActorHasTag("May"))
+				{
+					
+					PlayerMay = Cast<AMay>(OverlapPlayer);
+					bool MayInput = PlayerMay->GetIsInteract();
+					if (true == MayInput)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Key Input True"));
+						FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
+						return;
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Key Input False"));
+					}
+				}
+			}*/
+				
 			KeyInputTime -= DT;
 		},
 
@@ -932,6 +957,25 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			
+		});
+
+	FsmComp->CreateState(EBossState::Phase1_ChangePhase,
+		[this]
+		{
+
+
+			UE_LOG(LogTemp, Warning, TEXT("Phase1_ChangePhase Start"));
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			
+		},
+
+		[this]
+		{
+
 		});
 }
 

@@ -167,6 +167,8 @@ private:
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
 
+		Phase1_ChangePhase,
+
 
 
 		FireHomingRocket,
@@ -346,4 +348,7 @@ private:
 
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
+
+	UPROPERTY(Replicated)
+	class AMay* PlayerMay = nullptr;
 };
