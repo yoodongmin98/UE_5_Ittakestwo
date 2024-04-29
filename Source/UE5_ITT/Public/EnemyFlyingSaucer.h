@@ -192,7 +192,7 @@ private:
 	void Multicast_ChangeAnimationMoonBaboon(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_CheckCodyKeyPressedAndChangeState();
+	void Multicast_CheckCodyKeyPressedAndChangeState(const bool bIsInput);
 
 	void DrawDebugMesh();
 
@@ -320,7 +320,6 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	bool bIsCodyHoldingEnter = false;
 
-
 	// 레이저 추적 로직 관련
 	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 	void SavePreviousTargetLocation();
@@ -345,5 +344,6 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UnPossess();
 
+	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
 };

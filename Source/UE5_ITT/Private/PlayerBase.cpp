@@ -483,16 +483,14 @@ void APlayerBase::SitEnd()
 	CanSit = true;
 	GetCharacterMovement()->GravityScale = DefaultGravityScale;
 }
-void APlayerBase::InteractInput()
+void APlayerBase::InteractInput_Implementation ()
 {
 	IsInteract = true;
 }
-void APlayerBase::InteractNoneInput()
+void APlayerBase::InteractNoneInput_Implementation()
 {
 	IsInteract = false;
 }
-
-
 
 //////////////FSM//////////
 void APlayerBase::ChangeState(Cody_State _State)

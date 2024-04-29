@@ -303,7 +303,9 @@ public:
 	virtual void DashEnd() {};
 	void JumpDash();
 	void DashNoneInput();
+	UFUNCTION(Server, Reliable)
 	void InteractInput();
+	UFUNCTION(Server, Reliable)
 	void InteractNoneInput();
 	virtual void SprintInput() {};
 	virtual void SprintNoneInput() {};

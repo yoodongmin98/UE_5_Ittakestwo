@@ -108,7 +108,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserFireCount);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PatternDestroyCount);
-	
+	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 }
 // Multicast 함수 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -187,42 +187,22 @@ void AEnemyFlyingSaucer::Multicast_ChangeAnimationMoonBaboon_Implementation(cons
 	}
 }
 
-void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementation()
+void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementation(const bool bIsInput)
 {
-	if (nullptr == OverlapCheckActor)
+	CodySize Size = PlayerCody->GetCodySize();
+
+	// 현재 인터랙트 키 눌렀는지 체크
+	if (true == bIsInput && CodySize::BIG == Size)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding_Enter Start"));
+		FsmComp->ChangeState(EBossState::CodyHolding_Enter);
+		bIsCodyHoldingEnter = true;
+
 		return;
 	}
-
-	APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-	if (nullptr != CurrentOverlapPlayer)
-	{
-		// 코디이고.
-		if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
-		{
-			PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
-
-			// 코디가 커진 상태인것도 체크 
-			bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
-			CodySize Size = PlayerCody->GetCodySize();
-
-			if (false == bIsInteract)
-			{
-				// UE_LOG(LogTemp, Warning, TEXT("Player Interact false"));
-			}
-
-			// 현재 인터랙트 키 눌렀는지 체크
-			if (true == bIsInteract && CodySize::BIG == Size)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State : CodyHolding_Enter Start"));
-				FsmComp->ChangeState(EBossState::CodyHolding_Enter);
-				bIsCodyHoldingEnter = true;
-
-				return;
-			}
-		}
-	}
 }
+	
+
 
 void AEnemyFlyingSaucer::Multicast_CreateEnergyChargeEffect_Implementation()
 {
@@ -759,15 +739,28 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 함수 내부에서 코디 키 체크 후 코디홀딩상태로 변경, 코디위치 고정시켜줘야함. 
-			// 플레이어 Get함수 서버연동필요, 임시로 2초후에 state 변경으로 ㄱㄱ
-			Multicast_CheckCodyKeyPressedAndChangeState();
-			/*if (2.0f <= FsmComp->GetStateLiveTime())
+			if (nullptr == OverlapCheckActor)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State : Cody Holding"));
-				FsmComp->ChangeState(EBossState::CodyHolding);
 				return;
-			}*/
+			}
+
+			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (nullptr != CurrentOverlapPlayer)
+			{
+				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				{
+					PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
+					if (nullptr != PlayerCody)
+					{
+						// 코디가 커진 상태인것도 체크 
+						bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
+						if (true == bIsInteract)
+						{
+							Multicast_CheckCodyKeyPressedAndChangeState(bIsInteract);
+						}
+					}
+				}
+			}
 		},
 
 		[this]
