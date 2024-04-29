@@ -4,6 +4,7 @@
 #include "EjectButton.h"
 #include "Components/StaticMeshComponent.h"
 #include "FsmComponent.h"
+#include "Cody.h"
 
 // Sets default values
 AEjectButton::AEjectButton()
@@ -32,6 +33,7 @@ void AEjectButton::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Wait);
+		SM_PushComp->OnComponentHit.AddDynamic(this, &AEjectButton::OnHit);
 	}
 }
 
@@ -47,13 +49,67 @@ void AEjectButton::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			UE_LOG(LogTemp, Display, TEXT("TestButton"));
+			
 		},
 
 		[this]
 		{
 		}
 	);
+	
+	FsmComp->CreateState(Fsm::On,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Push,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::End,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
+}
+
+void AEjectButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	ACody* Cody = Cast<ACody>(OtherActor);
+	if (Cody!= nullptr&& Cody->GetIsSit())
+	{
+		UE_LOG(LogTemp, Display, TEXT("OnHit"));
+	}
 }
 
 // Called every frame

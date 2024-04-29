@@ -38,4 +38,7 @@ private:
 	class UFsmComponent* FsmComp = nullptr;
 
 	void SetupFsm();
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };
