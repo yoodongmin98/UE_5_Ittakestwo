@@ -23,6 +23,8 @@ AEjectButton::AEjectButton()
 		SetRootComponent(SM_BaseComp);
 		SM_PushComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_PushComp"));
 		SM_PushComp->SetupAttachment(SM_BaseComp);
+		SM_CollisionComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_CollisionComp"));
+		SM_CollisionComp->SetupAttachment(SM_PushComp);
 	}
 }
 
@@ -32,8 +34,14 @@ void AEjectButton::BeginPlay()
 	Super::BeginPlay();
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::Wait);
-		SM_PushComp->OnComponentHit.AddDynamic(this, &AEjectButton::OnHit);
+		FsmComp->ChangeState(Fsm::OnWait);
+		SM_CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AEjectButton::OnOverlapBegin);
+		SM_CollisionComp->OnComponentEndOverlap.AddDynamic(this, &AEjectButton::OnOverlapEnd);
+		PlayerWaitPos = SM_PushComp->GetRelativeLocation();
+		MovePos = PlayerWaitPos;
+		MovePos.Z -= 30.f;
+		PushPos = PlayerWaitPos;
+		PushPos.Z -= 90.f;
 	}
 }
 
@@ -41,7 +49,7 @@ void AEjectButton::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::Wait,
+	FsmComp->CreateState(Fsm::OnWait,
 		[this]
 		{
 
@@ -49,14 +57,84 @@ void AEjectButton::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			
+			if (bPush == true)
+			{
+				FsmComp->ChangeState(Fsm::Push);
+				return;
+			}
+			if (bOnPlayer == true)
+			{
+				FsmComp->ChangeState(Fsm::On);
+				return;
+			}
+
 		},
 
 		[this]
 		{
 		}
 	);
-	
+	FsmComp->CreateState(Fsm::OffWait,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+			if (bPush == true)
+			{
+				FsmComp->ChangeState(Fsm::Push);
+				return;
+			}
+			if (bOnPlayer == false)
+			{
+				FsmComp->ChangeState(Fsm::Off);
+				return;
+			}
+
+		},
+
+		[this]
+		{
+		}
+	);
+	FsmComp->CreateState(Fsm::Off,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+			if (bPush == true)
+			{
+				FsmComp->ChangeState(Fsm::Push);
+				return;
+			}
+			if (true == bOnPlayer)
+			{
+				FsmComp->ChangeState(Fsm::On);
+				return;
+			}
+
+			MoveRatio -= DeltaTime*10.f;
+			if (MoveRatio <= 0.f)
+			{
+				MoveRatio = 0.f;
+				SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
+				FsmComp->ChangeState(Fsm::OnWait);
+				return;
+			}
+
+			SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
+		},
+
+		[this]
+		{
+		}
+	);
+
 	FsmComp->CreateState(Fsm::On,
 		[this]
 		{
@@ -65,21 +143,52 @@ void AEjectButton::SetupFsm()
 
 		[this](float DeltaTime)
 		{
+			if (bPush == true)
+			{
+				FsmComp->ChangeState(Fsm::Push);
+				return;
+			}
+
+			if (false == bOnPlayer)
+			{
+				FsmComp->ChangeState(Fsm::Off);
+				return;
+			}
+
+
+			MoveRatio += DeltaTime * 10.f;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
+				FsmComp->ChangeState(Fsm::OffWait);
+				return;
+			}
+
+			SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, MovePos, MoveRatio));
 		},
 
 		[this]
 		{
 		}
 	);
-
 	FsmComp->CreateState(Fsm::Push,
 		[this]
 		{
-
 		},
 
 		[this](float DeltaTime)
 		{
+			MoveRatio += DeltaTime * 10.f;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, PushPos, MoveRatio));
+				FsmComp->ChangeState(Fsm::End);
+				return;
+			}
+
+			SM_PushComp->SetRelativeLocation(FMath::Lerp(PlayerWaitPos, PushPos, MoveRatio));
 		},
 
 		[this]
@@ -90,11 +199,11 @@ void AEjectButton::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
-
 		},
 
 		[this](float DeltaTime)
 		{
+			UE_LOG(LogTemp, Display, TEXT("End"));
 		},
 
 		[this]
@@ -103,13 +212,26 @@ void AEjectButton::SetupFsm()
 	);
 }
 
-void AEjectButton::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEjectButton::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Display, TEXT("OverlapBegin"));
 	ACody* Cody = Cast<ACody>(OtherActor);
-	if (Cody!= nullptr&& Cody->GetIsSit())
+	if (Cody!=nullptr)
 	{
-		UE_LOG(LogTemp, Display, TEXT("OnHit"));
+		if (Cody->GetIsSit())
+		{
+			bPush = true;
+		}
+		else
+		{
+			bOnPlayer = true;
+		}
 	}
+}
+
+void AEjectButton::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	bOnPlayer = false;
 }
 
 // Called every frame
