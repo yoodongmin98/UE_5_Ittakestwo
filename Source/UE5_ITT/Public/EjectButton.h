@@ -17,9 +17,11 @@ public:
 
 	enum class Fsm
 	{
-		Wait,
+		OnWait,
 		On,
+		Off,
 		Push,
+		OffWait,
 		End
 	};
 public:	
@@ -35,10 +37,23 @@ private:
 	class UStaticMeshComponent* SM_BaseComp = nullptr;
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* SM_PushComp = nullptr;
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* SM_CollisionComp = nullptr;
 	class UFsmComponent* FsmComp = nullptr;
+
+	bool bOnPlayer = false;
+	bool bPush = false;
+	float MoveRatio = 0.f;
+	FVector PlayerWaitPos = FVector::Zero();
+	FVector MovePos = FVector::Zero();
+	FVector PushPos = FVector::Zero();
+
 
 	void SetupFsm();
 
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
