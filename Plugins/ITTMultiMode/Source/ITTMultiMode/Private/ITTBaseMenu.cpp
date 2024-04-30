@@ -126,3 +126,20 @@ void UITTBaseMenu::OnStartSession(bool bWasSuccessful)
 void UITTBaseMenu::OnDestroySession(bool bWasSuccessful)
 {
 }
+
+void UITTBaseMenu::CreateSubsystemSession()
+{
+	if (ITTSessionSubsystem)
+	{
+		ITTSessionSubsystem->CreateSession(NumPublicConnections, MatchType);
+	}
+}
+
+
+void UITTBaseMenu::JoinSubsystemSession()
+{
+	if (ITTSessionSubsystem)
+	{
+		ITTSessionSubsystem->FindSession(10000);
+	}
+}
