@@ -140,6 +140,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddPatternDestoryCount() { ++PatternDestroyCount; }
 
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector PrevAnimBoneLocation = FVector::ZeroVector;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -167,6 +170,8 @@ private:
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
 
+		Phase1_ChangePhase,
+		Phase2_Rotate,
 
 
 		FireHomingRocket,
@@ -330,12 +335,12 @@ private:
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	
 	// 이동 시켜서 고정시킬 코디 위치
-	FVector CodyLerpEndLocation = FVector(-72.0f, 730.0f, 0.0f);
+	FVector CodyLerpEndLocation = FVector(393.0f, -414.0f, 376.0f);
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
 	// 러프 완료를 체크할 bool 
 	bool bIsCodyHoldingLerpEnd = false;
-
+	
 	void SetCodyHoldingEnter_CodyLocation();
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -346,4 +351,9 @@ private:
 
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
+
+	UPROPERTY(Replicated)
+	class AMay* PlayerMay = nullptr;
+
+	
 };
