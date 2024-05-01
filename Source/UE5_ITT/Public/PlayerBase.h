@@ -266,7 +266,6 @@ public:
 		return IsFly;
 	}
 
-
 	//////////////////////////////////////////
 	void ChangeState(Cody_State _State);
 	//마우스 돌아가는 스피드
@@ -439,6 +438,21 @@ public:
 	FVector CurrentDirection;
 	float FlyingSpeed;
 
+
+	//GravityPath , Only May
+	bool bOnGravityPath = false;
+
+	FRotator GravityRotator = FRotator::ZeroRotator;
+
+	void SetOnGravityPath(bool bValue)
+	{
+		bOnGravityPath = bValue;
+	}
+
+	void SetGravityRotator(FRotator RotParam)
+	{
+		GravityRotator = RotParam;
+	}
 
 
 
