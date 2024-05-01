@@ -47,6 +47,10 @@ void AGravityPath::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (PlayerMay!= nullptr)
+	{
+		PlayerMay->SetOnGravityPath(true);
+	}
 }
 
 // Called every frame
@@ -61,25 +65,28 @@ void AGravityPath::Tick(float DeltaTime)
 			//FVector Direction = MeshComp->getlocation//PlayerMay->GetActorLocation()
 			//PlayerMay->GetCharacterMovement()->SetGravityDirection()
 
-			FVector StartPos = PivotComp->GetComponentLocation();
-			StartPos.Y = PlayerMay->GetActorLocation().Y;
-			FVector EndPos = PlayerMay->GetActorLocation() - StartPos;
+			FVector StartPos = PlayerMay->GetActorLocation();
+			FVector EndPos = StartPos *-PlayerMay->GetActorUpVector();
 
 			UE_LOG(LogTemp, Display, TEXT("StartPos %s"), *StartPos.ToString());
 			UE_LOG(LogTemp, Display, TEXT("EndPos %s"), *EndPos.ToString());
-			UE_LOG(LogTemp, Display, TEXT("ActorLocation %s"), *PlayerMay->GetActorLocation().ToString());
+			UE_LOG(LogTemp, Display, TEXT("Foward %s"), *PlayerMay->GetActorForwardVector().ToString());
 
 			bool IsHit = false;
 			FCollisionQueryParams ColQueryParam;
 			ColQueryParam.AddIgnoredActor(PlayerMay);
-			EndPos.Normalize();
-			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, StartPos+EndPos *1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
+			//EndPos.Normalize();
+			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, EndPos *1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
 
 			DrawDebugLine(GetWorld(), StartPos, EndPos * 1000.f,FColor::Red,false,1.f,0,1.f);
-			if (IsHit)
+			if (IsHit&& HitResult.GetActor() == this)
 			{
-
+				PlayerMay->SetOnGravityPath(true);
 				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
+				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
+				FRotator SettingRot = (HitResult.ImpactNormal).Rotation();
+				SettingRot.Pitch -= 90.f;
+				PlayerMay->SetGravityRotator(SettingRot);
 			}
 		}
 	}

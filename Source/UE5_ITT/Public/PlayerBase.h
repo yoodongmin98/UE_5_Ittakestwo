@@ -443,7 +443,7 @@ public:
 	bool bOnGravityPath = false;
 
 	FRotator GravityRotator = FRotator::ZeroRotator;
-
+	
 	void SetOnGravityPath(bool bValue)
 	{
 		bOnGravityPath = bValue;
