@@ -25,6 +25,7 @@ protected:
 
 
 private:
+	//UPROPERTY()
 	class UBoxComponent* BoxComp = nullptr;
 	class UStaticMeshComponent* MeshComp = nullptr;
 
