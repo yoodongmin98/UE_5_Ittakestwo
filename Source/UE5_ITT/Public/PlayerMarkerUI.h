@@ -32,4 +32,8 @@ private:
     bool bIsOwner;
 
     float DistanceThreshold;
+
+    bool IsRenderingWidget(APlayerController* _Player);
+
+    FVector WidgetDefaultLocation;
 };

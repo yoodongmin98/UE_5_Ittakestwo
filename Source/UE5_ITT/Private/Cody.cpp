@@ -7,11 +7,14 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerMarkerUI.h"
 
 // Sets default values
 ACody::ACody()
 {
 	Tags.Add(FName("Cody"));
+	MarkerUIWidget = CreateDefaultSubobject<UPlayerMarkerUI>(TEXT("WidgetComponent"));
+	MarkerUIWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +34,8 @@ void ACody::BeginPlay()
 	
 	AActor* FoundBoss = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
 	EnemyBoss = Cast<AEnemyFlyingSaucer>(FoundBoss);
+	MarkerUIWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 130.0f));
+
 }
 
 // Called every frame
