@@ -12,6 +12,7 @@
 #include "Floor.h"
 #include "FsmComponent.h"
 #include "Cody.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AHomingRocket::AHomingRocket()
@@ -37,8 +38,14 @@ AHomingRocket::AHomingRocket()
 
 		SetupFsmComponent();
 	}
+}
 
-	
+void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	DOREPLIFETIME(AHomingRocket, FireEffectComp);
 }
 
 // Called when the game starts or when spawned
@@ -55,8 +62,6 @@ void AHomingRocket::BeginPlay()
 
 void AHomingRocket::Multicast_SpawnDestroyEffect_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Multicast_CreateDestroyEffect_Implementation"));
-
 	FVector SettingLocation = GetActorLocation();
 	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
 	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
@@ -149,14 +154,15 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
-			FireEffectComp->SetActive(false, true);
+			Multicast_ActivateFireEffectComponent(false);
+			
 			// UE_LOG(LogTemp, Warning, TEXT("Start Player EquipWait"));
 		},
 
 		[this](float DT)
 		{
 			// 대기상태일 때 플레이어 키 눌렸는지 확인하여 상태변경
-			/*if (true == bIsPlayerOverlap && nullptr != OverlapActor)
+			if (true == bIsPlayerOverlap && nullptr != OverlapActor)
 			{
 				APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
 				bool KeyCheck = PlayerBase->GetIsInteract();
@@ -166,7 +172,7 @@ void AHomingRocket::SetupFsmComponent()
 					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 					return;
 				}
-			}*/
+			}
 		},
 
 		[this]
@@ -177,38 +183,38 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
+			UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
 
-			//if (nullptr != OverlapActor)
-			//{
-			//	bIsPlayerEquip = true;
-			//	UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
+			if (nullptr != OverlapActor)
+			{
+				bIsPlayerEquip = true;
+				UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
 
-			//	RocketMeshComp->SetSimulatePhysics(false);
-			//	RocketMeshComp->SetEnableGravity(false);
-			//	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
-			//	
+				RocketMeshComp->SetSimulatePhysics(false);
+				RocketMeshComp->SetEnableGravity(false);
+				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
+				
 
-			//	USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
-			//	if (nullptr != ActorMesh)
-			//	{
-			//		SetActorRelativeLocation(FVector::ZeroVector);
-			//		RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-			//		/*SetActorRelativeRotation(FRotator::ZeroRotator);
-			//		RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
+				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
+				if (nullptr != ActorMesh)
+				{
+					SetActorRelativeLocation(FVector::ZeroVector);
+					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+					/*SetActorRelativeRotation(FRotator::ZeroRotator);
+					RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
 
-			//		AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("TestRocketSocket"));
-			//		this->SetOwner(OverlapActor);
-			//	
-			//	}
-			//	
-			//	UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
-			//}
+					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
+					this->SetOwner(OverlapActor);
+				
+				}
+				
+				UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
+			}
 		},
 
 		[this](float DT)
 		{
-			/*AActor* ParentActor = GetAttachParentActor();
+			AActor* ParentActor = GetAttachParentActor();
 			if (nullptr == ParentActor)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
@@ -220,8 +226,7 @@ void AHomingRocket::SetupFsmComponent()
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Player Equip"));
 				}
-				
-			}*/
+			}
 		},
 
 		[this]
@@ -231,7 +236,6 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("RocketState : Destroy"));
 			Multicast_SpawnDestroyEffect();
 			DestroyRocket();
 		},
@@ -259,6 +263,11 @@ void AHomingRocket::Tick(float DeltaTime)
 		
 
 	}
+}
+
+void AHomingRocket::Multicast_ActivateFireEffectComponent_Implementation(const bool bIsActivate)
+{
+	FireEffectComp->SetActive(bIsActivate, true);
 }
 
 bool AHomingRocket::IsMaxFloorDistance()

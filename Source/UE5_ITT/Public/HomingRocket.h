@@ -27,6 +27,8 @@ public:
 		}
 	}
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -85,8 +87,11 @@ private:
 	bool bIsActive = true;
 
 	// 파티클
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated)
 	class UNiagaraComponent* FireEffectComp = nullptr;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ActivateFireEffectComponent(const bool bIsActivate);
 	
 	// 파티클
 	UPROPERTY(EditDefaultsOnly)
