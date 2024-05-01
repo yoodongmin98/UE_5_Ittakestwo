@@ -32,7 +32,7 @@ enum class Cody_State : uint8
 };
 
 UCLASS()
-class UE5_ITT_API APlayerBase : public ANetPlayerBase
+class UE5_ITT_API APlayerBase : public ACharacter
 {
 	GENERATED_BODY()
 	UInputComponent* Input;

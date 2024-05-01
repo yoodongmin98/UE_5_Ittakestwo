@@ -143,3 +143,21 @@ void UITTBaseMenu::JoinSubsystemSession()
 		ITTSessionSubsystem->FindSession(10000);
 	}
 }
+
+void UITTBaseMenu::MenuTearDown()
+{
+	RemoveFromParent();
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			// Input Mode : UIOnly -> GameOnly
+			FInputModeGameOnly InputModeData;
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(false);
+		}
+	}
+}
+

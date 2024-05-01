@@ -42,4 +42,6 @@ private:
 	FString MatchType{ TEXT("FreeForAll") };
 	FString PathToLevel{ TEXT("/Game/ThirdPerson/Maps/Lobby") };
 	
+
+	void MenuTearDown();
 };
