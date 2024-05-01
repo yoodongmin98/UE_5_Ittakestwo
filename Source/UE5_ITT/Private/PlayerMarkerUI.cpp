@@ -11,6 +11,7 @@ UPlayerMarkerUI::UPlayerMarkerUI()
     PrimaryComponentTick.bCanEverTick = true;
     PlayerMarkerWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("NearWidgetComponent"));
     bIsOwner = false;
+    DistanceThreshold = 2500.0f;
 }
 void UPlayerMarkerUI::BeginPlay()
 {
@@ -25,16 +26,7 @@ void UPlayerMarkerUI::BeginPlay()
     }
     // Set widget space to screen
     PlayerMarkerWidget->SetWidgetSpace(EWidgetSpace::Screen);
-}
-// Override Tick function
-void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    if (true == bIsOwner)
-    {
-        return;
-    }
-    // Check if the player marker widget is valid
+
     if (PlayerMarkerWidget)
     {
 
@@ -50,11 +42,42 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
                 // Hide the widget if the owner is the same as the player controller
                 SetVisibility(false, true);
                 bIsOwner = true;
+                PrimaryComponentTick.bCanEverTick = false;
+
             }
         }
-        // Perform your custom logic here
-        // For example, update the widget based on some condition
-        // PlayerMarkerWidget->SetVisibility(ESlateVisibility::Visible); // Example code
 
+    }
+}
+// Override Tick function
+void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (true == bIsOwner)
+    {
+        return;
+    }
+    // Check if the player marker widget is valid
+    
+    APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+    if (!PlayerPawn || PlayerPawn->IsPendingKill())
+    {
+        return;
+    }
+
+    FVector PlayerLocation = PlayerPawn->GetActorLocation();
+    FVector SceneComponentLocation = GetComponentLocation();
+    float Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
+
+    // Toggle widget visibility based on distance threshold
+    if (Distance < DistanceThreshold)
+    {
+        // Player is near, show near widget and hide far widget
+        PlayerMarkerWidget->SetVisibility(false);
+    }
+    else
+    {
+        // Player is far, hide near widget and show far widget
+        PlayerMarkerWidget->SetVisibility(true);
     }
 }

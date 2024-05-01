@@ -30,4 +30,6 @@ private:
     UWidgetComponent* PlayerMarkerWidget;
 
     bool bIsOwner;
+
+    float DistanceThreshold;
 };
