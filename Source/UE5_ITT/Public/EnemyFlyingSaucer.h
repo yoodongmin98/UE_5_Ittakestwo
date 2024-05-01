@@ -339,7 +339,7 @@ private:
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	
 	// 이동 시켜서 고정시킬 코디 위치
-	FVector CodyLerpEndLocation = FVector(393.0f, -414.0f, 376.0f);
+	FVector CodyLerpEndLocation = FVector(462.84f, -530.07f, 376.0f);
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
 	// 러프 완료를 체크할 bool 

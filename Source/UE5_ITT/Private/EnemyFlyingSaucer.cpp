@@ -261,7 +261,7 @@ void AEnemyFlyingSaucer::SetCodyHoldingEnter_CodyLocation()
 	}
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
-	CodyLerpRatio += DeltaTime / 4.0f;
+	CodyLerpRatio += DeltaTime;
 	if (CodyLerpRatio >= 1.0f)
 	{
 		CodyLerpRatio = 1.0f;
@@ -1024,11 +1024,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				TestActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 				TestActor->SetActorRelativeLocation(RotatePivotVector);*/
 				
-				
 				bIsCorretLocation = true;
 			}
-
-			// 돌아가는거 적용하고 미사일발사 
 		},
 
 		[this]
