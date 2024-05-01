@@ -282,6 +282,9 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UInteractionUIComponent* MayLaserDestroyUIComp = nullptr;
 
+	UPROPERTY(Replicated, EditDefaultsOnly)
+	class URotatingMovementComponent* RotatingComp = nullptr;
+
 
 	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
@@ -289,6 +292,9 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetActivateRotatingComponent(bool bIsActive);
 
 
 	// 오버랩 체크 관련 
@@ -300,8 +306,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
-
-	
 
 	// 보스 공격 생성 지점 컴포넌트 
 	UPROPERTY(Replicated, EditDefaultsOnly)
@@ -335,7 +339,7 @@ private:
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	
 	// 이동 시켜서 고정시킬 코디 위치
-	FVector CodyLerpEndLocation = FVector(393.0f, -414.0f, 376.0f);
+	FVector CodyLerpEndLocation = FVector(462.84f, -530.07f, 376.0f);
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
 	// 러프 완료를 체크할 bool 
@@ -356,4 +360,8 @@ private:
 	class AMay* PlayerMay = nullptr;
 
 	
+	bool bIsCorretLocation = false;
+	FVector RotatePivotVector = FVector(3959.88f, 60.44f, 0.0f);
+	float HomingRocketFireTime = 0.0f;
+	float HomingRocketCoolTime = 12.0f;
 };
