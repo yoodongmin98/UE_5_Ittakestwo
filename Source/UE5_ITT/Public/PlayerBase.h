@@ -259,6 +259,12 @@ public:
 	{
 		return IsBig;
 	}
+	//Player가 Fly 상태인지를 반환합니다
+	UFUNCTION(BlueprintCallable)
+	inline bool GetIsFly() const
+	{
+		return IsFly;
+	}
 
 
 	//////////////////////////////////////////
@@ -432,7 +438,6 @@ public:
 	bool IsFly = false;
 	FVector CurrentDirection;
 	float FlyingSpeed;
-
 
 
 
