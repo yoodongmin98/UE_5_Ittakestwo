@@ -20,6 +20,10 @@ AGravityPath::AGravityPath()
 		MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 		RootComponent = MeshComp;
 		BoxComp->SetupAttachment(MeshComp);
+
+		PivotComp = CreateDefaultSubobject<USceneComponent>(TEXT("PivotComp"));;
+		PivotComp->SetupAttachment(MeshComp);
+		PivotComp->SetRelativeLocation(FVector(400.f, 0.f, 400.f));
 	}
 }
 
@@ -32,6 +36,7 @@ void AGravityPath::BeginPlay()
 	{
 		BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
 		BoxComp->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
+		
 	}
 }
 
@@ -55,6 +60,27 @@ void AGravityPath::Tick(float DeltaTime)
 		{
 			//FVector Direction = MeshComp->getlocation//PlayerMay->GetActorLocation()
 			//PlayerMay->GetCharacterMovement()->SetGravityDirection()
+
+			FVector StartPos = PivotComp->GetComponentLocation();
+			StartPos.Y = PlayerMay->GetActorLocation().Y;
+			FVector EndPos = PlayerMay->GetActorLocation() - StartPos;
+
+			UE_LOG(LogTemp, Display, TEXT("StartPos %s"), *StartPos.ToString());
+			UE_LOG(LogTemp, Display, TEXT("EndPos %s"), *EndPos.ToString());
+			UE_LOG(LogTemp, Display, TEXT("ActorLocation %s"), *PlayerMay->GetActorLocation().ToString());
+
+			bool IsHit = false;
+			FCollisionQueryParams ColQueryParam;
+			ColQueryParam.AddIgnoredActor(PlayerMay);
+			EndPos.Normalize();
+			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, StartPos+EndPos *1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
+
+			DrawDebugLine(GetWorld(), StartPos, EndPos * 1000.f,FColor::Red,false,1.f,0,1.f);
+			if (IsHit)
+			{
+
+				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
+			}
 		}
 	}
 }

@@ -25,11 +25,17 @@ protected:
 
 
 private:
-	//UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	class UBoxComponent* BoxComp = nullptr;
+	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* MeshComp = nullptr;
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* PivotComp = nullptr;
 
 	class AMay* PlayerMay = nullptr;
+
+	FHitResult HitResult;
+
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
