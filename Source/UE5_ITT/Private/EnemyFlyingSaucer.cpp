@@ -330,23 +330,13 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	if (0 < HomingRocketFireCount)
-	{
-		return;
-	}
-
-	HomingRocketFireCount += 2;
-
-	// 1번로켓 세팅
-	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-	AActor* TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerCody")));
+	AActor* TargetActor = PlayerActors[0];
 	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 	HomingRocket1->SetupTarget(TargetActor);
 	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 	HomingRocket1->SetOwner(this);
 
-	// 2번로켓 세팅
-	TargetActor = Cast<AActor>(AIController->GetBlackboardComponent()->GetValueAsObject(TEXT("PlayerMay")));
+	TargetActor = PlayerActors[1];
 	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 	HomingRocket2->SetupTarget(TargetActor);
 	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
@@ -1015,7 +1005,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			
 			if (false == bIsCorretLocation)
 			{
 				SetActorLocation(PrevAnimBoneLocation);
@@ -1025,6 +1014,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				TestActor->SetActorRelativeLocation(RotatePivotVector);*/
 				
 				bIsCorretLocation = true;
+			}
+
+			HomingRocketFireTime -= DT;
+			if (0.0f >= HomingRocketFireTime)
+			{
+				FireHomingRocket();
+				HomingRocketFireTime = HomingRocketCoolTime;
 			}
 		},
 

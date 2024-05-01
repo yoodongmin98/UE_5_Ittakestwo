@@ -19,16 +19,26 @@ AHomingRocket::AHomingRocket()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SetRootComponent(SceneComp);
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		bReplicates = true;
+		SetReplicateMovement(true);
 
-	RocketMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
-	RocketMeshComp->SetupAttachment(SceneComp);
+		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+		SetRootComponent(SceneComp);
 
-	FireEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
-	FireEffectComp->SetupAttachment(SceneComp);
+		RocketMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RocketMesh"));
+		RocketMeshComp->SetupAttachment(SceneComp);
 
-	SetupFsmComponent();
+		FireEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
+		FireEffectComp->SetupAttachment(SceneComp);
+
+		SetupFsmComponent();
+	}
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -36,21 +46,28 @@ void AHomingRocket::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (nullptr != RocketFsmComponent)
-	{
-		// 보스 로켓 오버랩 테스트코드
-		// RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
-		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
-	}
-
-	SetupOverlapEvent();
-
-	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
+		SetupOverlapEvent();
+	}
+}
+
+void AHomingRocket::Multicast_SpawnDestroyEffect_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Multicast_CreateDestroyEffect_Implementation"));
+
+	FVector SettingLocation = GetActorLocation();
+	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
+	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
+	if (Effect != nullptr)
+	{
+		if (nullptr != ParentActor)
+		{
+			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
+			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
+
+		}
 	}
 }
 
@@ -214,6 +231,8 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
+			UE_LOG(LogTemp, Warning, TEXT("RocketState : Destroy"));
+			Multicast_SpawnDestroyEffect();
 			DestroyRocket();
 		},
 
@@ -314,26 +333,12 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		if (true == OtherActor->ActorHasTag("Player"))
 		{
 			bIsPlayerOverlap = false;
-			// OverlapActor = nullptr;
 		}
 	}
 }
 
 void AHomingRocket::DestroyRocket()
 {
-	FVector SettingLocation = GetActorLocation();
-	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
-	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
-	if (Effect != nullptr)
-	{
-		if (nullptr != ParentActor)
-		{
-			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
-			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
-			
-		}
-	}
-
 	Destroy();
 }
 

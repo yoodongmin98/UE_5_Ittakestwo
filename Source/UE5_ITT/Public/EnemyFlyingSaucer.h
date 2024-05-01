@@ -362,4 +362,6 @@ private:
 	
 	bool bIsCorretLocation = false;
 	FVector RotatePivotVector = FVector(3959.88f, 60.44f, 0.0f);
+	float HomingRocketFireTime = 0.0f;
+	float HomingRocketCoolTime = 12.0f;
 };

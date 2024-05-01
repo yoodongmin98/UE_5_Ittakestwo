@@ -41,6 +41,9 @@ private:
 		Destroy,
 	};
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnDestroyEffect();
+
 	void SetupOverlapEvent();
 
 	void SetupFsmComponent();
