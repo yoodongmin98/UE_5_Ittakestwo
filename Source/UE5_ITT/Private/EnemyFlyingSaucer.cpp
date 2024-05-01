@@ -26,10 +26,9 @@
 #include "May.h"
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
-
-// test
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "GameFramework/RotatingMovementComponent.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -55,18 +54,12 @@ void AEnemyFlyingSaucer::BeginPlay()
 
 	if (true == HasAuthority())
 	{
-		// 테스트 세팅(랜덤타겟으로 변경예정)
-		// LaserTargetActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerBase::StaticClass());
-
-
 		// 탑승한 원숭이 세팅
 		EnemyMoonBaboon = GetWorld()->SpawnActor<AEnemyMoonBaboon>(EnemyMoonBaboonClass);
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
 	}
-
-
 }
 
 // test code, 추후 삭제 
@@ -91,7 +84,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CodyHoldingUIComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, MayLaserDestroyUIComp);
-
+	DOREPLIFETIME(AEnemyFlyingSaucer, RotatingComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, SkeletalMeshComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserSpawnPointMesh);
 	DOREPLIFETIME(AEnemyFlyingSaucer, HomingRocketSpawnPointMesh1);
@@ -113,6 +106,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileMaxFireTime);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
+	
 }
 // Multicast 함수 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -206,11 +200,7 @@ void AEnemyFlyingSaucer::Multicast_CheckCodyKeyPressedAndChangeState_Implementat
 			return;
 		}
 	}
-
-	
 }
-	
-
 
 void AEnemyFlyingSaucer::Multicast_CreateEnergyChargeEffect_Implementation()
 {
@@ -431,6 +421,9 @@ void AEnemyFlyingSaucer::SetupComponent()
 	MayLaserDestroyUIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("MayLaserDestroyUIComponent"));
 	MayLaserDestroyUIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("MayUISocket"));
 	MayLaserDestroyUIComp->SetVisibility(false, true);
+
+	RotatingComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
+	RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 }
 
 void AEnemyFlyingSaucer::DrawDebugMesh()
@@ -503,6 +496,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::None,
 		[this]
 		{
+			
 		},
 
 		[this](float DT)
@@ -513,7 +507,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 				// 보스 1페이즈 파훼 후 테스트 코드
 				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
-
+				// 로테이팅무브먼트 컴포넌트 false
+				// Multicast_SetActivateRotatingComponent(false);
 
 				// 기존코드 
 				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
@@ -980,18 +975,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_ChangePhase,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Phase1_ChangePhase Start"));
-
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
-			
-			// 아까했던게 블렌드스페이스인데 아??? 
-
-			// 본의위치를받아와야돼 . 
-			// 이전애니메이션 + 변경할애니메이션 
-			// 위치를 받아왔음
-
-			
-			// SetActorLocation(GetActorLocation() + (NextAnimBaseBoneLocation - PrevAnimBaseBoneLocation));
 		},
 
 		[this](float DT)
@@ -1002,43 +986,55 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				FsmComp->ChangeState(EBossState::Phase2_Rotate);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
 
+				UE_LOG(LogTemp, Warning, TEXT("Change State Bone Location : %s"), *PrevAnimBoneLocation.ToString());
 				return;
 			}
 
-			SetActorLocation(PrevAnimBoneLocation);
-			
-			// FVector BoneTargetLocation = NextAnimBaseBoneLocation - PrevAnimBaseBoneLocation;
-			/*FVector TargetLocation = FMath::Lerp(FVector(0.0f, 0.0f, 1150.0f), FVector(0.0f, 0.0f, 650.0f), TestFloat);
-			SetActorLocation(TargetLocation);*/
+			if (false == bIsCorretLocation)
+			{
+				SetActorLocation(PrevAnimBoneLocation);
+				bIsCorretLocation = true;
+			}
 		},
 
 		[this]
 		{
-			
+			bIsCorretLocation = false;
 		});
 
 	
 	FsmComp->CreateState(EBossState::Phase2_Rotate,
 		[this]
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Phase2_Rotate Start"));
-
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
+
+			RotatingComp->PivotTranslation = RotatePivotVector;
+			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
 		},
 
 		[this](float DT)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Phase2_Rotate Tick"));
 			
-			SetActorLocation(PrevAnimBoneLocation);
+			if (false == bIsCorretLocation)
+			{
+				SetActorLocation(PrevAnimBoneLocation);
+
+				/*AActor* TestActor = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+				TestActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+				TestActor->SetActorRelativeLocation(RotatePivotVector);*/
+				
+				
+				bIsCorretLocation = true;
+			}
 
 			// 돌아가는거 적용하고 미사일발사 
 		},
 
 		[this]
 		{
-
+			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+			bIsCorretLocation = false;
 		});
 }
 
@@ -1047,6 +1043,14 @@ void AEnemyFlyingSaucer::Multicast_SetActivateUIComponent_Implementation(UIntera
 	if (nullptr != UIComponent)
 	{
 		UIComponent->SetVisibility(ParentUIActivate, ChildUIActivate);
+	}
+}
+
+void AEnemyFlyingSaucer::Multicast_SetActivateRotatingComponent_Implementation(bool bIsActive)
+{
+	if (nullptr != RotatingComp)
+	{
+		RotatingComp->SetActive(bIsActive);
 	}
 }
 
