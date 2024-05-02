@@ -139,12 +139,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this]
 		{
-			// chase 상태에서 다른 상태로 넘어갈 경우 부모액터 로켓카운트 변수 -- 
-			AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
-			if (nullptr != ParentActor)
-			{
-				ParentActor->DisCountHomingRocketFireCount();
-			}
+			
 		});
 
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,

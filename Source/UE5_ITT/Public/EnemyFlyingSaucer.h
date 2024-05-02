@@ -20,32 +20,12 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	// 2페이즈 원형 움직임을 위한 pivot actor 세팅, 부착, 해제 및 회전 관련
-	UFUNCTION(BlueprintCallable)
-	void SetupRotateCenterPivotActor();
 
-	UFUNCTION(BlueprintCallable)
-	void DetachRotateCenterPivotActor();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(BlueprintCallable)
-	ABossRotatePivotActor* GetRotateCenterPivotActor() { return RotateCenterPivotActor; }
-
-	UFUNCTION(BlueprintCallable)
-	void RotationCenterPivotActor(float DeltaTime);
-
-	// 보스 패턴 중 투사체 발사 관련 함수 
+	// 보스 전투관련 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
-
-	UFUNCTION(BlueprintCallable)
-	void DisCountHomingRocketFireCount()
-	{
-		if (0 < HomingRocketFireCount)
-		{
-			--HomingRocketFireCount;
-		}
-	}
 
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
@@ -56,7 +36,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float ArcingProjectileMaxFireTime = 3.0f;
 
-
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_CreateEnergyChargeEffect();
 
@@ -66,38 +45,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_AttachToMoonBaboonActorAndFloor();
 
-	// 체력(임시) 
-	UFUNCTION(BlueprintCallable)
-	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
-
-	UFUNCTION(BlueprintCallable)
-	float GetCurrentHp() const { return CurrentHp; }
-
-	// Get, Set 
-	UFUNCTION(BlueprintCallable)
-	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
-
-	UFUNCTION(BlueprintCallable)
-	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
-
-	UFUNCTION(BlueprintCallable)
-	AFloor* GetFloor() { return FloorObject; }
-
-	// test, 보스 테스트 끝나면 삭제 
-	void BossHitTestFireRocket();
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UFUNCTION(BlueprintCallable)
-	const bool IsCodyHoldingEnter() { return bIsCodyHoldingEnter; }
-
-
 	// 레이저 추적 로직 관련 변수
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	FVector PrevTargetLocation = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	FVector PrevTargetLocationBuffer = FVector::ZeroVector;	
+	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bPrevTargetLocationValid = false;
@@ -110,16 +63,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	int32 LaserFireCount = 0;
- 
-	UPROPERTY(VisibleDefaultsOnly)
-	class AActor* LaserTargetActor = nullptr;
-
-	UPROPERTY(VisibleDefaultsOnly)
-	TArray<class AActor*> PlayerActors;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	int32 CurrentArcingProjectileTargetIndex = 0;
 
+	UPROPERTY(VisibleDefaultsOnly)
+	class AActor* LaserTargetActor = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
 	float CoreExplodeDamage = 11.0f;
@@ -139,6 +88,30 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AddPatternDestoryCount() { ++PatternDestroyCount; }
+	
+	UPROPERTY(VisibleDefaultsOnly)
+	TArray<class AActor*> PlayerActors;
+
+	// Get, Set
+	// 체력(임시) 
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHp() const { return CurrentHp; }
+
+	UFUNCTION(BlueprintCallable)
+	UStaticMeshComponent* GetLaserSpawnPointMesh() const { return LaserSpawnPointMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	class AEnemyMoonBaboon* GetMoonBaboonActor() const { return EnemyMoonBaboon; }
+
+	UFUNCTION(BlueprintCallable)
+	AFloor* GetFloor() { return FloorObject; }
+	
+	UFUNCTION(BlueprintCallable)
+	const bool IsCodyHoldingEnter() const { return bIsCodyHoldingEnter; }
+
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	FVector PrevAnimBoneLocation = FVector::ZeroVector;
@@ -148,6 +121,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	// 보스 FSM 상태값 
 	enum class EBossState
 	{
 		None,
@@ -179,6 +153,7 @@ private:
 
 	};
 
+	// 보스애니메이션 변경시 사용하는 애니메이션 리소스 정보 애니메이션 시퀀스 or 애니메이션 블루프린트 
 	enum class EAnimationAssetType : uint8
 	{
 		None,
@@ -186,9 +161,7 @@ private:
 		Blueprint,
 	};
 
-	// 바닥상태값 받아오기
-	int32 GetFloorCurrentState();
-	
+	// 멀티캐스트 관련 
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -199,14 +172,17 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_CheckCodyKeyPressedAndChangeState(const bool bIsInput);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
+
+	int32 GetFloorCurrentState();
 	void DrawDebugMesh();
 
+	// 클라이언트 접속까지의 대기시간, 추후 수정할수도 
 	UPROPERTY(EditDefaultsOnly)
 	float ServerDelayTime = 4.0f;
 
 	void SetupComponent();
-
-	UFUNCTION(BlueprintCallable)
 	void SetupFsmComponent();
 	
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
@@ -226,7 +202,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float StateCompleteTime = 0.0f;
 
-	// tsubclass 
+	// tsubclass
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnemyMoonBaboon> EnemyMoonBaboonClass = nullptr;
 
@@ -248,19 +224,6 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	int32 ArcingProjectileFireCount = 0;
-
-	UPROPERTY(EditAnywhere)
-	int32 HomingRocketFireCount = 0;
-
-	// 보스 2페이즈 회전시 기준점이 되는 액터 
-	UPROPERTY(EditDefaultsOnly)
-	class ABossRotatePivotActor* RotateCenterPivotActor = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class ABossRotatePivotActor> RotateCenterPivotActorClass = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	float RotateCenterPivotActorMoveSpeed = 9.0f;
 
 	// 보스가 생성하는 액터 
 	UPROPERTY(Replicated, EditDefaultsOnly)
@@ -289,13 +252,6 @@ private:
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetActivateRotatingComponent(bool bIsActive);
-
-
 	// 오버랩 체크 관련 
 	UFUNCTION(BlueprintCallable)
 	void SpawnOverlapCheckActor();
@@ -306,7 +262,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
 
-	// 보스 공격 생성 지점 컴포넌트 
+	// 보스 공격 생성 지점, 디버그드로우 활성화로 위치 확인 가능 
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UStaticMeshComponent* LaserSpawnPointMesh = nullptr;
 
@@ -336,7 +292,6 @@ private:
 	void SetupLaserTargetActor();
 
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
-	
 	// 이동 시켜서 고정시킬 코디 위치
 	FVector CodyLerpEndLocation = FVector(462.84f, -530.07f, 376.0f);
 	// 러프 비율을 저장할 float
