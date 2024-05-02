@@ -44,7 +44,7 @@ public:
 	{
 		return TargetScale;
 	}
-	
+
 	UFUNCTION(Client, Reliable)
 	void ChangeBigSize();
 
@@ -70,7 +70,7 @@ public:
 	virtual void DashEnd() override;
 
 	//UPROPERTY(Replicated)
-	
+
 
 	//Size
 	FVector BigSize;
@@ -92,4 +92,6 @@ public:
 	float CameraSpeed;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+
 };

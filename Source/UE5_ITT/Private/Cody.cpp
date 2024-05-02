@@ -12,6 +12,7 @@
 ACody::ACody()
 {
 	Tags.Add(FName("Cody"));
+
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +32,7 @@ void ACody::BeginPlay()
 	
 	AActor* FoundBoss = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
 	EnemyBoss = Cast<AEnemyFlyingSaucer>(FoundBoss);
+
 }
 
 // Called every frame
