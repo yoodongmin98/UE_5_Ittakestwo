@@ -270,6 +270,17 @@ public:
 	{
 		return IsFly;
 	}
+	UFUNCTION(BlueprintCallable)
+	inline FRotator GetTestRotator() const
+	{
+		return TestRotator;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetTestRotator(FRotator _RotationZ)
+	{
+		TestRotator += _RotationZ;
+	}
+	
 
 
 	//////////////////////////////////////////

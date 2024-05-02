@@ -32,7 +32,8 @@ APlayerBase::APlayerBase()
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = true;
+	/*SpringArm->bDoCollisionTest = true;*/
+	SpringArm->bDoCollisionTest = false; //Test용으로 잠시 스프링암 꺼놓음
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
