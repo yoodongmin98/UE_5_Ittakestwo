@@ -50,6 +50,7 @@ void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	if (PlayerMay!= nullptr)
 	{
 		PlayerMay->SetOnGravityPath(true);
+		PlayerMay = nullptr;
 	}
 }
 
@@ -83,10 +84,17 @@ void AGravityPath::Tick(float DeltaTime)
 			{
 				PlayerMay->SetOnGravityPath(true);
 				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
-				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
-				FRotator SettingRot = (HitResult.ImpactNormal).Rotation();
-				SettingRot.Pitch -= 90.f;
-				PlayerMay->SetGravityRotator(SettingRot);
+				//PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
+				//FRotator SettingRot = (HitResult.ImpactNormal).Rotation();
+				//SettingRot.Pitch += 90.f;
+				//PlayerMay->SetGravityRotator(SettingRot);
+
+				FVector NewForwardVector = FVector::CrossProduct(HitResult.ImpactNormal, PlayerMay->GetActorRightVector());
+				FVector NewRightVector = FVector::CrossProduct(HitResult.ImpactNormal, PlayerMay->GetActorForwardVector());
+				FRotator NewRotation = FMatrix(-NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::ZeroVector).Rotator();
+
+				NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
+				PlayerMay->SetGravityRotator(NewRotation);
 			}
 		}
 	}
