@@ -144,8 +144,13 @@ private:
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
 
-		Phase1_ChangePhase,
-		Phase2_Rotate,
+		Phase1_ChangePhase_2,
+
+
+		Phase2_RotateSetting,
+		Phase2_Rotating,
+		Phase2_RocketHit,
+		Phase2_BreakThePattern,
 
 
 		FireHomingRocket,
