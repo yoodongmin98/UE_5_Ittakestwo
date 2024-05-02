@@ -115,7 +115,7 @@ public:
 	class AActor* LaserTargetActor = nullptr;
 
 	UPROPERTY(VisibleDefaultsOnly)
-	TArray<AActor*> PlayerActors;
+	TArray<class AActor*> PlayerActors;
 
 	UPROPERTY(VisibleDefaultsOnly)
 	int32 CurrentArcingProjectileTargetIndex = 0;
@@ -285,7 +285,6 @@ private:
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class URotatingMovementComponent* RotatingComp = nullptr;
 
-
 	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
@@ -364,4 +363,8 @@ private:
 	FVector RotatePivotVector = FVector(3959.88f, 60.44f, 0.0f);
 	float HomingRocketFireTime = 0.0f;
 	float HomingRocketCoolTime = 16.0f;
+
+	// 로켓 액터 
+	class AHomingRocket* HomingRocketActor_1 = nullptr;
+	class AHomingRocket* HomingRocketActor_2 = nullptr;
 };

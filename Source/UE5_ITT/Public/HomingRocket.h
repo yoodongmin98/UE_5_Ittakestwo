@@ -29,6 +29,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	
+	const int32 GetCurrentState() const;
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -36,11 +40,13 @@ protected:
 private:
 	enum class ERocketState
 	{
-		PlayerChase,
-		PlayerEquipWait,
-		PlayerEquip,
+		PlayerChase,	     // 플레이어 추적 상태
+		PlayerEquipWait,     // 라이프타임 소진시 추락, 대기상태 
+		PlayerEquip,		 // 플레이어 상호작용 키 입력시 플레이어 장착
 
-		Destroy,
+		DestroyWait,		 // 완전히 Destroy 하기 전 대기상태, 보스에서 미사일이 제거되었는지 파악하기 위한 상태 
+		Destroy,			 // 완전한 Destroy, 상태 진입시 액터 Destory 
+		
 	};
 
 	UFUNCTION(NetMulticast, Reliable)

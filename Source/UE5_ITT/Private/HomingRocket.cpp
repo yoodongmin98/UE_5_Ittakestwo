@@ -13,6 +13,7 @@
 #include "FsmComponent.h"
 #include "Cody.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerBase.h"
 
 // Sets default values
 AHomingRocket::AHomingRocket()
@@ -46,6 +47,17 @@ void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 
 	// 메시 컴포넌트를 Replication하기 위한 설정 추가
 	DOREPLIFETIME(AHomingRocket, FireEffectComp);
+}
+
+const int32 AHomingRocket::GetCurrentState() const
+{
+	if (nullptr == RocketFsmComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("RocketFsmComponent is nullptr"));
+		return;
+	}
+
+	return RocketFsmComponent->GetCurrentState();
 }
 
 // Called when the game starts or when spawned
@@ -194,7 +206,6 @@ void AHomingRocket::SetupFsmComponent()
 				RocketMeshComp->SetEnableGravity(false);
 				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 				
-
 				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
 				if (nullptr != ActorMesh)
 				{
@@ -205,7 +216,9 @@ void AHomingRocket::SetupFsmComponent()
 
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
-				
+
+					APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
+					PlayerBase->TestFunction();
 				}
 				
 				UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
@@ -249,6 +262,7 @@ void AHomingRocket::SetupFsmComponent()
 		{
 		});
 
+	// 디스트로이 대기 상태 만들기 
 
 }
 
@@ -307,7 +321,6 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			{
 				bIsActive = false;
 			}
-
 		}
 	}
 	break;

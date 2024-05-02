@@ -106,6 +106,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileMaxFireTime);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
+	
 	
 }
 // Multicast ÇÔ¼ö 
@@ -330,17 +332,23 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	AActor* TargetActor = PlayerActors[0];
-	AHomingRocket* HomingRocket1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-	HomingRocket1->SetupTarget(TargetActor);
-	HomingRocket1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
-	HomingRocket1->SetOwner(this);
+	if (nullptr == HomingRocketActor_1)
+	{
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
+		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+		HomingRocketActor_1->SetupTarget(TargetActor);
+		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
+		HomingRocketActor_1->SetOwner(this);
+	}
 
-	TargetActor = PlayerActors[1];
-	AHomingRocket* HomingRocket2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-	HomingRocket2->SetupTarget(TargetActor);
-	HomingRocket2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
-	HomingRocket2->SetOwner(this);
+	if (nullptr == HomingRocketActor_2)
+	{
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
+		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+		HomingRocketActor_2->SetupTarget(TargetActor);
+		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+		HomingRocketActor_2->SetOwner(this);
+	}
 }
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
