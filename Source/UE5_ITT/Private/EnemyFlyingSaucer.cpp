@@ -58,6 +58,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
+
+		SetupOverlapEvent();
+		
 	}
 }
 
@@ -1009,19 +1012,26 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			HomingRocketFireTime = 0.0f;
+			HomingRocketFireTime = 3.0f;
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_RocketHit,
 		[this]
 		{
+			UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
+
 			// 우주선 히트 애니메이션 적용 
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
 		},
 
 		[this](float DT)
 		{
-
+			// 애니메이션 종료시 Phase2_Rotating으로 상태변경
+			if (false == SkeletalMeshComp->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_Rotating);
+				return;
+			}
 		},
 
 		[this]
@@ -1138,6 +1148,35 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 }
 
 
+
+void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// 해당 액터가 호밍 로켓이고, 플레이어 이큅 상태라면 
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
+	{
+		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
+		int32 RocketStateToInt = HomingRocket->GetCurrentState();
+		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
+		{
+			FsmComp->ChangeState(EBossState::Phase2_RocketHit);
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
+	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
+}
+
+void AEnemyFlyingSaucer::SetupOverlapEvent()
+{
+	if (nullptr != SkeletalMeshComp)
+	{
+		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
+		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
+	}
+}
 
 int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 {

@@ -27,6 +27,7 @@ AHomingRocket::AHomingRocket()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
+		Tags.Add(FName("HomingRocket"));
 
 		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 		SetRootComponent(SceneComp);
