@@ -997,6 +997,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_ChangePhase,
 		[this]
 		{
+			
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
 		},
 
@@ -1022,6 +1023,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsCorretLocation = false;
+			// 페이즈변경 완료시 오버랩액터 제거 
+			OverlapCheckActor->Destroy();
+			// UE_LOG(LogTemp, Warning, TEXT("Destroy OverlapActor"));
 		});
 
 	
