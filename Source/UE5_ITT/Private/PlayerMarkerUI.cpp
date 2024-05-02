@@ -21,7 +21,6 @@ void UPlayerMarkerUI::BeginPlay()
 
     Super::BeginPlay();
     bIsOwner = false;
-
     PlayerMarkerWidget->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
 
     // Set widget classes
@@ -65,7 +64,7 @@ void UPlayerMarkerUI::FindTarget()
 void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    if (true == bIsOwner)
+    if (true == bIsOwner || !PlayerMarkerType)
     {
         return;
     }
