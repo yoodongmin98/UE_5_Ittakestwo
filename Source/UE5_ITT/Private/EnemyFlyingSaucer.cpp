@@ -332,6 +332,10 @@ void AEnemyFlyingSaucer::RotationCenterPivotActor(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
+	// 플레이어 데스상태라면 발사 안하는 로직 추후에 추가 
+
+
+	// 로켓 1
 	if (nullptr == HomingRocketActor_1)
 	{
 		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
@@ -341,8 +345,32 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 		HomingRocketActor_1->SetOwner(this);
 	}
 
+	else if (nullptr != HomingRocketActor_1 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_1->GetCurrentState())
+	{
+		HomingRocketActor_1->DestroyRocket();
+
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
+		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+		HomingRocketActor_1->SetupTarget(TargetActor);
+		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
+		HomingRocketActor_1->SetOwner(this);
+	}
+
+
+	// 로켓 2
 	if (nullptr == HomingRocketActor_2)
 	{
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
+		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+		HomingRocketActor_2->SetupTarget(TargetActor);
+		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+		HomingRocketActor_2->SetOwner(this);
+	}
+
+	else if (nullptr != HomingRocketActor_2 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_2->GetCurrentState())
+	{
+		HomingRocketActor_2->DestroyRocket();
+
 		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
 		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_2->SetupTarget(TargetActor);
@@ -1020,7 +1048,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				/*AActor* TestActor = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 				TestActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
 				TestActor->SetActorRelativeLocation(RotatePivotVector);*/
-				
+
 				bIsCorretLocation = true;
 			}
 

@@ -32,12 +32,9 @@ public:
 	
 	const int32 GetCurrentState() const;
 
+	UFUNCTION()
+	void DestroyRocket();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-private:
 	enum class ERocketState
 	{
 		PlayerChase,	     // 플레이어 추적 상태
@@ -46,8 +43,14 @@ private:
 
 		DestroyWait,		 // 완전히 Destroy 하기 전 대기상태, 보스에서 미사일이 제거되었는지 파악하기 위한 상태 
 		Destroy,			 // 완전한 Destroy, 상태 진입시 액터 Destory 
-		
+
 	};
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+	
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnDestroyEffect();
@@ -61,6 +64,8 @@ private:
 		bIsActive = false;
 	}
 	
+	void TickPlayerChaseLogic(float DeltaTime);
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -70,8 +75,7 @@ private:
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-	void DestroyRocket();
+	
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Mesh")

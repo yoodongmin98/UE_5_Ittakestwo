@@ -362,7 +362,7 @@ private:
 	bool bIsCorretLocation = false;
 	FVector RotatePivotVector = FVector(3959.88f, 60.44f, 0.0f);
 	float HomingRocketFireTime = 0.0f;
-	float HomingRocketCoolTime = 16.0f;
+	float HomingRocketCoolTime = 3.0f;
 
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;

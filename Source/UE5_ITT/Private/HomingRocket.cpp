@@ -54,7 +54,6 @@ const int32 AHomingRocket::GetCurrentState() const
 	if (nullptr == RocketFsmComponent)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("RocketFsmComponent is nullptr"));
-		return;
 	}
 
 	return RocketFsmComponent->GetCurrentState();
@@ -111,11 +110,12 @@ void AHomingRocket::SetupFsmComponent()
 			// 오버랩이벤트에서 비활성체크, 비활성일 경우 Destroy 로 변경.
 			if (false == bIsActive)
 			{
-				RocketFsmComponent->ChangeState(ERocketState::Destroy);
+				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
 			}
 
 			// 타겟액터가 nullptr 이라면 return;
+			// 여기 들어오나..? 
 			if (nullptr == TargetActor)
 			{
 				return;
@@ -131,24 +131,8 @@ void AHomingRocket::SetupFsmComponent()
 				}
 			}
 
-			RocketLifeTime -= DT;
-			FVector RocketLocation = GetActorLocation();
-			FVector TargetLocation = TargetActor->GetActorLocation();
-
-			FVector Dir = TargetLocation - RocketLocation;
-			Dir.Normalize();
-
-			SetActorRotation(Dir.Rotation());
-
-			FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DT;
-			SetActorLocation(NewRocketLocation);
-
-
-			if (false == bIsSetLifeTime && true == IsMaxFloorDistance())
-			{
-				SetRocektLifeTime(3.0f);
-				bIsSetLifeTime = true;
-			}
+			// 플레이어 추적 로직 
+			TickPlayerChaseLogic(DT);
 		},
 
 		[this]
@@ -246,16 +230,39 @@ void AHomingRocket::SetupFsmComponent()
 		{
 		});
 
-	RocketFsmComponent->CreateState(ERocketState::Destroy,
+	// 대기상태일 때 실제로 제거하지 않고 이펙트만 생성한 상태로 10초후에 삭제
+	RocketFsmComponent->CreateState(ERocketState::DestroyWait,
 		[this]
 		{
 			Multicast_SpawnDestroyEffect();
-			DestroyRocket();
+			this->SetActorHiddenInGame(true);
 		},
 
 		[this](float DT)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy Wait Tick"));
+
+			// 상태지속시간이 10초가 넘었다면 Destroy 상태로 변경
+			if (10.0f <= RocketFsmComponent->GetStateLiveTime())
+			{
+				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 			
+				return;
+			}
+		},
+
+		[this]
+		{
+		});
+
+	RocketFsmComponent->CreateState(ERocketState::Destroy,
+		[this]
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
+		},
+
+		[this](float DT)
+		{
 		},
 
 		[this]
@@ -298,6 +305,28 @@ bool AHomingRocket::IsMaxFloorDistance()
 	}
 
 	return false;
+}
+
+void AHomingRocket::TickPlayerChaseLogic(float DeltaTime)
+{
+	RocketLifeTime -= DeltaTime;
+	FVector RocketLocation = GetActorLocation();
+	FVector TargetLocation = TargetActor->GetActorLocation();
+
+	FVector Dir = TargetLocation - RocketLocation;
+	Dir.Normalize();
+
+	SetActorRotation(Dir.Rotation());
+
+	FVector NewRocketLocation = RocketLocation + Dir * RocketMoveSpeed * DeltaTime;
+	SetActorLocation(NewRocketLocation);
+
+
+	if (false == bIsSetLifeTime && true == IsMaxFloorDistance())
+	{
+		SetRocektLifeTime(3.0f);
+		bIsSetLifeTime = true;
+	}
 }
 
 void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
