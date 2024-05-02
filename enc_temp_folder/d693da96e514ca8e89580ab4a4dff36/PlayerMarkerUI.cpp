@@ -102,11 +102,10 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
         {
             SetVisibility(false, true);
         }
-        SetWorldLocation(TargetPlayer->GetActorLocation()+ WidgetDefaultLocation);
+        SetWorldLocation(TargetPlayer->GetActorLocation());
     }
     else // 화면 밖에 존재
     {
-        SetVisibility(true, true);
         if (ActorScreenPosition.X < 0)
         {
             ActorScreenPosition.X = 10.0f;
@@ -131,7 +130,7 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
         // 카메라 스페이스 좌표로 변환한 후, 카메라와 WidgetComponent의 거리 계산
         FVector CameraLocation = FirstPlayer->PlayerCameraManager->GetCameraLocation();
         FVector WidgetLocation = CameraLocation + WorldDirection * 1200.0f; // 예시로 거리를 100.0f로 설정
-        SetWorldLocation(WidgetLocation + WidgetDefaultLocation);
+        SetWorldLocation(WidgetLocation);
     }
 
 }

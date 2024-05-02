@@ -93,6 +93,5 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
-	class UWidgetComponent* MarkerUIWidget;
+
 };

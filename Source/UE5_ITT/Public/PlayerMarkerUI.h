@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/WidgetComponent.h"
+#include "PlayerBase.h"
 #include "PlayerMarkerUI.generated.h"
+
 
 /**
  * 
@@ -33,7 +35,9 @@ private:
 
     float DistanceThreshold;
 
-    bool IsRenderingWidget(APlayerController* _Player);
-
     FVector WidgetDefaultLocation;
+
+    APlayerBase* TargetPlayer;
+
+    void FindTarget();
 };

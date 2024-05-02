@@ -7,6 +7,7 @@
 #include "Logging/LogMacros.h"
 //#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerMarkerUI.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -39,6 +40,9 @@ APlayerBase::APlayerBase()
 	PlayerCameraComponent->bUsePawnControlRotation = false;
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	MarkerUIWidget = CreateDefaultSubobject<UPlayerMarkerUI>(TEXT("WidgetComponent"));
+	MarkerUIWidget->SetupAttachment(RootComponent);
 }
 
 //void APlayerBase::GetOnlineSubsystem()

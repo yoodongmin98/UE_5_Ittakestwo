@@ -442,4 +442,7 @@ public:
 
 	UPROPERTY(Replicated)
 	FRotator TestRotator;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	class UPlayerMarkerUI* MarkerUIWidget;
 };
