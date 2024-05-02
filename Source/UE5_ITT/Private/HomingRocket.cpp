@@ -47,6 +47,8 @@ void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 
 	// 메시 컴포넌트를 Replication하기 위한 설정 추가
 	DOREPLIFETIME(AHomingRocket, FireEffectComp);
+	DOREPLIFETIME(AHomingRocket, BossActor);
+	DOREPLIFETIME(AHomingRocket, RocketDamageToBoss);
 }
 
 const int32 AHomingRocket::GetCurrentState() const
@@ -164,7 +166,7 @@ void AHomingRocket::SetupFsmComponent()
 				bool KeyCheck = PlayerBase->GetIsInteract();
 				if (true == KeyCheck)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Change State PlayerEquip"));
+					//UE_LOG(LogTemp, Warning, TEXT("Change State PlayerEquip"));
 					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 					return;
 				}
@@ -179,12 +181,12 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
+			//UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
 
 			if (nullptr != OverlapActor)
 			{
 				bIsPlayerEquip = true;
-				UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
+				//UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
 
 				RocketMeshComp->SetSimulatePhysics(false);
 				RocketMeshComp->SetEnableGravity(false);
@@ -205,7 +207,7 @@ void AHomingRocket::SetupFsmComponent()
 					PlayerBase->TestFunction();
 				}
 				
-				UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
+				//UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
 			}
 		},
 
@@ -214,7 +216,7 @@ void AHomingRocket::SetupFsmComponent()
 			AActor* ParentActor = GetAttachParentActor();
 			if (nullptr == ParentActor)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
+				//UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
 				return;
 			}
 			
@@ -226,7 +228,10 @@ void AHomingRocket::SetupFsmComponent()
 				if (nullptr == GetAttachParentActor())
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
+					// 디스트로이 대기상태로 전환하고
 					RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+					// 보스한테 데미지 
+					BossActor->SetDamage(RocketDamageToBoss);
 				}
 				return;
 			}
@@ -399,6 +404,7 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 			UE_LOG(LogTemp, Warning, TEXT("Rocket is Boss Overlap"));
 			// 불값만 변경해주고 FsmComp Tick 에서 상태변경
 			bIsBossOverlap = true;
+			BossActor = Cast<AEnemyFlyingSaucer>(OtherActor);
 		}
 	}
 }

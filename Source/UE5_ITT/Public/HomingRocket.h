@@ -133,4 +133,11 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bIsBossOverlap = false;
+
+	// ÆÄÆ¼Å¬
+	UPROPERTY(Replicated)
+	class AEnemyFlyingSaucer* BossActor = nullptr;
+		
+	UPROPERTY(Replicated)
+	float RocketDamageToBoss = 7.5f;
 };

@@ -416,10 +416,6 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 }
 
 
-
-
-
-
 void AEnemyFlyingSaucer::SetupComponent()
 {
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
