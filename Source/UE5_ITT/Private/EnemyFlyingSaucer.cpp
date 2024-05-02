@@ -19,7 +19,6 @@
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
-#include "BossRotatePivotActor.h"
 #include "OverlapCheckActor.h"
 #include "PlayerBase.h"
 #include "Cody.h"
