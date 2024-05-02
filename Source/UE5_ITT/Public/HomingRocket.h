@@ -130,6 +130,7 @@ private:
 	UFUNCTION()
 	void SetRocektLifeTime(const float LifeTime) { RocketLifeTime = LifeTime; }
 	bool bIsSetLifeTime = false;
-	
 
+	UPROPERTY(EditAnywhere)
+	bool bIsBossOverlap = false;
 };

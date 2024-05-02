@@ -215,15 +215,22 @@ void AHomingRocket::SetupFsmComponent()
 			if (nullptr == ParentActor)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
+				return;
 			}
-			else
+			
+			// 보스와의 오버랩 상태가 true라면 
+			if (true == bIsBossOverlap)
 			{
-				bool Check = ParentActor->ActorHasTag(TEXT("Player"));
-				if (true == Check)
+				// 플레이어 액터 장착해제 
+				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+				if (nullptr == GetAttachParentActor())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Player Equip"));
+					UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
+					RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				}
+				return;
 			}
+
 		},
 
 		[this]
@@ -240,7 +247,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy Wait Tick"));
+			//UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy Wait Tick"));
 
 			// 상태지속시간이 10초가 넘었다면 Destroy 상태로 변경
 			if (10.0f <= RocketFsmComponent->GetStateLiveTime())
@@ -258,7 +265,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
+			//UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
 		},
 
 		[this](float DT)
@@ -384,6 +391,14 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		if (true == OtherActor->ActorHasTag("Player"))
 		{
 			bIsPlayerOverlap = false;
+		}
+
+		// 로켓이 플레이어장착 상태이고, 보스와 오버랩 되었다면 
+		if (static_cast<int32>(ERocketState::PlayerEquip) == RocketFsmComponent->GetCurrentState() && true == OtherActor->ActorHasTag("Boss"))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rocket is Boss Overlap"));
+			// 불값만 변경해주고 FsmComp Tick 에서 상태변경
+			bIsBossOverlap = true;
 		}
 	}
 }
