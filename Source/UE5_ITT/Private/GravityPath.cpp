@@ -37,6 +37,10 @@ void AGravityPath::BeginPlay()
 		BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
 		BoxComp->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
 		
+		//FWalkableSlopeOverride Slope;
+		//Slope.SetWalkableSlopeBehavior(EWalkableSlopeBehavior::WalkableSlope_Increase);
+		//Slope.SetWalkableSlopeAngle(100.f);
+		//MeshComp->SetWalkableSlopeOverride(Slope);
 	}
 }
 
@@ -49,7 +53,7 @@ void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 {
 	if (PlayerMay!= nullptr)
 	{
-		PlayerMay->SetOnGravityPath(true);
+		PlayerMay->SetOnGravityPath(false);
 		PlayerMay = nullptr;
 	}
 }
@@ -84,16 +88,16 @@ void AGravityPath::Tick(float DeltaTime)
 			{
 				PlayerMay->SetOnGravityPath(true);
 				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
-				//PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
+				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
 				//FRotator SettingRot = (HitResult.ImpactNormal).Rotation();
 				//SettingRot.Pitch += 90.f;
 				//PlayerMay->SetGravityRotator(SettingRot);
 
-				FVector NewForwardVector = FVector::CrossProduct(HitResult.ImpactNormal, PlayerMay->GetActorRightVector());
-				FVector NewRightVector = FVector::CrossProduct(HitResult.ImpactNormal, PlayerMay->GetActorForwardVector());
-				FRotator NewRotation = FMatrix(-NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::ZeroVector).Rotator();
+				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
+				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
+				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
 
-				NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
+				//NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
 				PlayerMay->SetGravityRotator(NewRotation);
 			}
 		}
