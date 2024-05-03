@@ -314,6 +314,12 @@ public:
 
 	void CustomFlyMove(const FInputActionInstance& _Instance);
 
+	UFUNCTION(Client, Reliable)
+	void CustomClientFly(const FInputActionInstance& _Instance);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerFly(const FInputActionInstance& _Instance);
+
+
 	UFUNCTION(Client,Reliable)
 	void ChangeClientDir(const FInputActionInstance& _Instance,FRotator _Rotator);
 	UFUNCTION(Server,Reliable, WithValidation)
@@ -457,6 +463,7 @@ public:
 	bool IsBig;
 
 	//Fly
+	UPROPERTY(Replicated)
 	bool IsFly = false;
 	FVector CurrentDirection;
 	float FlyingSpeed;

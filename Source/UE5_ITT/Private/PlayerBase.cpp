@@ -32,8 +32,7 @@ APlayerBase::APlayerBase()
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	/*SpringArm->bDoCollisionTest = true;*/
-	SpringArm->bDoCollisionTest = false; //Test용으로 잠시 스프링암 꺼놓음
+	SpringArm->bDoCollisionTest = true;
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
@@ -275,26 +274,19 @@ void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 	}
 }
 
-void APlayerBase::ChangeClientDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
-{
-	IsMoveEnd = true;
-	/*TestRotator = _Rotator;*/
-	SetActorRotation(_Rotator);
-}
-
-bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance, FRotator _Rotator)
-{
-	return true;
-}
-
-void APlayerBase::ChangeServerDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
-{
-	IsMoveEnd = true;
-	/*TestRotator = _Rotator;*/
-	SetActorRotation(_Rotator);
-}
-
 void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
+{
+	if (HasAuthority() == true)
+	{
+		CustomClientFly(_Instance);
+	}
+	else
+	{
+		CustomServerFly(_Instance);
+	}
+}
+
+void APlayerBase::CustomClientFly_Implementation(const FInputActionInstance& _Instance)
 {
 	if (IsFly)
 	{
@@ -322,9 +314,9 @@ void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 
 				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
 				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
-			// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산.X;
+				// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산.X;
 
-				// 입력 방향에 따라 캐릭터를 이동시킴
+					// 입력 방향에 따라 캐릭터를 이동시킴
 				if (MoveInput.X >= 0)
 					AddMovementInput(FVector(MoveDirection.X, MoveDirection.Y, MoveDirection.Z * 0.5f));
 				else
@@ -342,6 +334,79 @@ void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 		}
 	}
 }
+
+bool APlayerBase::CustomServerFly_Validate(const FInputActionInstance& _Instance)
+{
+	return true;
+}
+
+void APlayerBase::CustomServerFly_Implementation(const FInputActionInstance& _Instance)
+{
+	if (IsFly)
+	{
+		ChangeState(Cody_State::FLYING);
+		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
+		if (bCanDash == false && ChangeIdle)
+		{
+			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+			// 컨트롤러의 회전 방향을 가져옴
+			ControllerRotation = Controller->GetControlRotation();
+			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+			// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+			// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
+
+			// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
+			WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+			WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Z);
+
+			// 캐릭터를 입력 방향으로 이동시킴
+			MoveInput = _Instance.GetValue().Get<FVector2D>();
+			if (!MoveInput.IsNearlyZero())
+			{
+				// 입력 방향 노말라이즈
+				MoveInput = MoveInput.GetSafeNormal();
+
+				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
+				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+				// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산.X;
+
+					// 입력 방향에 따라 캐릭터를 이동시킴
+				if (MoveInput.X >= 0)
+					AddMovementInput(FVector(MoveDirection.X, MoveDirection.Y, MoveDirection.Z * 0.5f));
+				else
+					AddMovementInput(FVector(-MoveDirection.X, -MoveDirection.Y, MoveDirection.Z * 0.5f));
+				///////////////////////////////////////////////////////////////////////////////////////////
+			}
+			if (HasAuthority() == true)
+			{
+				ChangeClientDir(_Instance, CustomTargetRotation);
+			}
+			else
+			{
+				ChangeServerDir(_Instance, CustomTargetRotation);
+			}
+		}
+	}
+}
+
+void APlayerBase::ChangeClientDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	SetActorRotation(_Rotator);
+}
+
+bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	return true;
+}
+
+void APlayerBase::ChangeServerDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	SetActorRotation(_Rotator);
+}
+
+
 
 
 void APlayerBase::Look(const FInputActionInstance& _Instance)
@@ -560,7 +625,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, DashCurrentTime);
 	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
 	DOREPLIFETIME(APlayerBase, IsInteract);
-
+	DOREPLIFETIME(APlayerBase, IsFly);
 }
 
 
