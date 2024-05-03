@@ -130,22 +130,31 @@ private:
 		Phase1_Progress_LaserBeam_1,			
 		Phase1_Progress_LaserBeam_1_Destroy,
 		Phase1_Progress_ArcingProjectile_1,
-
 		Phase1_Progress_LaserBeam_2,			
 		Phase1_Progress_LaserBeam_2_Destroy,
 		Phase1_Progress_ArcingProjectile_2,
-
 		Phase1_Progress_LaserBeam_3,
 		Phase1_BreakThePattern,
-
 		CodyHolding_Enter,
 		CodyHolding_Low,
 		CodyHolding_ChangeOfAngle,
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
+		Phase1_ChangePhase_2,
 
-		Phase1_ChangePhase,
-		Phase2_Rotate,
+
+		
+		Phase2_RotateSetting,
+		Phase2_Rotating,
+		Phase2_RocketHit,
+		Phase2_BreakThePattern,
+		Phase2_ChangePhase_Wait,
+		Phase2_Fly,
+		Phase2_MoveToCenter,
+
+		Phase3_MoveFloor,
+		Phase3_MoveToTarget,
+		Phase3_GroundPound,
 
 
 		FireHomingRocket,
@@ -160,6 +169,14 @@ private:
 		Sequence,
 		Blueprint,
 	};
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetupOverlapEvent();
 
 	// 멀티캐스트 관련 
 	// multicast 함수 
@@ -307,6 +324,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UnPossess();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_HideLaserBaseBone();
+
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
 
@@ -321,4 +341,8 @@ private:
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
 	class AHomingRocket* HomingRocketActor_2 = nullptr;
+
+	// 센터이동로직관련 
+	float MoveToCenterLerpRatio = 0.0f;
+	FVector MoveStartLocation = FVector::ZeroVector;
 };

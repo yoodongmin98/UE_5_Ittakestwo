@@ -58,6 +58,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 		EnemyMoonBaboon->SetOwner(this);
 		EnemyMoonBaboon->GetMesh()->SetVisibility(false);
 		FsmComp->ChangeState(EBossState::None);
+
+		SetupOverlapEvent();
+		
 	}
 }
 
@@ -268,6 +271,17 @@ void AEnemyFlyingSaucer::SetCodyHoldingEnter_CodyLocation()
 
 	FVector TargetLocation = FMath::Lerp(StartLocation, EndLocation, CodyLerpRatio);
 	PlayerCody->SetActorLocation(TargetLocation);
+}
+
+void AEnemyFlyingSaucer::Multicast_HideLaserBaseBone_Implementation()
+{
+	// 레이저 본 렌더링 off
+	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	if (INDEX_NONE != BoneIndex)
+	{
+		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+		UE_LOG(LogTemp, Warning, TEXT("Bone Hide"));
+	}
 }
 
 
@@ -486,7 +500,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
 		},
@@ -848,7 +862,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 원래대로라면 메이 인터랙트 체크 필요. 
-			FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
+			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 
 
 			//if (2.5f <= FsmComp->GetStateLiveTime())
@@ -924,7 +938,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 	
-	FsmComp->CreateState(EBossState::Phase1_ChangePhase,
+	FsmComp->CreateState(EBossState::Phase1_ChangePhase_2,
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
@@ -935,10 +949,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 애니메이션이 종료 되었을 때 
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_Rotate);
+				Multicast_HideLaserBaseBone();
+				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
-
-				UE_LOG(LogTemp, Warning, TEXT("Change State Bone Location : %s"), *PrevAnimBoneLocation.ToString());
+				
 				return;
 			}
 
@@ -956,28 +970,52 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 	
-	FsmComp->CreateState(EBossState::Phase2_Rotate,
+	FsmComp->CreateState(EBossState::Phase2_RotateSetting,
 		[this]
 		{
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 
 			RotatingComp->PivotTranslation = RotatePivotVector;
+			
+		},
+
+		[this](float DT)
+		{
+			// 보스 위치보정 적용안되어 있으면 적용하고.
+			if (false == bIsCorretLocation)
+			{
+				SetActorLocation(PrevAnimBoneLocation);
+				bIsCorretLocation = true;
+			}
+
+			FsmComp->ChangeState(EBossState::Phase2_Rotating);
+		},
+
+		[this]
+		{
+			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+			bIsCorretLocation = false;
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_Rotating,
+		[this]
+		{
+			// 만약 이전 스테이트가 미사일 히트 스테이트 였다면 애니메이션 재생 
+			if (static_cast<int32>(EBossState::Phase2_RocketHit) == FsmComp->GetCurrentState())
+			{
+				Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
+			}
+
 			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
 		},
 
 		[this](float DT)
 		{
-			// 보스 위치보정 적용안되어 있으면 적용
-			if (false == bIsCorretLocation)
+			if (CurrentHp <= 33.0f)
 			{
-				SetActorLocation(PrevAnimBoneLocation);
-
-				/*AActor* TestActor = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-				// TestActor->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-				TestActor->SetActorRelativeLocation(RotatePivotVector);*/
-
-				bIsCorretLocation = true;
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				return;
 			}
 
 			// 유도로켓 발사 
@@ -991,8 +1029,181 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
+			HomingRocketFireTime = 3.0f;
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_RocketHit,
+		[this]
+		{
+			UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
+
+			// 우주선 히트 애니메이션 적용 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 종료시 Phase2_Rotating으로 상태변경
+			if (false == SkeletalMeshComp->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_Rotating);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+
+
+	FsmComp->CreateState(EBossState::Phase2_BreakThePattern,
+		[this]
+		{
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
-			bIsCorretLocation = false;
+
+			// 우주선떨어지는 애니메이션 적용
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
+			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				return;
+			}
+		},
+
+		[this]
+		{
+			
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
+		[this]
+		{
+			// 원숭이 타자열심히치는 애니메이션으로 변경
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
+		},
+
+		[this](float DT)
+		{
+			// 조건만족시 
+			
+			// 임시,
+			if (2.0f <= FsmComp->GetStateLiveTime())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_Fly);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_Fly,
+		[this]
+		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			// 우주선 애니메이션 재생 완료시 중앙으로 이동
+			if (false == SkeletalMeshComp->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_MoveToCenter);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_MoveToCenter,
+		[this]
+		{
+			// 우주선 포워드이동 애니메이션 적용, 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Fwd_Anim"), 1, false);
+			MoveStartLocation = GetActorLocation();
+		},
+
+		[this](float DT)
+		{
+			// 맵의 중앙으로 이동하는 코드 작성
+			// 이동이 완료되었다면 3페이즈로 전환. 
+			// ㅈㄴ 끊겨서 이동할거같지왜 ????
+			MoveToCenterLerpRatio += DT / 4.0f;
+			if (1.0f <= MoveToCenterLerpRatio)
+			{
+				MoveToCenterLerpRatio = 1.0f;
+				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
+				SetActorLocation(TargetLocation);
+				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
+				return;
+			}
+			
+			FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
+			SetActorLocation(TargetLocation);
+		},
+
+		[this]
+		{
+			MoveToCenterLerpRatio = 0.0f;
+		});
+
+	FsmComp->CreateState(EBossState::Phase3_MoveFloor,
+		[this]
+		{
+			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경 및
+			// 바닥 위로 이동할거고, 바닥 위로 이동 완료 되면 엉덩이찍기 상태로 전환할거임.
+			// SetMoveFloor();
+
+			// 임시로 바로 변경
+			FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
+
+		},
+
+		[this](float DT)
+		{
+			// 바닥 위로 이동 완료 되면 엉찍 상태로 변경
+
+		},
+
+		[this]
+		{
+			// 여기서 그냥 메이한테 포커스를 맞추고.
+
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase3_MoveToTarget,
+		[this]
+		{
+			// start에 들어왔을때 타겟 위치를 가져오고.
+			// 해당 위치에 포커스. 
+
+
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
 		});
 }
 
@@ -1082,6 +1293,35 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 }
 
 
+
+void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// 해당 액터가 호밍 로켓이고, 플레이어 이큅 상태라면 
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
+	{
+		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
+		int32 RocketStateToInt = HomingRocket->GetCurrentState();
+		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
+		{
+			FsmComp->ChangeState(EBossState::Phase2_RocketHit);
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
+	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
+}
+
+void AEnemyFlyingSaucer::SetupOverlapEvent()
+{
+	if (nullptr != SkeletalMeshComp)
+	{
+		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
+		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
+	}
+}
 
 int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 {
