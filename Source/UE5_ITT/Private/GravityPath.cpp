@@ -86,6 +86,7 @@ void AGravityPath::Tick(float DeltaTime)
 			DrawDebugLine(GetWorld(), StartPos, EndPos * 1000.f,FColor::Red,false,1.f,0,1.f);
 			if (IsHit&& HitResult.GetActor() == this)
 			{
+				HitResult.ImpactNormal.Y = 0.f;
 				PlayerMay->SetOnGravityPath(true);
 				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
 				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
