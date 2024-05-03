@@ -357,7 +357,7 @@ public:
 
 	///////////////////Player/////////////////////
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerHP = 0;
+	int32 PlayerHP = 12;
 	int32 FullHP = 12;
 	bool IsPlayerDeath = false;
 	void PlayerDeathCheck();
