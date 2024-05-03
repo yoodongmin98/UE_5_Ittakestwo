@@ -962,7 +962,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_RotateSetting,
 		[this]
 		{
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 
 			RotatingComp->PivotTranslation = RotatePivotVector;
@@ -993,7 +993,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 만약 이전 스테이트가 미사일 히트 스테이트 였다면 애니메이션 재생 
 			if (static_cast<int32>(EBossState::Phase2_RocketHit) == FsmComp->GetCurrentState())
 			{
-
+				Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			}
 
 			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
