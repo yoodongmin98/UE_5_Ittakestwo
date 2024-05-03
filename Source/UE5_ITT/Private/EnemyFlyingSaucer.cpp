@@ -273,6 +273,17 @@ void AEnemyFlyingSaucer::SetCodyHoldingEnter_CodyLocation()
 	PlayerCody->SetActorLocation(TargetLocation);
 }
 
+void AEnemyFlyingSaucer::Multicast_HideLaserBaseBone_Implementation()
+{
+	// 레이저 본 렌더링 off
+	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	if (INDEX_NONE != BoneIndex)
+	{
+		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+		UE_LOG(LogTemp, Warning, TEXT("Bone Hide"));
+	}
+}
+
 
 
 // Called every frame
@@ -938,10 +949,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 애니메이션이 종료 되었을 때 
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
+				Multicast_HideLaserBaseBone();
 				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
-
-				UE_LOG(LogTemp, Warning, TEXT("Change State Bone Location : %s"), *PrevAnimBoneLocation.ToString());
+				
 				return;
 			}
 
@@ -1001,6 +1012,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			/*if (CurrentHp <= 33.0f)
+			{
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				return;
+			}*/
+
 			// 유도로켓 발사 
 			HomingRocketFireTime -= DT;
 			if (0.0f >= HomingRocketFireTime)
@@ -1045,8 +1062,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			// 우주선떨어지는 애니메이션 적용
-
-
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},

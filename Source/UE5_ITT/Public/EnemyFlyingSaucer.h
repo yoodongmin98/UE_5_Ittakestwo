@@ -320,6 +320,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UnPossess();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_HideLaserBaseBone();
+
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
 
