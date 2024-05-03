@@ -152,6 +152,12 @@ public:
 	{
 		return FullHP;
 	}
+
+	UFUNCTION(BlueprintCallable)
+	inline void AttackPlayer(const int att)
+	{
+		PlayerHP -= att;
+	}
 	//카메라의 Vector2D를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline FVector2D GetCameraVector() const
@@ -351,7 +357,7 @@ public:
 
 	///////////////////Player/////////////////////
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerHP = 0;
+	int32 PlayerHP = 12;
 	int32 FullHP = 12;
 	bool IsPlayerDeath = false;
 	void PlayerDeathCheck();

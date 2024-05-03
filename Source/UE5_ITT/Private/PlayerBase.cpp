@@ -467,7 +467,7 @@ void APlayerBase::JumpDash()
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	DashVelocity = DashDirection * DashDistance * 0.8f;
+	DashVelocity = DashDirection * DashDistance * 0.7f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }

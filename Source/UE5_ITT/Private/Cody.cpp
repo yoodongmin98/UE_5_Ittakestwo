@@ -102,8 +102,8 @@ void ACody::Tick(float DeltaTime)
 			case CodySize::SMALL:
 			{
 				GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
-				GetCharacterMovement()->JumpZVelocity = 250.0f;
-				DashDistance = 700.0f;
+				GetCharacterMovement()->JumpZVelocity = 200.0f;
+				DashDistance = 600.0f;
 				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
 				break;
 			}
