@@ -115,7 +115,7 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	SetActorRotation(TestRotator);
+	/*SetActorRotation(TestRotator);*/
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
@@ -278,7 +278,8 @@ void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 void APlayerBase::ChangeClientDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
 {
 	IsMoveEnd = true;
-	TestRotator = _Rotator;
+	/*TestRotator = _Rotator;*/
+	SetActorRotation(_Rotator);
 }
 
 bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance, FRotator _Rotator)
@@ -289,7 +290,8 @@ bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance
 void APlayerBase::ChangeServerDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
 {
 	IsMoveEnd = true;
-	TestRotator = _Rotator;
+	/*TestRotator = _Rotator;*/
+	SetActorRotation(_Rotator);
 }
 
 void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
