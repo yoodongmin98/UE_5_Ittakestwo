@@ -33,14 +33,7 @@ public:
 		KeepPhase
 	};
 	void SetPhase(Fsm Phase);
-	void SetPhase2()
-	{
-		bPhase2 = true;
-	}
-	void SetPhase3()
-	{
-		bPhase3 = true;
-	}
+
 	UFUNCTION(BlueprintCallable)
 	int32 GetCurrentPhase() const;
 
