@@ -130,34 +130,31 @@ private:
 		Phase1_Progress_LaserBeam_1,			
 		Phase1_Progress_LaserBeam_1_Destroy,
 		Phase1_Progress_ArcingProjectile_1,
-
 		Phase1_Progress_LaserBeam_2,			
 		Phase1_Progress_LaserBeam_2_Destroy,
 		Phase1_Progress_ArcingProjectile_2,
-
 		Phase1_Progress_LaserBeam_3,
 		Phase1_BreakThePattern,
-
 		CodyHolding_Enter,
 		CodyHolding_Low,
 		CodyHolding_ChangeOfAngle,
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
-
 		Phase1_ChangePhase_2,
 
 
+		
 		Phase2_RotateSetting,
 		Phase2_Rotating,
 		Phase2_RocketHit,
 		Phase2_BreakThePattern,
 		Phase2_ChangePhase_Wait,
-		
 		Phase2_Fly,
 		Phase2_MoveToCenter,
 
 		Phase3_MoveFloor,
-
+		Phase3_MoveToTarget,
+		Phase3_GroundPound,
 
 
 		FireHomingRocket,

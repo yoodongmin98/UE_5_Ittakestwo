@@ -1164,18 +1164,46 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase3_MoveFloor,
 		[this]
 		{
-			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경
+			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경 및
+			// 바닥 위로 이동할거고, 바닥 위로 이동 완료 되면 엉덩이찍기 상태로 전환할거임.
+			// SetMoveFloor();
+
+			// 임시로 바로 변경
+			FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
+
 		},
 
 		[this](float DT)
 		{
-			
+			// 바닥 위로 이동 완료 되면 엉찍 상태로 변경
 
 		},
 
 		[this]
 		{
-			
+			// 여기서 그냥 메이한테 포커스를 맞추고.
+
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase3_MoveToTarget,
+		[this]
+		{
+			// start에 들어왔을때 타겟 위치를 가져오고.
+			// 해당 위치에 포커스. 
+
+
+
+		},
+
+		[this](float DT)
+		{
+
+		},
+
+		[this]
+		{
+
 		});
 }
 
