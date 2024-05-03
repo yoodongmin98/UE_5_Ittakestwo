@@ -195,9 +195,70 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
-			//ÄÆ¾ÀÀ» ÇÏ°í ÄÆ¾ÀÀÌ ³¡³ª¸é ¹®´Ý±â
-			//LeftDoor->SetActorLocation();
-			//RightDoor->SetActorLocation();
+			if (true == bPhase2)
+			{
+				FsmComp->ChangeState(Fsm::Phase2);
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase2,
+		[this]
+		{
+			//¹®´Ý¾Æ¹ö¸®±â
+		},
+
+		[this](float DT)
+		{
+			if (true == bPhase3)
+			{
+				FsmComp->ChangeState(Fsm::Phase3);
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase3,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+			MainLaser->SetAttack(true);
+		},
+
+		[this](float DT)
+		{
+			MoveRatio += DT / MoveTimeHalf;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				FsmComp->ChangeState(Fsm::KeepPhase);
+			}
+
+			SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::KeepPhase,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
 		},
 
 		[this]

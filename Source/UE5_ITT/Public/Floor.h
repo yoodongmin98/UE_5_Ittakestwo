@@ -28,9 +28,19 @@ public:
 		Phase1_2Attack,
 		Phase1_3,
 		Phase1End,
+		Phase2,
+		Phase3,
+		KeepPhase
 	};
 	void SetPhase(Fsm Phase);
-
+	void SetPhase2()
+	{
+		bPhase2 = true;
+	}
+	void SetPhase3()
+	{
+		bPhase3 = true;
+	}
 	UFUNCTION(BlueprintCallable)
 	int32 GetCurrentPhase() const;
 
@@ -44,6 +54,7 @@ private:
 	float MoveSize = 4995.f;
 	float MoveRatio = 0.f;
 	float PillarSecond = 0.f;
+	float MoveTimeHalf = 10.f;
 
 	FVector CurPos = FVector::Zero();
 	FVector NextPos = FVector::Zero();
@@ -65,6 +76,9 @@ private:
 	class ALaser* MainLaser = nullptr;
 
 	class UFsmComponent* FsmComp = nullptr;
+
+	bool bPhase2 = false;
+	bool bPhase3 = false;
 
 	void SetupFsm();
 };
