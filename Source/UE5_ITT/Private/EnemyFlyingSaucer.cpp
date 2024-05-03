@@ -1012,11 +1012,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			/*if (CurrentHp <= 33.0f)
+			if (CurrentHp <= 33.0f)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
 				return;
-			}*/
+			}
 
 			// 유도로켓 발사 
 			HomingRocketFireTime -= DT;
@@ -1061,14 +1061,116 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_BreakThePattern,
 		[this]
 		{
+			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+
 			// 우주선떨어지는 애니메이션 적용
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
-			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
+			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				return;
+			}
+		},
+
+		[this]
+		{
+			
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
+		[this]
+		{
+			// 원숭이 타자열심히치는 애니메이션으로 변경
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
+		},
+
+		[this](float DT)
+		{
+			// 조건만족시 
+			
+			// 임시,
+			if (2.0f <= FsmComp->GetStateLiveTime())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_Fly);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_Fly,
+		[this]
+		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			// 우주선 애니메이션 재생 완료시 중앙으로 이동
+			if (false == SkeletalMeshComp->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase2_MoveToCenter);
+				return;
+			}
+		},
+
+		[this]
+		{
+
+		});
+
+	FsmComp->CreateState(EBossState::Phase2_MoveToCenter,
+		[this]
+		{
+			// 우주선 포워드이동 애니메이션 적용, 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Fwd_Anim"), 1, false);
+			MoveStartLocation = GetActorLocation();
+		},
+
+		[this](float DT)
+		{
+			// 맵의 중앙으로 이동하는 코드 작성
+			// 이동이 완료되었다면 3페이즈로 전환. 
+			// ㅈㄴ 끊겨서 이동할거같지왜 ????
+			MoveToCenterLerpRatio += DT / 4.0f;
+			if (1.0f <= MoveToCenterLerpRatio)
+			{
+				MoveToCenterLerpRatio = 1.0f;
+				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
+				SetActorLocation(TargetLocation);
+				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
+				return;
+			}
+			
+			FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
+			SetActorLocation(TargetLocation);
+		},
+
+		[this]
+		{
+			MoveToCenterLerpRatio = 0.0f;
+		});
+
+	FsmComp->CreateState(EBossState::Phase3_MoveFloor,
+		[this]
+		{
+			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경
 		},
 
 		[this](float DT)
 		{
 			
+
 		},
 
 		[this]

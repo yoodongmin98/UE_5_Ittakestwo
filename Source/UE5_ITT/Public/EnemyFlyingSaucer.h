@@ -151,6 +151,13 @@ private:
 		Phase2_Rotating,
 		Phase2_RocketHit,
 		Phase2_BreakThePattern,
+		Phase2_ChangePhase_Wait,
+		
+		Phase2_Fly,
+		Phase2_MoveToCenter,
+
+		Phase3_MoveFloor,
+
 
 
 		FireHomingRocket,
@@ -337,4 +344,8 @@ private:
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
 	class AHomingRocket* HomingRocketActor_2 = nullptr;
+
+	// 센터이동로직관련 
+	float MoveToCenterLerpRatio = 0.0f;
+	FVector MoveStartLocation = FVector::ZeroVector;
 };
