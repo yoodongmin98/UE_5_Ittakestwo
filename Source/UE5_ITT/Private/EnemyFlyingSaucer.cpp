@@ -126,6 +126,7 @@ void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(co
 	case AEnemyFlyingSaucer::EAnimationAssetType::Blueprint:
 	{
 		UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, *AnimationPath);
+
 		if (nullptr != LoadedAnimBlueprint)
 		{
 			SkeletalMeshComp->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
