@@ -361,15 +361,15 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 
 				if (IsFly)
 					AddControllerYawInput(CameraLookVector.X * 0.2f);
-				else
-					AddControllerYawInput(CameraLookVector.X);
+				//else
+					//AddControllerYawInput(CameraLookVector.X);
 
 				// 카메라의 피치 각도 제한
 				// 90도 넘어가면 스프링암 타겟길이에 영향을 미쳐야함.
-				float CurrentPitch = GetControlRotation().Pitch;
-				float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
-				FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
-				Controller->SetControlRotation(NewRotation);
+				//float CurrentPitch = GetControlRotation().Pitch;
+				//float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
+				//FRotator NewRotation = FRotator(GetControlRotation().Pitch, GetControlRotation().Yaw, GetControlRotation().Roll);
+				//Controller->SetControlRotation(NewRotation);
 			}
 		}
 	}

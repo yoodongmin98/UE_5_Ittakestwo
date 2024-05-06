@@ -54,6 +54,14 @@ void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	if (PlayerMay!= nullptr)
 	{
 		PlayerMay->SetOnGravityPath(false);
+		PlayerMay->GetCharacterMovement()->SetGravityDirection(-FVector::UpVector);
+
+		FVector ControllerRotVec = PlayerMay->GetControlRotation().Vector();
+
+		FVector NewForwardVector = FVector::CrossProduct(ControllerRotVec.RightVector, -FVector::UpVector);
+		FVector NewRightVector = FVector::CrossProduct(-FVector::UpVector, -ControllerRotVec.ForwardVector);
+		FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, -FVector::UpVector, FVector::OneVector).Rotator();
+		PlayerMay->SetGravityRotator(NewRotation);
 		PlayerMay = nullptr;
 	}
 }
@@ -67,8 +75,6 @@ void AGravityPath::Tick(float DeltaTime)
 	{
 		if (PlayerMay!=nullptr&&BoxComp->IsOverlappingActor(PlayerMay))
 		{
-			//FVector Direction = MeshComp->getlocation//PlayerMay->GetActorLocation()
-			//PlayerMay->GetCharacterMovement()->SetGravityDirection()
 
 			FVector StartPos = PlayerMay->GetActorLocation();
 			FVector EndPos = StartPos *-PlayerMay->GetActorUpVector();
@@ -90,13 +96,19 @@ void AGravityPath::Tick(float DeltaTime)
 				PlayerMay->SetOnGravityPath(true);
 				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
 				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
-				//FRotator SettingRot = (HitResult.ImpactNormal).Rotation();
-				//SettingRot.Pitch += 90.f;
-				//PlayerMay->SetGravityRotator(SettingRot);
 
-				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
+				FVector ControllerRotVec= PlayerMay->GetControlRotation().Vector(); 
+
+				/*FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
 				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
+				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();*/
+				FVector NewForwardVector = FVector::CrossProduct(ControllerRotVec.RightVector, HitResult.ImpactNormal);
+				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -ControllerRotVec.ForwardVector);
 				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
+
+				UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
+				UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewForwardVector.ToString());
+
 
 				//NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
 				PlayerMay->SetGravityRotator(NewRotation);
