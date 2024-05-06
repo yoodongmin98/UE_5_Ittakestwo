@@ -114,6 +114,10 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bOnGravityPath==true)
+	{
+		TestRotator = GravityRotator;
+	}
 	/*SetActorRotation(TestRotator);*/
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
