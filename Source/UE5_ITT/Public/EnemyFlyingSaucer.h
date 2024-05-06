@@ -90,7 +90,7 @@ public:
 	int32 PatternDestroyCount = 0;
 
 	UFUNCTION(BlueprintCallable)
-	void AddPatternDestoryCount() { ++PatternDestroyCount; }
+	void AddPatternDestoryCount();
 	
 	UPROPERTY(VisibleDefaultsOnly)
 	TArray<class AActor*> PlayerActors;
@@ -165,7 +165,7 @@ public:
 
 		FireHomingRocket,
 		FireArcingProjectile,
-
+		TestState
 	};
 protected:
 	// Called when the game starts or when spawned

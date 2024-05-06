@@ -47,6 +47,15 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	}
 }
 
+void AEnemyFlyingSaucer::AddPatternDestoryCount()
+{
+	++PatternDestroyCount;
+	UE_LOG(LogTemp, Warning, TEXT("Pattern Destroy Count : %d"), PatternDestroyCount);
+
+	UBlackboardComponent* BlackboardComp = Cast<AFlyingSaucerAIController>(GetController())->GetBlackboardComponent();
+	BlackboardComp->SetValueAsInt(TEXT("PatternDestroyCount"), PatternDestroyCount);
+}
+
 const int32 AEnemyFlyingSaucer::GetCurrentState()
 {
 	if (nullptr == FsmComp)
@@ -517,10 +526,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				// test 코드
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
-				FloorObject->SetPhase(AFloor::Fsm::Phase3);
-				
+				//FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -685,6 +692,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
 				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
+
+				// test
+				++PatternDestroyCount;
+
 				return;
 			}
 
@@ -894,7 +905,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 원래대로라면 메이 인터랙트 체크 필요. 
-			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			if (true)
+			{
+				Multicast_SetActivateUIComponent(CodyHoldingUIComp, false, true);
+				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			}
 
 
 			//if (2.5f <= FsmComp->GetStateLiveTime())
@@ -942,7 +957,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			KeyInputTime = KeyInputMaxTime;
 
 			Multicast_SetActivateUIComponent(MayLaserDestroyUIComp, false, true);
-
+			
 			PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Base"));
 		});
 
@@ -1098,7 +1113,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 우주선떨어지는 애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			
-			
 			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd2"), 2, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 		},
@@ -1193,6 +1207,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
 				SetActorLocation(TargetLocation);
 				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
+				FloorObject->SetPhase(AFloor::Fsm::Phase3);
 				return;
 			}
 			
@@ -1247,12 +1262,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 포커스는 임시로 코디 설정, 
-			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
+			/*AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
 			if (nullptr != Controller)
 			{
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
 				UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
-			}
+			}*/
 		},
 
 		[this](float DT)
@@ -1282,6 +1297,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
+			
+			// 애니메이션모드가 애니메이션블루프린트 모드다. 애니메이션 에셋모드로 변경해라. 
 		},
 
 		[this](float DT)
@@ -1303,6 +1320,23 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsSetGroundPoundEffect = false;
+		});
+
+
+
+
+	FsmComp->CreateState(EBossState::TestState,
+		[this]
+		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
+		},
+
+		[this](float DT)
+		{
+		},
+
+		[this]
+		{
 		});
 }
 
