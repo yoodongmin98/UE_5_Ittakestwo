@@ -96,8 +96,6 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
-	
-	
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -126,6 +124,7 @@ void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(co
 	case AEnemyFlyingSaucer::EAnimationAssetType::Blueprint:
 	{
 		UAnimBlueprint* LoadedAnimBlueprint = LoadObject<UAnimBlueprint>(nullptr, *AnimationPath);
+
 		if (nullptr != LoadedAnimBlueprint)
 		{
 			SkeletalMeshComp->SetAnimInstanceClass(LoadedAnimBlueprint->GeneratedClass);
@@ -389,7 +388,6 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	}
 }
 
-
 void AEnemyFlyingSaucer::SetupComponent()
 {
 	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
@@ -500,7 +498,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
+				// test 코드
 				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FloorObject->SetPhase(AFloor::Fsm::Phase3);
+				
 				return;
 			}
 		},
@@ -516,6 +517,18 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Player Actors Size : 0"));
 			}
+
+			if (true == PlayerActors[0]->ActorHasTag("Cody"))
+			{
+				PlayerCody = Cast<ACody>(PlayerActors[0]);
+				PlayerMay = Cast<AMay>(PlayerActors[1]);
+			}
+			else
+			{
+				PlayerCody = Cast<ACody>(PlayerActors[1]);
+				PlayerMay = Cast<AMay>(PlayerActors[0]);
+			}
+
 		});
 
 	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
@@ -1065,6 +1078,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 우주선떨어지는 애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
+			
+			
+			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd2"), 2, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 		},
 
@@ -1073,9 +1089,21 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
 			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				// FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
 				return;
 			}
+
+			// 뚜껑열려야하는데. 본을 가져와서. 
+			int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+			if (INDEX_NONE != BoneIndex)
+			{
+				// SkeletalMeshComp->Bone
+				/*SkeletalMeshComp->SetBoneTransform
+				SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+				UE_LOG(LogTemp, Warning, TEXT("Bone Hide"));*/
+			}
+
+
 		},
 
 		[this]
@@ -1139,9 +1167,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 맵의 중앙으로 이동하는 코드 작성
-			// 이동이 완료되었다면 3페이즈로 전환. 
-			// ㅈㄴ 끊겨서 이동할거같지왜 ????
 			MoveToCenterLerpRatio += DT / 4.0f;
 			if (1.0f <= MoveToCenterLerpRatio)
 			{
@@ -1159,6 +1184,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MoveToCenterLerpRatio = 0.0f;
+			MoveStartLocation = FVector::ZeroVector;
+			// 중앙으로 이동 종료 되었을 때 원숭이 루프애니메이션 적용
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		});
 
 	FsmComp->CreateState(EBossState::Phase3_MoveFloor,
@@ -1167,38 +1195,72 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경 및
 			// 바닥 위로 이동할거고, 바닥 위로 이동 완료 되면 엉덩이찍기 상태로 전환할거임.
 			// SetMoveFloor();
-
-			// 임시로 바로 변경
-			FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
-
 		},
-
+		
 		[this](float DT)
 		{
-			// 바닥 위로 이동 완료 되면 엉찍 상태로 변경
+			if (static_cast<int32>(AFloor::Fsm::KeepPhase) == FloorObject->GetCurrentPhase())
+			{
+				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
+			}
 
 		},
 
 		[this]
 		{
-			// 여기서 그냥 메이한테 포커스를 맞추고.
-
+			UE_LOG(LogTemp, Warning, TEXT("Phase3_MoveToTarget Start"));
 
 		});
 
 	FsmComp->CreateState(EBossState::Phase3_MoveToTarget,
 		[this]
 		{
-			// start에 들어왔을때 타겟 위치를 가져오고.
-			// 해당 위치에 포커스. 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Fwd_Anim"), 1, false);
+			MoveStartLocation = GetActorLocation();
+			GroundPoundTargetLocation = PlayerCody->GetActorLocation();
+			GroundPoundTargetLocation.Z = MoveStartLocation.Z;
 
-
-
+			// 포커스는 임시로 코디 설정, 
+			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
+			Controller->SetFocus(Cast<AActor>(PlayerCody));
 		},
 
 		[this](float DT)
 		{
+			MoveToTargetLerpRatio += DT;
+			if (1.0f <= MoveToTargetLerpRatio)
+			{
+				MoveToTargetLerpRatio = 1.0f;
+				FVector TargetLocation = FMath::Lerp(MoveStartLocation, GroundPoundTargetLocation, MoveToTargetLerpRatio);
+				SetActorLocation(TargetLocation);
+				FsmComp->ChangeState(EBossState::Phase3_GroundPounding);
+				return;
+			}
 
+			FVector TargetLocation = FMath::Lerp(MoveStartLocation, GroundPoundTargetLocation, MoveToTargetLerpRatio);
+			SetActorLocation(TargetLocation);
+		},
+
+		[this]
+		{
+			MoveToTargetLerpRatio = 0.0f;
+			MoveStartLocation = FVector::ZeroVector;
+		});
+
+	FsmComp->CreateState(EBossState::Phase3_GroundPounding,
+		[this]
+		{
+			// 그라운드파운딩 애니메이션 
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+			if (false == SkeletalMeshComp->IsPlaying())
+			{
+				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
+				return;
+			}
 		},
 
 		[this]

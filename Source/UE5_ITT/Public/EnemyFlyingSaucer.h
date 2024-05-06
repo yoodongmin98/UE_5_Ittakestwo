@@ -154,7 +154,7 @@ private:
 
 		Phase3_MoveFloor,
 		Phase3_MoveToTarget,
-		Phase3_GroundPound,
+		Phase3_GroundPounding,
 
 
 		FireHomingRocket,
@@ -345,4 +345,10 @@ private:
 	// 센터이동로직관련 
 	float MoveToCenterLerpRatio = 0.0f;
 	FVector MoveStartLocation = FVector::ZeroVector;
+
+	// GroundPound 이동관련 
+	float MoveToTargetLerpRatio = 0.0f;
+	FVector GroundPoundTargetLocation = FVector::ZeroVector;
+	
+
 };
