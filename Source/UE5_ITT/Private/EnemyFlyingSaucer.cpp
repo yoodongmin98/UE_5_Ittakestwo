@@ -809,7 +809,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bIsCodyHoldingEnter = false;
 			bIsCodyHoldingLerpEnd = false;
 
-			Multicast_UnPossess();
+			// Multicast_UnPossess();
 		});
 
 	// 코디가 살짝 들고 있는 상태 
@@ -1245,7 +1245,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				UE_LOG(LogTemp, Warning, TEXT("Boss Controller is nullptr"));
 				return;
 			}
-
 
 			// 포커스는 임시로 코디 설정, 
 			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
