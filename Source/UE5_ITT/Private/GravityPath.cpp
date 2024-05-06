@@ -112,6 +112,8 @@ void AGravityPath::Tick(float DeltaTime)
 
 				//NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
 				PlayerMay->SetGravityRotator(NewRotation);
+
+				PlayerMay->GetController()->SetControlRotation(NewRotation);
 			}
 		}
 	}
