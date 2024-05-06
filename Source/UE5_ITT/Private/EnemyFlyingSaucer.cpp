@@ -47,6 +47,17 @@ AEnemyFlyingSaucer::AEnemyFlyingSaucer()
 	}
 }
 
+const int32 AEnemyFlyingSaucer::GetCurrentState()
+{
+	if (nullptr == FsmComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FsmComponent is Nullptr"));
+		return -1;
+	}
+
+	return FsmComp->GetCurrentState();
+}
+
 // Called when the game starts or when spawned
 void AEnemyFlyingSaucer::BeginPlay()
 {
@@ -1175,7 +1186,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			MoveToCenterLerpRatio += DT / 4.0f;
+			MoveToCenterLerpRatio += DT / 2.0f;
 			if (1.0f <= MoveToCenterLerpRatio)
 			{
 				MoveToCenterLerpRatio = 1.0f;
@@ -1227,6 +1238,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MoveStartLocation = GetActorLocation();
 			GroundPoundTargetLocation = PlayerCody->GetActorLocation();
 			GroundPoundTargetLocation.Z = MoveStartLocation.Z;
+
+			AController* BossController = GetController();
+			if (nullptr == BossController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Boss Controller is nullptr"));
+				return;
+			}
+
 
 			// 포커스는 임시로 코디 설정, 
 			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());

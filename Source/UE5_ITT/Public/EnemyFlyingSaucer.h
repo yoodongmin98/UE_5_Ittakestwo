@@ -115,25 +115,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const bool IsCodyHoldingEnter() const { return bIsCodyHoldingEnter; }
 
-
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	FVector PrevAnimBoneLocation = FVector::ZeroVector;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
+	const int32 GetCurrentState();
 
-private:
-	// 보스 FSM 상태값 
+	UFUNCTION(BlueprintCallable)
+	ACody* GetPlayerCody() const { return PlayerCody; }
+
+	UFUNCTION(BlueprintCallable)
+	AMay* GetPlayerMay() const { return PlayerMay; }
+
+
 	enum class EBossState
 	{
 		None,
 
-		Intro,						 
-		Phase1_Progress_LaserBeam_1,			
+		Intro,
+		Phase1_Progress_LaserBeam_1,
 		Phase1_Progress_LaserBeam_1_Destroy,
 		Phase1_Progress_ArcingProjectile_1,
-		Phase1_Progress_LaserBeam_2,			
+		Phase1_Progress_LaserBeam_2,
 		Phase1_Progress_LaserBeam_2_Destroy,
 		Phase1_Progress_ArcingProjectile_2,
 		Phase1_Progress_LaserBeam_3,
@@ -146,7 +149,7 @@ private:
 		Phase1_ChangePhase_2,
 
 
-		
+
 		Phase2_RotateSetting,
 		Phase2_Rotating,
 		Phase2_RocketHit,
@@ -164,6 +167,13 @@ private:
 		FireArcingProjectile,
 
 	};
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+	// 보스 FSM 상태값 
+	
 
 	// 보스애니메이션 변경시 사용하는 애니메이션 리소스 정보 애니메이션 시퀀스 or 애니메이션 블루프린트 
 	enum class EAnimationAssetType : uint8
