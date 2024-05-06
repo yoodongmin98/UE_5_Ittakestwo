@@ -217,7 +217,7 @@ public:
 	{
 		return IsSprint;
 	}
-	//Player가 죽은상태인지를 반환합니다.
+	//Player가 죽은상태인지를 반환합니다. 리스폰UI visible여부는 이걸로 확인.
 	UFUNCTION(BlueprintCallable)
 	inline bool GetIsPlayerDeath() const
 	{
@@ -366,6 +366,8 @@ public:
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
 	bool IsPlayerDeath = false;
+
+	UFUNCTION(BlueprintCallable)
 	void PlayerDeathCheck();
 	//////////////////////////////////////////////
 
