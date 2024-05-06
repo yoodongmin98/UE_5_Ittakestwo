@@ -32,7 +32,7 @@ APlayerBase::APlayerBase()
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = false;
+	SpringArm->bDoCollisionTest = true;
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
@@ -114,7 +114,6 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*SetActorRotation(TestRotator);*/
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
 	//중력상태확인(Sit)
@@ -572,14 +571,14 @@ void APlayerBase::SitEnd()
 void APlayerBase::InteractInput_Implementation()
 {
 	IsInteract = true;
-}
-void APlayerBase::InteractNoneInput_Implementation()
-{
-	IsInteract = false;
 	if (IsPlayerDeath)
 	{
 		PlayerHP += 1;
 	}
+}
+void APlayerBase::InteractNoneInput_Implementation()
+{
+	IsInteract = false;
 }
 
 //////////////FSM//////////
@@ -590,16 +589,18 @@ void APlayerBase::ChangeState(Cody_State _State)
 
 void APlayerBase::PlayerDeathCheck()
 {
-	ChangeState(Cody_State::PlayerDeath);
-	//플레이어hp가 0보다 작거나 death함수가 호출되었을때 실행됩니다.
-	if (0 <= PlayerHP || IsPlayerDeath == true)
+	if (0 <= PlayerHP)
 	{
 		IsPlayerDeath = true;
 	}
-	if (FullHP == PlayerHP)
+	if (IsPlayerDeath)
 	{
-		IsPlayerDeath = false;
-		ChangeState(Cody_State::IDLE);
+		ChangeState(Cody_State::PlayerDeath);
+		if (FullHP == PlayerHP)
+		{
+			IsPlayerDeath = false;
+			ChangeState(Cody_State::IDLE);
+		}
 	}
 }
 
@@ -647,5 +648,6 @@ void APlayerBase::TestFunction()
 {
 	ChangeState(Cody_State::FLYING);
 	IsFly = !IsFly;
+	/*SetPlayerDeath();*/
 }
 
