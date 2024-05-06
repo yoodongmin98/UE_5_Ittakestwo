@@ -10,6 +10,7 @@ AMay::AMay()
 	Tags.Add(FName("May"));
 }
 
+
 // Called when the game starts or when spawned
 void AMay::BeginPlay()
 {
@@ -20,6 +21,12 @@ void AMay::BeginPlay()
 void AMay::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bOnGravityPath == true)
+	{
+		GetMesh()->SetWorldRotation(GravityRotator);
+		//SetActorRotation(GravityRotator);
+	}
 }
 
 void AMay::DashEnd()

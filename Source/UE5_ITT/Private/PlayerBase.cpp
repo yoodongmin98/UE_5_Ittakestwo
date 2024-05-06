@@ -32,7 +32,7 @@ APlayerBase::APlayerBase()
 	SpringArm->SetUsingAbsoluteRotation(true);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = false;
+	SpringArm->bDoCollisionTest = true;
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
@@ -114,10 +114,7 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (bOnGravityPath==true)
-	{
-		TestRotator = GravityRotator;
-	}
+
 	/*SetActorRotation(TestRotator);*/
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
