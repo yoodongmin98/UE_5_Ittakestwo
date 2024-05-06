@@ -222,10 +222,10 @@ private:
 	float KeyInputMaxTime = 1.25f;
 	float KeyInputAdditionalTime = 0.75f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	float CurrentHp = 100.0f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 	float MaxHp = 100.0f;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용

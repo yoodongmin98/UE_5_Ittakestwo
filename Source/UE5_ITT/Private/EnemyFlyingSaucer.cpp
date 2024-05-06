@@ -117,6 +117,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, MaxHp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -526,8 +528,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				//FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::TestState);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -1022,9 +1024,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
-
 			RotatingComp->PivotTranslation = RotatePivotVector;
-			
 		},
 
 		[this](float DT)
@@ -1110,7 +1110,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 
-			// 우주선떨어지는 애니메이션 적용
+			// 해치열리는거, 아니 여기선 왜안되는데 
+			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
+
+			// 기존 변경 애니메이션
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			
 			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd2"), 2, false);
