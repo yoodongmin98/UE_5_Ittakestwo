@@ -96,8 +96,6 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerCody);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerMay);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
-	
-	
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -1080,6 +1078,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 우주선떨어지는 애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
+			
+			
+			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd2"), 2, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 		},
 
@@ -1088,7 +1089,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
 			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				// FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
 				return;
 			}
 
