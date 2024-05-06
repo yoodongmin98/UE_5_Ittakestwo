@@ -571,14 +571,14 @@ void APlayerBase::SitEnd()
 void APlayerBase::InteractInput_Implementation()
 {
 	IsInteract = true;
-}
-void APlayerBase::InteractNoneInput_Implementation()
-{
-	IsInteract = false;
 	if (IsPlayerDeath)
 	{
 		PlayerHP += 1;
 	}
+}
+void APlayerBase::InteractNoneInput_Implementation()
+{
+	IsInteract = false;
 }
 
 //////////////FSM//////////
