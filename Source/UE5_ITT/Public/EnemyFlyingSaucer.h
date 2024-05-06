@@ -40,6 +40,9 @@ public:
 	void Multicast_CreateEnergyChargeEffect();
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void Multicast_CreateGroundPoundEffect();
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
 	void Multicast_SetFocusTarget();
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
@@ -235,6 +238,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AEnergyChargeEffect> EnergyChargeEffectClass = nullptr;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AGroundPoundEffect> GroundPoundEffectClass = nullptr;
+
 	// 보스 투사체 관련 
 	UFUNCTION(BlueprintCallable)
 	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
@@ -350,5 +356,6 @@ private:
 	float MoveToTargetLerpRatio = 0.0f;
 	FVector GroundPoundTargetLocation = FVector::ZeroVector;
 	
-
+	float GroundPoundEffectCreateTime = 1.61f;
+	bool bIsSetGroundPoundEffect = false;
 };

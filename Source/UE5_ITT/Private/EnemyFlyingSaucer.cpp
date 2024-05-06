@@ -28,6 +28,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "GameFramework/RotatingMovementComponent.h"
+#include "GroundPoundEffect.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -386,6 +387,13 @@ void AEnemyFlyingSaucer::FireArcingProjectile()
 	{
 		Projectile->AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
+}
+
+void AEnemyFlyingSaucer::Multicast_CreateGroundPoundEffect_Implementation()
+{
+	FVector TargetLocation = GetActorLocation();
+	TargetLocation.Z = TargetLocation.Z - 1100.0f;
+	AGroundPoundEffect* GroundPoundEffect = GetWorld()->SpawnActor<AGroundPoundEffect>(GroundPoundEffectClass, TargetLocation, FRotator::ZeroRotator);
 }
 
 void AEnemyFlyingSaucer::SetupComponent()
@@ -1089,7 +1097,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
 			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
 			{
-				// FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
 				return;
 			}
 
@@ -1222,7 +1230,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 포커스는 임시로 코디 설정, 
 			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
-			Controller->SetFocus(Cast<AActor>(PlayerCody));
+			if (nullptr != Controller)
+			{
+				Controller->SetFocus(Cast<AActor>(PlayerCody));
+				UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
+			}
 		},
 
 		[this](float DT)
@@ -1261,11 +1273,18 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
 				return;
 			}
+
+			if (GroundPoundEffectCreateTime <= FsmComp->GetStateLiveTime() && false == bIsSetGroundPoundEffect)
+			{
+				Multicast_CreateGroundPoundEffect();
+				bIsSetGroundPoundEffect = true;
+			}
+
 		},
 
 		[this]
 		{
-
+			bIsSetGroundPoundEffect = false;
 		});
 }
 
