@@ -155,7 +155,7 @@ void AHomingRocket::SetupFsmComponent()
 			// 대기상태로 전환 될 때, 중력 온시켜서 바닥에 떨어지는 거처럼 만들고. 
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
-			Multicast_ActivateFireEffectComponent(false);
+			Multicast_ActivateFireEffectComponent();
 		},
 
 		[this](float DT)
@@ -221,7 +221,6 @@ void AHomingRocket::SetupFsmComponent()
 			if (nullptr != OverlapActor)
 			{
 				bIsPlayerEquip = true;
-
 				RocketMeshComp->SetSimulatePhysics(false);
 				RocketMeshComp->SetEnableGravity(false);
 				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
@@ -235,6 +234,8 @@ void AHomingRocket::SetupFsmComponent()
 					this->SetOwner(OverlapActor);
 					OverlapActor->SetLocationBool();
 					
+					EnablePlayerFlying();
+					Multicast_ActivateFireEffectComponent();
 				}
 			}
 		},
@@ -339,9 +340,9 @@ void AHomingRocket::Tick(float DeltaTime)
 	}
 }
 
-void AHomingRocket::Multicast_ActivateFireEffectComponent_Implementation(const bool bIsActivate)
+void AHomingRocket::Multicast_ActivateFireEffectComponent_Implementation()
 {
-	FireEffectComp->SetActive(bIsActivate, true);
+	FireEffectComp->ToggleActive();
 }
 
 bool AHomingRocket::IsMaxFloorDistance()

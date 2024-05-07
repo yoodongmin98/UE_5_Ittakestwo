@@ -103,7 +103,7 @@ private:
 	class UNiagaraComponent* FireEffectComp = nullptr;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateFireEffectComponent(const bool bIsActivate);
+	void Multicast_ActivateFireEffectComponent();
 	
 	// ÆÄÆ¼Å¬
 	UPROPERTY(EditDefaultsOnly)
@@ -153,7 +153,7 @@ private:
 	FRotator PlayerEquipLerpEndRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(Replicated)
-	float PlayerEquipMaxLiveTime = 15.0f;
+	float PlayerEquipMaxLiveTime = 150.0f;
 
 	void EnablePlayerFlying();
 	void DisablePlayerFlying();
