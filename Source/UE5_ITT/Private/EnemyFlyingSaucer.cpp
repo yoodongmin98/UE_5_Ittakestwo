@@ -538,7 +538,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
 				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -1364,7 +1364,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			// 그라운드파운딩 애니메이션 
-			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, true);
+			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, true);
 			
 			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			
@@ -1372,9 +1372,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			FVector TargetLocation = GetActorLocation() + FVector(100.0f, 0.0f, 0.0f) * DT;
-			SetActorLocation(TargetLocation);
-			AddActorLocalRotation(FRotator(1.0f, 0.0f, 0.0f));
 		},
 
 		[this]
