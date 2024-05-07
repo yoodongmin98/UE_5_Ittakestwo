@@ -184,7 +184,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
-			// 오버랩 액터의 방향을 보정한다. 
+			// 플레이어 방향보정
 			FVector TargetVector = GetActorForwardVector();
 			// 타겟로테이션
 			PlayerEquipLerpEndRotation = TargetVector.Rotation();
@@ -213,9 +213,6 @@ void AHomingRocket::SetupFsmComponent()
 			PlayerEquipLerpRatio = 0.0f;
 		});
 
-
-
-
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
@@ -235,7 +232,8 @@ void AHomingRocket::SetupFsmComponent()
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
 					
-					OverlapActor->TestFunction();
+					
+					// OverlapActor->TestFunction();
 				}
 			}
 		},
@@ -258,8 +256,6 @@ void AHomingRocket::SetupFsmComponent()
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
 			}
-
-
 			
 			// 보스와의 오버랩 상태가 true라면 
 			if (true == bIsBossOverlap)
@@ -267,7 +263,7 @@ void AHomingRocket::SetupFsmComponent()
 				// 플레이어 액터 장착해제 
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 				// 플레이어한테 너 이제 로켓하차임 
-				OverlapActor->TestFunction();
+				// OverlapActor->TestFunction();
 
 				if (nullptr == GetAttachParentActor())
 				{
