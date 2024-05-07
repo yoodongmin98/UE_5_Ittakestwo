@@ -162,11 +162,15 @@ public:
 		Phase3_MoveToTarget,
 		Phase3_GroundPounding,
 
+		Phase3_Eject,
+
 
 		FireHomingRocket,
 		FireArcingProjectile,
 		TestState
 	};
+
+	void SetActiveEject() { bIsEject = true; }
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -369,4 +373,8 @@ private:
 	
 	float GroundPoundEffectCreateTime = 1.61f;
 	bool bIsSetGroundPoundEffect = false;
+
+	// 보스 탈출 관련
+	UPROPERTY(Replicated)
+	bool bIsEject = false;
 };

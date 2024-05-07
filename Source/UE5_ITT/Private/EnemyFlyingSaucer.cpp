@@ -119,6 +119,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
 	DOREPLIFETIME(AEnemyFlyingSaucer, MaxHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -537,7 +538,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
 				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -1016,7 +1017,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Multicast_HideLaserBaseBone();
 				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
-				
 				return;
 			}
 
@@ -1268,10 +1268,21 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
 				UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
+
+			// test
+			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
+			// 이젝트버튼 눌렸는지 체크 
+			if (true == bIsEject)
+			{
+				FsmComp->ChangeState(EBossState::Phase3_Eject);
+				return;
+			}
+
+
 			MoveToTargetLerpRatio += DT;
 			if (1.0f <= MoveToTargetLerpRatio)
 			{
@@ -1297,12 +1308,21 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
-			
-			// 애니메이션모드가 애니메이션블루프린트 모드다. 애니메이션 에셋모드로 변경해라. 
+
+			// test
+			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
+			// 이젝트버튼 눌렸는지 체크 
+			if (true == bIsEject)
+			{
+				FsmComp->ChangeState(EBossState::Phase3_Eject);
+				return;
+			}
+
+
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
 				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
@@ -1322,13 +1342,27 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bIsSetGroundPoundEffect = false;
 		});
 
+	FsmComp->CreateState(EBossState::Phase3_Eject,
+		[this]
+		{
+			// 탈출애니메이션 적용
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
+		},
+
+		[this](float DT)
+		{
+		},
+
+		[this]
+		{
+		});
 
 
 
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			
 		},
 
