@@ -525,8 +525,12 @@ public:
 
 
 	/////////////////////Rocket 타는 변수
+	UPROPERTY(Replicated)
 	FVector CunstomEndLocation;
+	UPROPERTY(Replicated)
 	FVector CunstomStartLocation;
+	UPROPERTY(Replicated)
 	bool JumplocationSet = false;
+	UPROPERTY(Replicated)
 	float JumpLocationDeltas = 0.0f;
 };

@@ -164,9 +164,7 @@ void APlayerBase::Tick(float DeltaTime)
 		double CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
 		double CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
 		SetActorLocation(FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z));
-		
 	}
-	
 }
 
 // Called to bind functionality to input
@@ -399,7 +397,7 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 				if (IsFly)
 				{
 					AddControllerYawInput(CameraLookVector.X * 0.2f);
-					UE_LOG(LogTemp, Warning, TEXT("Look function called"));
+					//UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 					AddControllerPitchInput(-CameraLookVector.Y * 0.2f);
 				}
 				else
@@ -604,6 +602,10 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, FlyForwardVector);
 	DOREPLIFETIME(APlayerBase, FlyingSpeed);
 	DOREPLIFETIME(APlayerBase, CodyHoldEnemy);
+	DOREPLIFETIME(APlayerBase, CunstomEndLocation);
+	DOREPLIFETIME(APlayerBase, CunstomStartLocation);
+	DOREPLIFETIME(APlayerBase, JumplocationSet);
+	DOREPLIFETIME(APlayerBase, JumpLocationDeltas);
 }
 
 
