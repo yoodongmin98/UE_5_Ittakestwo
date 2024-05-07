@@ -16,14 +16,17 @@ AGravityPath::AGravityPath()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
-		BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
-		MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-		RootComponent = MeshComp;
-		BoxComp->SetupAttachment(MeshComp);
+		MeshBot = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshBot"));
+		RootComponent = MeshBot;
 
-		PivotComp = CreateDefaultSubobject<USceneComponent>(TEXT("PivotComp"));;
-		PivotComp->SetupAttachment(MeshComp);
-		PivotComp->SetRelativeLocation(FVector(400.f, 0.f, 400.f));
+		MeshTop = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshTop"));
+		MeshTop->SetupAttachment(MeshBot);
+
+		ColBot = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ColBot"));
+		ColBot->SetupAttachment(MeshBot);
+
+		ColTop = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ColTop"));
+		ColTop->SetupAttachment(MeshTop);
 	}
 }
 
@@ -34,13 +37,11 @@ void AGravityPath::BeginPlay()
 
 	if (true == HasAuthority())
 	{
-		BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
-		BoxComp->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
-		
-		//FWalkableSlopeOverride Slope;
-		//Slope.SetWalkableSlopeBehavior(EWalkableSlopeBehavior::WalkableSlope_Increase);
-		//Slope.SetWalkableSlopeAngle(100.f);
-		//MeshComp->SetWalkableSlopeOverride(Slope);
+		ColBot->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
+		ColBot->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
+
+		ColTop->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
+		ColTop->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
 	}
 }
 
@@ -51,7 +52,7 @@ void AGravityPath::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (PlayerMay!= nullptr)
+	/*if (PlayerMay!= nullptr)
 	{
 		PlayerMay->GetCharacterMovement()->SetGravityDirection(-FVector::UpVector);
 
@@ -61,7 +62,7 @@ void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 
 		PlayerMay->SetOnGravityPath(false);
 		PlayerMay = nullptr;
-	}
+	}*/
 }
 
 // Called every frame
@@ -71,7 +72,7 @@ void AGravityPath::Tick(float DeltaTime)
 
 	if (true == HasAuthority())
 	{
-		if (PlayerMay!=nullptr&&BoxComp->IsOverlappingActor(PlayerMay))
+		if (PlayerMay!=nullptr&& ColBot->IsOverlappingActor(PlayerMay))
 		{
 
 			FVector StartPos = PlayerMay->GetActorLocation();
@@ -85,7 +86,7 @@ void AGravityPath::Tick(float DeltaTime)
 			FCollisionQueryParams ColQueryParam;
 			ColQueryParam.AddIgnoredActor(PlayerMay);
 
-			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, EndPos *1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
+			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, EndPos*1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
 
 			DrawDebugLine(GetWorld(), StartPos, HitResult.Location,FColor::Red,false,1.f,0,1.f);
 			if (IsHit&& HitResult.GetActor() == this)
@@ -100,20 +101,40 @@ void AGravityPath::Tick(float DeltaTime)
 				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
 
 				//표면 노말을 UpVector로 만들어서 회전을 재계산
-				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
+				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(),HitResult.ImpactNormal);
 				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
-				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();				
+				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal,FVector::OneVector).Rotator();				
 
 				UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
 				UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewRightVector.ToString());
 
-				UE_LOG(LogTemp, Display, TEXT("Fall %d"), PlayerMay->GetMovementComponent()->IsFalling());
+				UE_LOG(LogTemp, Display, TEXT("Bot"));
 
 				
-				//NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
 				PlayerMay->SetGravityRotator(NewRotation);
 
 			}
+		}
+		else if (PlayerMay != nullptr && ColTop->IsOverlappingActor(PlayerMay))
+		{
+			PlayerMay->SetOnGravityPath(true);
+
+			UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *GetActorForwardVector().ToString());
+
+			//표면노말의 역으로 중력 방향 설정
+			PlayerMay->GetCharacterMovement()->SetGravityDirection(-GetActorForwardVector());
+
+			//표면 노말을 UpVector로 만들어서 회전을 재계산
+			FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), GetActorForwardVector());
+			FVector NewRightVector = FVector::CrossProduct(-GetActorForwardVector(), -PlayerMay-> GetActorForwardVector());
+			FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, GetActorForwardVector(), FVector::OneVector).Rotator();
+
+			UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
+			UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewRightVector.ToString());
+
+			UE_LOG(LogTemp, Display, TEXT("Top"));
+
+			PlayerMay->SetGravityRotator(NewRotation);
 		}
 	}
 }

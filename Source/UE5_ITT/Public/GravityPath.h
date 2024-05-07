@@ -26,11 +26,15 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere)
-	class UBoxComponent* BoxComp = nullptr;
+	class UStaticMeshComponent* MeshBot = nullptr;
 	UPROPERTY(EditAnywhere)
-	class UStaticMeshComponent* MeshComp = nullptr;
+	class UStaticMeshComponent* MeshTop = nullptr;
+
+
 	UPROPERTY(EditAnywhere)
-	class USceneComponent* PivotComp = nullptr;
+	class UStaticMeshComponent* ColBot = nullptr;
+	UPROPERTY(EditAnywhere)
+	class UStaticMeshComponent* ColTop = nullptr;
 
 	class AMay* PlayerMay = nullptr;
 
