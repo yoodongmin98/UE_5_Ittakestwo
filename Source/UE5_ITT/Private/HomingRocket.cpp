@@ -232,8 +232,7 @@ void AHomingRocket::SetupFsmComponent()
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
 					
-					
-					// OverlapActor->TestFunction();
+					EnablePlayerFlying();
 				}
 			}
 		},
@@ -359,6 +358,8 @@ bool AHomingRocket::IsMaxFloorDistance()
 	return false;
 }
 
+
+
 void AHomingRocket::TickPlayerChaseLogic(float DeltaTime)
 {
 	RocketLifeTime -= DeltaTime;
@@ -454,3 +455,13 @@ void AHomingRocket::DestroyRocket()
 	Destroy();
 }
 
+// Fly 활성 
+void AHomingRocket::EnablePlayerFlying()
+{
+	//OverlapActor->TestFunction();
+}
+
+// Fly 비활성
+void AHomingRocket::DisablePlayerFlying()
+{
+}

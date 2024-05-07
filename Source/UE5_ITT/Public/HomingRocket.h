@@ -154,4 +154,7 @@ private:
 
 	UPROPERTY(Replicated)
 	float PlayerEquipMaxLiveTime = 15.0f;
+
+	void EnablePlayerFlying();
+	void DisablePlayerFlying();
 };
