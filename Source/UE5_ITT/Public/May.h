@@ -28,16 +28,6 @@ public:
 	virtual void DashEnd() override;
 
 public:
-	void SetOnGravityPath(bool bValue)
-	{
-		bOnGravityPath = bValue;
-	}
-	
-
-	void SetGravityRotator(FRotator RotParam)
-	{
-		GravityRotator = RotParam;
-	}
 
 
 
@@ -46,7 +36,4 @@ protected:
 
 
 private:
-	bool bOnGravityPath = false;
-
-	FRotator GravityRotator = FRotator::ZeroRotator;
 };

@@ -52,17 +52,6 @@ void AGravityPath::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 
 void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	/*if (PlayerMay!= nullptr)
-	{
-		PlayerMay->GetCharacterMovement()->SetGravityDirection(-FVector::UpVector);
-
-		FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
-		FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
-		FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
-
-		PlayerMay->SetOnGravityPath(false);
-		PlayerMay = nullptr;
-	}*/
 }
 
 // Called every frame
@@ -72,15 +61,25 @@ void AGravityPath::Tick(float DeltaTime)
 
 	if (true == HasAuthority())
 	{
-		if (PlayerMay!=nullptr&& ColBot->IsOverlappingActor(PlayerMay))
+		if (PlayerMay != nullptr && ColTop->IsOverlappingActor(PlayerMay))
+		{
+
+			PlayerMay->GetCharacterMovement()->SetGravityDirection(-GetActorForwardVector());
+
+			PlayerMay->GetCharacterMovement()->MovementMode = MOVE_Walking;
+
+
+			//표면 노말을 UpVector로 만들어서 회전을 재계산
+			FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
+			FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
+			FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
+			PlayerMay->SetActorRotation(NewRotation);
+		}
+		else if (PlayerMay!=nullptr&& ColBot->IsOverlappingActor(PlayerMay))
 		{
 
 			FVector StartPos = PlayerMay->GetActorLocation();
 			FVector EndPos = StartPos *-PlayerMay->GetActorUpVector();
-
-			UE_LOG(LogTemp, Display, TEXT("StartPos %s"), *StartPos.ToString());
-			UE_LOG(LogTemp, Display, TEXT("EndPos %s"), *EndPos.ToString());
-			UE_LOG(LogTemp, Display, TEXT("Foward %s"), *PlayerMay->GetActorForwardVector().ToString());
 
 			bool IsHit = false;
 			FCollisionQueryParams ColQueryParam;
@@ -88,53 +87,18 @@ void AGravityPath::Tick(float DeltaTime)
 
 			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, EndPos*1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
 
-			DrawDebugLine(GetWorld(), StartPos, HitResult.Location,FColor::Red,false,1.f,0,1.f);
 			if (IsHit&& HitResult.GetActor() == this)
 			{
-				//중력 장판 위에 올라가 있다는것을 알림
-
-				PlayerMay->SetOnGravityPath(true);
-
-				UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *HitResult.ImpactNormal.ToString());
-
 				//표면노말의 역으로 중력 방향 설정
 				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
 
+				
 				//표면 노말을 UpVector로 만들어서 회전을 재계산
 				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(),HitResult.ImpactNormal);
 				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
-				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal,FVector::OneVector).Rotator();				
-
-				UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
-				UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewRightVector.ToString());
-
-				UE_LOG(LogTemp, Display, TEXT("Bot"));
-
-				
-				PlayerMay->SetGravityRotator(NewRotation);
+				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal,FVector::OneVector).Rotator();			
 
 			}
-		}
-		else if (PlayerMay != nullptr && ColTop->IsOverlappingActor(PlayerMay))
-		{
-			PlayerMay->SetOnGravityPath(true);
-
-			UE_LOG(LogTemp, Display, TEXT("ImpactNormal %s"), *GetActorForwardVector().ToString());
-
-			//표면노말의 역으로 중력 방향 설정
-			PlayerMay->GetCharacterMovement()->SetGravityDirection(-GetActorForwardVector());
-
-			//표면 노말을 UpVector로 만들어서 회전을 재계산
-			FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), GetActorForwardVector());
-			FVector NewRightVector = FVector::CrossProduct(-GetActorForwardVector(), -PlayerMay-> GetActorForwardVector());
-			FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, GetActorForwardVector(), FVector::OneVector).Rotator();
-
-			UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
-			UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewRightVector.ToString());
-
-			UE_LOG(LogTemp, Display, TEXT("Top"));
-
-			PlayerMay->SetGravityRotator(NewRotation);
 		}
 	}
 }

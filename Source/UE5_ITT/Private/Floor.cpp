@@ -71,6 +71,7 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
+
 			if (true == Pillar1->IsDone())
 			{
 				FsmComp->ChangeState(Fsm::Phase1_1Attack);
@@ -209,7 +210,7 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase2,
 		[this]
 		{
-			//문닫아버리기
+			CloseDoor();
 		},
 
 		[this](float DT)
@@ -265,4 +266,19 @@ void AFloor::SetupFsm()
 		{
 		}
 	);
+}
+
+void AFloor::CloseDoor()
+{
+	FVector TempPos = FVector::ZeroVector;
+	TempPos.Y += DoorCloseSize;
+	FTransform LeftTransform;
+	LeftTransform.SetLocation(TempPos);
+
+	FTransform RightTransform;
+	RightTransform.SetLocation(-TempPos);
+
+	LeftDoor->AddActorLocalTransform(LeftTransform);
+
+	RightDoor->AddActorLocalTransform(RightTransform);
 }

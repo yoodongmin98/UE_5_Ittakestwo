@@ -22,11 +22,6 @@ void AMay::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bOnGravityPath == true)
-	{
-		GetMesh()->SetWorldRotation(GravityRotator);
-		//SetActorRotation(GravityRotator);
-	}
 }
 
 void AMay::DashEnd()
