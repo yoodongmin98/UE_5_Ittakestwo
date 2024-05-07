@@ -528,8 +528,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				// FsmComp->ChangeState(EBossState::TestState);
+				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
 		},
@@ -1109,37 +1109,20 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
-
-			// 해치열리는거, 아니 여기선 왜안되는데 
-			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
-
-			// 기존 변경 애니메이션
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			
-			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd2"), 2, false);
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 		},
 
 		[this](float DT)
 		{
 			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
-			if (false == SkeletalMeshComp->IsPlaying() && false == EnemyMoonBaboon->GetMesh()->IsPlaying())
+			// 얘를 다른코드로 변경해야함, 현재 오류 
+			if (6.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
 				return;
 			}
-
-			// 뚜껑열려야하는데. 본을 가져와서. 
-			int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
-			if (INDEX_NONE != BoneIndex)
-			{
-				// SkeletalMeshComp->Bone
-				/*SkeletalMeshComp->SetBoneTransform
-				SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
-				UE_LOG(LogTemp, Warning, TEXT("Bone Hide"));*/
-			}
-
-
 		},
 
 		[this]
@@ -1265,12 +1248,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 포커스는 임시로 코디 설정, 
-			/*AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
+			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
 			if (nullptr != Controller)
 			{
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
 				UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
-			}*/
+			}
 		},
 
 		[this](float DT)
@@ -1332,6 +1315,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
+			
 		},
 
 		[this](float DT)
