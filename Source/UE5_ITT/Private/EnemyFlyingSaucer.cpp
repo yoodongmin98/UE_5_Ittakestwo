@@ -252,15 +252,14 @@ void AEnemyFlyingSaucer::Multicast_AttachToMoonBaboonActorAndFloor_Implementatio
 
 void AEnemyFlyingSaucer::Multicast_SetFocusHoldingCody_Implementation()
 {
-	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-	if (nullptr != AIController)
-	{
-		UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
-		if (nullptr != BlackboardComp)
-		{
-			AIController->SetFocus(Cast<AActor>(PlayerCody));
-		}
-	}
+	UE_LOG(LogTemp, Warning, TEXT("Boss Look at Cody Start"));
+	FVector TargetLocation = GetActorLocation();
+	TargetLocation.Z = 0.0f;
+	FVector StartLocation = PlayerCody->GetActorLocation();
+	StartLocation.Z = 0.0f;
+
+	FRotator TargetRotation = (TargetLocation - StartLocation).Rotation();
+	PlayerCody->SetActorRotation(TargetRotation);
 }
 
 void AEnemyFlyingSaucer::Multicast_UnPossess_Implementation()
@@ -286,6 +285,15 @@ void AEnemyFlyingSaucer::SetCodyHoldingEnter_CodyLocation()
 	{
 		CodyLerpRatio = 1.0f;
 		bIsCodyHoldingLerpEnd = true;
+
+		FVector TargetLocation = GetActorLocation();
+		TargetLocation.Z = 0.0f;
+		FVector StartLocation = PlayerCody->GetActorLocation();
+		StartLocation.Z = 0.0f;
+
+		FRotator TargetRotation = (TargetLocation - StartLocation).Rotation();
+		TargetRotation.Yaw -= 14.0f;
+		PlayerCody->SetActorRotation(TargetRotation);
 	}
 
 	FVector StartLocation = PlayerCody->GetActorLocation();
@@ -794,10 +802,17 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::CodyHolding_Enter,
 		[this]
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("CodyHolding_Enter Start"));
 			// Multicast_SetFocusHoldingCody();
-			// 코디도 보스방향을 쳐다봐야함
-			// PlayerCody->GetController();
+
+			// 시작할때 한번 돌리고 끝나고 한번 더돌려 
+			FVector TargetLocation = GetActorLocation();
+			TargetLocation.Z = 0.0f;
+			FVector StartLocation = PlayerCody->GetActorLocation();
+			StartLocation.Z = 0.0f;
+
+			FRotator TargetRotation = (TargetLocation - StartLocation).Rotation();
+			TargetRotation.Yaw -= 14.0f;
+			PlayerCody->SetActorRotation(TargetRotation);
 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
@@ -1212,9 +1227,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase3_MoveFloor,
 		[this]
 		{
-			// 여기서 우주선 아이들 애니메이션, 원숭이 아이들 애니메이션으로 변경 및
-			// 바닥 위로 이동할거고, 바닥 위로 이동 완료 되면 엉덩이찍기 상태로 전환할거임.
-			// SetMoveFloor();
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
 		
 		[this](float DT)
