@@ -119,6 +119,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevAnimBoneLocation);
 	DOREPLIFETIME(AEnemyFlyingSaucer, MaxHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -1322,6 +1323,20 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bIsSetGroundPoundEffect = false;
 		});
 
+	FsmComp->CreateState(EBossState::Phase3_Eject,
+		[this]
+		{
+			// 탈출애니메이션 적용
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
+		},
+
+		[this](float DT)
+		{
+		},
+
+		[this]
+		{
+		});
 
 
 

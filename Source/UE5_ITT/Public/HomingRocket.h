@@ -41,6 +41,8 @@ public:
 		PlayerEquipWait,     // 라이프타임 소진시 추락, 대기상태 
 		PlayerEquip,		 // 플레이어 상호작용 키 입력시 플레이어 장착
 
+		PlayerEquipCorrect,   // 플레이어 위치보정
+
 		DestroyWait,		 // 완전히 Destroy 하기 전 대기상태, 보스에서 미사일이 제거되었는지 파악하기 위한 상태 
 		Destroy,			 // 완전한 Destroy, 상태 진입시 액터 Destory 
 
@@ -140,4 +142,16 @@ private:
 		
 	UPROPERTY(Replicated)
 	float RocketDamageToBoss = 7.5f;
+
+	UPROPERTY(Replicated)
+	float PlayerEquipLerpRatio = 0.0f;
+
+	UPROPERTY(Replicated)
+	FRotator PlayerEquipLerpStartRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Replicated)
+	FRotator PlayerEquipLerpEndRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Replicated)
+	float PlayerEquipMaxLiveTime = 15.0f;
 };

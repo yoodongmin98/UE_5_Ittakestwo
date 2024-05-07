@@ -50,6 +50,11 @@ void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(AHomingRocket, FireEffectComp);
 	DOREPLIFETIME(AHomingRocket, BossActor);
 	DOREPLIFETIME(AHomingRocket, RocketDamageToBoss);
+	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpRatio);
+	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpStartRotation);
+	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpEndRotation);
+	DOREPLIFETIME(AHomingRocket, PlayerEquipMaxLiveTime);
+	
 }
 
 const int32 AHomingRocket::GetCurrentState() const
@@ -69,7 +74,8 @@ void AHomingRocket::BeginPlay()
 
 	if (true == HasAuthority())
 	{
-		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
+		// 테스트코드 
+		RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
 		SetupOverlapEvent();
 	}
 }
@@ -85,7 +91,6 @@ void AHomingRocket::Multicast_SpawnDestroyEffect_Implementation()
 		{
 			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
 			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
-
 		}
 	}
 }
@@ -143,14 +148,14 @@ void AHomingRocket::SetupFsmComponent()
 			
 		});
 
+	// 바닥에 떨어져 있는 상태 
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,
 		[this]
 		{
+			// 대기상태로 전환 될 때, 중력 온시켜서 바닥에 떨어지는 거처럼 만들고. 
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
 			Multicast_ActivateFireEffectComponent(false);
-			
-			// UE_LOG(LogTemp, Warning, TEXT("Start Player EquipWait"));
 		},
 
 		[this](float DT)
@@ -158,12 +163,11 @@ void AHomingRocket::SetupFsmComponent()
 			// 대기상태일 때 플레이어 키 눌렸는지 확인하여 상태변경
 			if (true == bIsPlayerOverlap && nullptr != OverlapActor)
 			{
-				APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
-				bool KeyCheck = PlayerBase->GetIsInteract();
+				bool KeyCheck = OverlapActor->GetIsInteract();
 				if (true == KeyCheck)
 				{
-					//UE_LOG(LogTemp, Warning, TEXT("Change State PlayerEquip"));
-					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
+					UE_LOG(LogTemp, Warning, TEXT("Change State PlayerEquip"));
+					RocketFsmComponent->ChangeState(ERocketState::PlayerEquipCorrect);
 					return;
 				}
 			}
@@ -174,15 +178,50 @@ void AHomingRocket::SetupFsmComponent()
 			
 		});
 
+	// 플레이어가 애니메이션을 동작하는 중일 때 
+	// 플레이어 회전보정
+	// 애니메이션 프레임 시간 체크해서 이제 장착 -> 스테이트 변경 장착 
+	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
+		[this]
+		{
+			// 오버랩 액터의 방향을 보정한다. 
+			FVector TargetVector = GetActorForwardVector();
+			// 타겟로테이션
+			PlayerEquipLerpEndRotation = TargetVector.Rotation();
+			// 스타트로테이션
+			PlayerEquipLerpStartRotation = OverlapActor->GetActorRotation();
+		},
+
+		[this](float DT)
+		{
+			PlayerEquipLerpRatio += DT * 3.0f;
+			if (1.0f <= PlayerEquipLerpRatio)
+			{
+				PlayerEquipLerpRatio = 1.0f;
+				FRotator TargetRotation = FMath::Lerp(PlayerEquipLerpStartRotation, PlayerEquipLerpEndRotation, PlayerEquipLerpRatio);
+				OverlapActor->SetActorRotation(TargetRotation);
+				RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
+				return;
+			}
+
+			FRotator TargetRotation = FMath::Lerp(PlayerEquipLerpStartRotation, PlayerEquipLerpEndRotation, PlayerEquipLerpRatio);
+			OverlapActor->SetActorRotation(TargetRotation);
+		},
+
+		[this]
+		{
+			PlayerEquipLerpRatio = 0.0f;
+		});
+
+
+
+
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Start PlayerEquip"));
-
 			if (nullptr != OverlapActor)
 			{
 				bIsPlayerEquip = true;
-				//UE_LOG(LogTemp, Warning, TEXT("Attach To Actor"));
 
 				RocketMeshComp->SetSimulatePhysics(false);
 				RocketMeshComp->SetEnableGravity(false);
@@ -193,17 +232,11 @@ void AHomingRocket::SetupFsmComponent()
 				{
 					SetActorRelativeLocation(FVector::ZeroVector);
 					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-					/*SetActorRelativeRotation(FRotator::ZeroRotator);
-					RocketMeshComp->SetRelativeRotation(FRotator::ZeroRotator);*/
-
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
-
-					APlayerBase* PlayerBase = Cast<APlayerBase>(OverlapActor);
-					PlayerBase->TestFunction();
+					
+					OverlapActor->TestFunction();
 				}
-				
-				//UE_LOG(LogTemp, Warning, TEXT("Attach Clear"));
 			}
 		},
 
@@ -215,12 +248,27 @@ void AHomingRocket::SetupFsmComponent()
 				//UE_LOG(LogTemp, Warning, TEXT("Parent Actor nullptr"));
 				return;
 			}
+
+			// 해당상태로 전환된지 10초 이상 지났다면 플레이어 장착 해제 후 Destroy;
+			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
+			{
+				// 너. 로켓하차. 코드 추가 
+
+				// 디스트로이 대기상태로 전환하고
+				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				return;
+			}
+
+
 			
 			// 보스와의 오버랩 상태가 true라면 
 			if (true == bIsBossOverlap)
 			{
 				// 플레이어 액터 장착해제 
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
+				// 플레이어한테 너 이제 로켓하차임 
+				OverlapActor->TestFunction();
+
 				if (nullptr == GetAttachParentActor())
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
@@ -397,7 +445,7 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		// 로켓이 플레이어장착 상태이고, 보스와 오버랩 되었다면 
 		if (static_cast<int32>(ERocketState::PlayerEquip) == RocketFsmComponent->GetCurrentState() && true == OtherActor->ActorHasTag("Boss"))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rocket is Boss Overlap"));
+			// UE_LOG(LogTemp, Warning, TEXT("Rocket is Boss Overlap"));
 			// 불값만 변경해주고 FsmComp Tick 에서 상태변경
 			bIsBossOverlap = true;
 			BossActor = Cast<AEnemyFlyingSaucer>(OtherActor);
