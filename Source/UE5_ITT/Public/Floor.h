@@ -48,6 +48,7 @@ private:
 	float MoveRatio = 0.f;
 	float PillarSecond = 0.f;
 	float MoveTimeHalf = 10.f;
+	float DoorCloseSize = 1100.f;
 
 	FVector CurPos = FVector::Zero();
 	FVector NextPos = FVector::Zero();
@@ -74,4 +75,5 @@ private:
 	bool bPhase3 = false;
 
 	void SetupFsm();
+	void CloseDoor();
 };

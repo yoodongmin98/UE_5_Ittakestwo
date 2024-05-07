@@ -17,11 +17,23 @@ enum class MayWalkable
 UCLASS()
 class UE5_ITT_API AMay : public APlayerBase
 {
-private:
 	GENERATED_BODY()
+
+public:
 	AMay();
-	virtual void BeginPlay() override;
+
+public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void DashEnd() override;
+
+public:
+
+
+
+protected:
+	virtual void BeginPlay() override;
+
+
+private:
 };

@@ -293,7 +293,6 @@ public:
 	}
 	
 
-
 	//////////////////////////////////////////
 	void ChangeState(Cody_State _State);
 	//마우스 돌아가는 스피드
@@ -488,6 +487,7 @@ public:
 	FVector CurrentDirection;
 	UPROPERTY(Replicated)
 	float FlyingSpeed;
+
 
 
 
