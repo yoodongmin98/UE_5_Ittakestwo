@@ -538,7 +538,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
 				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::TestState);
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
 				return;
 			}
 		},
@@ -1266,7 +1266,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (nullptr != Controller)
 			{
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
-				UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
+				// UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
 
 			// test
@@ -1276,11 +1276,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this](float DT)
 		{
 			// 이젝트버튼 눌렸는지 체크 
-			if (true == bIsEject)
+			/*if (true == bIsEject)
 			{
 				FsmComp->ChangeState(EBossState::Phase3_Eject);
 				return;
-			}
+			}*/
 
 
 			MoveToTargetLerpRatio += DT;
@@ -1316,11 +1316,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this](float DT)
 		{
 			// 이젝트버튼 눌렸는지 체크 
-			if (true == bIsEject)
+		/*	if (true == bIsEject)
 			{
 				FsmComp->ChangeState(EBossState::Phase3_Eject);
 				return;
-			}
+			}*/
 
 
 			if (false == SkeletalMeshComp->IsPlaying())
@@ -1345,6 +1345,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase3_Eject,
 		[this]
 		{
+			// 카메라 적용할거라서 그냥 Z위치 + 200해주고 카메라 시점전환 하면 될듯. 
 			// 탈출애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 		},
@@ -1362,12 +1363,18 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
+			// 그라운드파운딩 애니메이션 
+			// Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, true);
+			
+			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			
 		},
 
 		[this](float DT)
 		{
+			FVector TargetLocation = GetActorLocation() + FVector(100.0f, 0.0f, 0.0f) * DT;
+			SetActorLocation(TargetLocation);
+			AddActorLocalRotation(FRotator(1.0f, 0.0f, 0.0f));
 		},
 
 		[this]
