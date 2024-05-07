@@ -153,7 +153,7 @@ private:
 	FRotator PlayerEquipLerpEndRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(Replicated)
-	float PlayerEquipMaxLiveTime = 150.0f;
+	float PlayerEquipMaxLiveTime = 15.0f;
 
 	void EnablePlayerFlying();
 	void DisablePlayerFlying();

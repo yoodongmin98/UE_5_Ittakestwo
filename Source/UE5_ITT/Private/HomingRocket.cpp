@@ -201,8 +201,10 @@ void AHomingRocket::SetupFsmComponent()
 				PlayerEquipLerpRatio = 1.0f;
 				FRotator TargetRotation = FMath::Lerp(PlayerEquipLerpStartRotation, PlayerEquipLerpEndRotation, PlayerEquipLerpRatio);
 				OverlapActor->SetActorRotation(TargetRotation);
-				if(!OverlapActor->GetMovementComponent()->IsFalling())
+				if (!OverlapActor->GetMovementComponent()->IsFalling())
+				{
 					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
+				}
 				return;
 			}
 
@@ -234,7 +236,7 @@ void AHomingRocket::SetupFsmComponent()
 					this->SetOwner(OverlapActor);
 					OverlapActor->SetLocationBool();
 					
-					EnablePlayerFlying();
+					// EnablePlayerFlying();
 					Multicast_ActivateFireEffectComponent();
 				}
 			}
