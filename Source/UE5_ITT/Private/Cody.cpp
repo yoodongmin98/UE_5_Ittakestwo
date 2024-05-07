@@ -188,7 +188,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACody::ChangeBigSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false && !IsFly)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -216,7 +216,7 @@ void ACody::ChangeBigSize_Implementation()
 
 void ACody::ChangeSmallSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false && !IsFly)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -249,7 +249,7 @@ bool ACody::ChangeServerBigSize_Validate()
 
 void ACody::ChangeServerBigSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false && !IsFly)
 	{
 		IsSprint = false;
 		switch (CurCodySize)
@@ -282,7 +282,7 @@ bool ACody::ChangeServerSmallSize_Validate()
 }
 void ACody::ChangeServerSmallSize_Implementation()
 {
-	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false)
+	if (!GetCharacterMovement()->IsFalling() && CodyHoldEnemy == false && !IsFly)
 	{
 		IsSprint = false;
 		switch (CurCodySize)

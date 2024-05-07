@@ -151,12 +151,7 @@ void APlayerBase::Tick(float DeltaTime)
 	}
 
 
-	//FlyTest
-	if (IsFly)
-	{
-		FVector ForwardVector = GetActorForwardVector();
-		AddActorWorldOffset(ForwardVector * FlyingSpeed * DeltaTime);
-	}
+	
 }
 
 // Called to bind functionality to input
@@ -176,6 +171,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::None, this, &APlayerBase::Idle);
 
 		PlayerInput->BindAction(FlyMoveAction, ETriggerEvent::Triggered, this, &APlayerBase::CustomFlyMove);
+		PlayerInput->BindAction(FlyMoveAction, ETriggerEvent::None, this, &APlayerBase::CustomFlyNoneMove);
 
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
@@ -264,36 +260,23 @@ void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 		}
 		if (HasAuthority() == true)
 		{
-			ChangeClientDir(_Instance, CustomTargetRotation);
+			ChangeClientDir(CustomTargetRotation);
 		}
 		else
 		{
-			ChangeServerDir(_Instance, CustomTargetRotation);
+			ChangeServerDir(CustomTargetRotation);
 		}
 	}
 }
 
 void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 {
-	if (HasAuthority() == true)
-	{
-		CustomClientFly(_Instance);
-	}
-	else
-	{
-		CustomServerFly(_Instance);
-	}
-}
-
-void APlayerBase::CustomClientFly_Implementation(const FInputActionInstance& _Instance)
-{
 	if (IsFly)
 	{
 		ChangeState(Cody_State::FLYING);
 		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
 		if (bCanDash == false && ChangeIdle)
 		{
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			// 컨트롤러의 회전 방향을 가져옴
 			ControllerRotation = Controller->GetControlRotation();
 			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
@@ -324,85 +307,58 @@ void APlayerBase::CustomClientFly_Implementation(const FInputActionInstance& _In
 			}
 			if (HasAuthority() == true)
 			{
-				ChangeClientDir(_Instance, CustomTargetRotation);
+				ChangeClientFlyDir(CustomTargetRotation);
 			}
 			else
 			{
-				ChangeServerDir(_Instance, CustomTargetRotation);
+				ChangeServerFlyDir(CustomTargetRotation);
 			}
 		}
 	}
 }
 
-bool APlayerBase::CustomServerFly_Validate(const FInputActionInstance& _Instance)
+void APlayerBase::CustomFlyNoneMove(const FInputActionInstance& _Instance)
 {
-	return true;
+	
 }
 
-void APlayerBase::CustomServerFly_Implementation(const FInputActionInstance& _Instance)
-{
-	if (IsFly)
-	{
-		ChangeState(Cody_State::FLYING);
-		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
-		if (bCanDash == false && ChangeIdle)
-		{
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-			// 컨트롤러의 회전 방향을 가져옴
-			ControllerRotation = Controller->GetControlRotation();
-			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
-			// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
-			// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
-
-			// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
-			WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
-			WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Z);
-
-			// 캐릭터를 입력 방향으로 이동시킴
-			MoveInput = _Instance.GetValue().Get<FVector2D>();
-			if (!MoveInput.IsNearlyZero())
-			{
-				// 입력 방향 노말라이즈
-				MoveInput = MoveInput.GetSafeNormal();
-
-				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
-				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
-				// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산.X;
-
-					// 입력 방향에 따라 캐릭터를 이동시킴
-				if (MoveInput.X >= 0)
-					AddMovementInput(FVector(MoveDirection.X, MoveDirection.Y, MoveDirection.Z * 0.5f));
-				else
-					AddMovementInput(FVector(-MoveDirection.X, -MoveDirection.Y, MoveDirection.Z * 0.5f));
-				///////////////////////////////////////////////////////////////////////////////////////////
-			}
-			if (HasAuthority() == true)
-			{
-				ChangeClientDir(_Instance, CustomTargetRotation);
-			}
-			else
-			{
-				ChangeServerDir(_Instance, CustomTargetRotation);
-			}
-		}
-	}
-}
-
-void APlayerBase::ChangeClientDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+void APlayerBase::ChangeClientDir_Implementation(FRotator _Rotator)
 {
 	IsMoveEnd = true;
 	SetActorRotation(_Rotator);
 }
 
-bool APlayerBase::ChangeServerDir_Validate(const FInputActionInstance& _Instance, FRotator _Rotator)
+bool APlayerBase::ChangeServerDir_Validate(FRotator _Rotator)
 {
 	return true;
 }
 
-void APlayerBase::ChangeServerDir_Implementation(const FInputActionInstance& _Instance, FRotator _Rotator)
+void APlayerBase::ChangeServerDir_Implementation(FRotator _Rotator)
 {
 	IsMoveEnd = true;
 	SetActorRotation(_Rotator);
+}
+
+
+void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
+{
+	IsFly = true;
+	SetActorRotation(_Rotator);
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	FlyForwardVector = GetActorForwardVector();
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+}
+bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
+{
+	return true;
+}
+void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
+{
+	IsFly = true;
+	SetActorRotation(_Rotator);
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	FlyForwardVector = GetActorForwardVector();
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 
 
@@ -435,14 +391,6 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 					AddControllerYawInput(CameraLookVector.X);
 					AddControllerPitchInput(-CameraLookVector.Y);
 				}
-				
-
-				//// 카메라의 피치 각도 제한
-				//// 90도 넘어가면 스프링암 타겟길이에 영향을 미쳐야함.
-				//float CurrentPitch = GetControlRotation().Pitch;
-				//float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, 360.0f, 0.0f); // -90도부터 0도 사이로 제한
-				//FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
-				//Controller->SetControlRotation(NewRotation);
 			}
 		}
 	}
@@ -637,9 +585,9 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
 	DOREPLIFETIME(APlayerBase, IsInteract);
 	DOREPLIFETIME(APlayerBase, IsFly);
+	DOREPLIFETIME(APlayerBase, FlyForwardVector);
+	DOREPLIFETIME(APlayerBase, FlyingSpeed);
 }
-
-
 
 
 

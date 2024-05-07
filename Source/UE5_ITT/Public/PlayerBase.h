@@ -313,17 +313,23 @@ public:
 	void CustomMove(const FInputActionInstance& _Instance);
 
 	void CustomFlyMove(const FInputActionInstance& _Instance);
+	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
 
-	UFUNCTION(Client, Reliable)
-	void CustomClientFly(const FInputActionInstance& _Instance);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void CustomServerFly(const FInputActionInstance& _Instance);
+	//UFUNCTION(Client, Reliable)
+	//void CustomClientFly(const FInputActionInstance& _Instance);
+	//UFUNCTION(Server, Reliable, WithValidation)
+	//void CustomServerFly(const FInputActionInstance& _Instance);
 
 
 	UFUNCTION(Client,Reliable)
-	void ChangeClientDir(const FInputActionInstance& _Instance,FRotator _Rotator);
+	void ChangeClientDir(FRotator _Rotator);
 	UFUNCTION(Server,Reliable, WithValidation)
-	void ChangeServerDir(const FInputActionInstance& _Instance, FRotator _Rotator);
+	void ChangeServerDir(FRotator _Rotator);
+
+	UFUNCTION(Client, Reliable)
+	void ChangeClientFlyDir(FRotator _Rotator);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerFlyDir(FRotator _Rotator);
 
 	
 
@@ -346,7 +352,11 @@ public:
 	void Sit();
 	void SitEnd();
 
+
+
 	void TestFunction();
+
+
 
 	///////////////////////////////////////////////////////
 
@@ -442,6 +452,9 @@ public:
 
 	UPROPERTY(Replicated)
 	int32 CustomPlayerJumpCount;
+
+	UPROPERTY(Replicated)
+	FVector FlyForwardVector;
 	
 	//////////////////////////////////////////////
 
@@ -468,6 +481,7 @@ public:
 	UPROPERTY(Replicated)
 	bool IsFly = false;
 	FVector CurrentDirection;
+	UPROPERTY(Replicated)
 	float FlyingSpeed;
 
 
