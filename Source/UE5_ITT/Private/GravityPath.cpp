@@ -55,11 +55,9 @@ void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 	{
 		PlayerMay->GetCharacterMovement()->SetGravityDirection(-FVector::UpVector);
 
-		FVector ControllerRotVec = PlayerMay->GetControlRotation().Vector();
-
-		FVector NewForwardVector = FVector::CrossProduct(ControllerRotVec.RightVector, -FVector::UpVector);
-		FVector NewRightVector = FVector::CrossProduct(-FVector::UpVector, -ControllerRotVec.ForwardVector);
-		FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, -FVector::UpVector, FVector::OneVector).Rotator();
+		FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
+		FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
+		FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
 
 		PlayerMay->SetOnGravityPath(false);
 		PlayerMay = nullptr;
@@ -86,7 +84,7 @@ void AGravityPath::Tick(float DeltaTime)
 			bool IsHit = false;
 			FCollisionQueryParams ColQueryParam;
 			ColQueryParam.AddIgnoredActor(PlayerMay);
-			//EndPos.Normalize();
+
 			IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPos, EndPos *1000.f,ECollisionChannel::ECC_Visibility, ColQueryParam);
 
 			DrawDebugLine(GetWorld(), StartPos, HitResult.Location,FColor::Red,false,1.f,0,1.f);
@@ -100,16 +98,11 @@ void AGravityPath::Tick(float DeltaTime)
 
 				//표면노말의 역으로 중력 방향 설정
 				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
-				//PlayerMay->GetCharacterMovement()->NewFallVelocity()
+
 				//표면 노말을 UpVector로 만들어서 회전을 재계산
 				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
 				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
-				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();
-
-				/*FVector ControllerRotVec= PlayerMay->GetControlRotation().Vector(); 
-				FVector NewForwardVector = FVector::CrossProduct(ControllerRotVec.RightVector,HitResult.ImpactNormal);
-				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, ControllerRotVec.ForwardVector);
-				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();*/
+				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal, FVector::OneVector).Rotator();				
 
 				UE_LOG(LogTemp, Display, TEXT("Forward %s"), *NewForwardVector.ToString());
 				UE_LOG(LogTemp, Display, TEXT("Right %s"), *NewRightVector.ToString());
@@ -120,7 +113,6 @@ void AGravityPath::Tick(float DeltaTime)
 				//NewRotation.Yaw = PlayerMay->GetControlRotation().Yaw;
 				PlayerMay->SetGravityRotator(NewRotation);
 
-				//PlayerMay->GetController()->SetControlRotation(NewRotation);
 			}
 		}
 	}
