@@ -3,6 +3,8 @@
 
 #include "PlayerBase.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "HomingRocket.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
 //#include "OnlineSubsystem.h"
@@ -67,6 +69,12 @@ APlayerBase::APlayerBase()
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CustomPlayerCapsuleComponent = GetCapsuleComponent();
+	CustomPlayerCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &APlayerBase::OnOverlapBegin);
+	CustomPlayerCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &APlayerBase::OnOverlapEnd);
+	
+
 	//GetOnlineSubsystem();
 	//ют╥б
 	CodyController = Cast<APlayerController>(Controller);
@@ -150,7 +158,14 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
-
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += DeltaTime;
+		double CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		double CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		SetActorLocation(FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z));
+		
+	}
 	
 }
 
@@ -366,7 +381,6 @@ void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
 
 void APlayerBase::Look(const FInputActionInstance& _Instance)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
 		const TArray<FName>& CheckTag = Tags;
@@ -385,11 +399,13 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 				if (IsFly)
 				{
 					AddControllerYawInput(CameraLookVector.X * 0.2f);
+					UE_LOG(LogTemp, Warning, TEXT("Look function called"));
+					AddControllerPitchInput(-CameraLookVector.Y * 0.2f);
 				}
 				else
 				{
-					AddControllerYawInput(CameraLookVector.X);
-					AddControllerPitchInput(-CameraLookVector.Y);
+					AddControllerYawInput(CameraLookVector.X * 0.7f);
+					AddControllerPitchInput(-CameraLookVector.Y * 0.7f);
 				}
 			}
 		}
@@ -595,8 +611,25 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void APlayerBase::TestFunction()
 {
+	JumplocationSet = true;
+	Jump();
 	ChangeState(Cody_State::FLYING);
 	IsFly = !IsFly;
-	/*SetPlayerDeath();*/
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 }
 
+void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag("HomingRocket"))
+	{
+		CunstomEndLocation = OtherActor->GetActorLocation();
+		CunstomStartLocation = GetActorLocation();
+	}
+}
+
+
+void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+
+}

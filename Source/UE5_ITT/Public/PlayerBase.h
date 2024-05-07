@@ -286,6 +286,11 @@ public:
 	{
 		TestRotator += _RotationZ;
 	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetLocationBool()
+	{
+		JumplocationSet = false;
+	}
 	
 
 
@@ -498,4 +503,30 @@ public:
 
 	UPROPERTY(Replicated)
 	bool CodyHoldEnemy = false;
+
+
+
+
+
+	UCapsuleComponent* CustomPlayerCapsuleComponent;
+
+
+
+
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
+
+
+
+	/////////////////////Rocket 타는 변수
+	FVector CunstomEndLocation;
+	FVector CunstomStartLocation;
+	bool JumplocationSet = false;
+	float JumpLocationDeltas = 0.0f;
 };

@@ -184,6 +184,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
+			EnablePlayerFlying();
 			// 플레이어 방향보정
 			FVector TargetVector = GetActorForwardVector();
 			// 타겟로테이션
@@ -200,7 +201,8 @@ void AHomingRocket::SetupFsmComponent()
 				PlayerEquipLerpRatio = 1.0f;
 				FRotator TargetRotation = FMath::Lerp(PlayerEquipLerpStartRotation, PlayerEquipLerpEndRotation, PlayerEquipLerpRatio);
 				OverlapActor->SetActorRotation(TargetRotation);
-				RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
+				if(!OverlapActor->GetMovementComponent()->IsFalling())
+					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 				return;
 			}
 
@@ -231,8 +233,8 @@ void AHomingRocket::SetupFsmComponent()
 					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
+					OverlapActor->SetLocationBool();
 					
-					EnablePlayerFlying();
 				}
 			}
 		},
@@ -458,7 +460,7 @@ void AHomingRocket::DestroyRocket()
 // Fly 활성 
 void AHomingRocket::EnablePlayerFlying()
 {
-	//OverlapActor->TestFunction();
+	OverlapActor->TestFunction();
 }
 
 // Fly 비활성
