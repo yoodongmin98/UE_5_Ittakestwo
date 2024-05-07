@@ -226,7 +226,7 @@ void APlayerBase::OnRep_IsMoveEnd()
 }
 void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 {
-	if (IsFly == false)
+	if (!IsFly && !CodyHoldEnemy)
 	{
 		if (bCanDash == false && ChangeIdle)
 		{
@@ -258,7 +258,7 @@ void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 				AddMovementInput(MoveDirection);
 			}
 		}
-		if (HasAuthority() == true)
+		if (HasAuthority())
 		{
 			ChangeClientDir(CustomTargetRotation);
 		}
@@ -271,7 +271,7 @@ void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
 
 void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 {
-	if (IsFly)
+	if (IsFly && !CodyHoldEnemy)
 	{
 		ChangeState(Cody_State::FLYING);
 		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
@@ -399,7 +399,7 @@ void APlayerBase::Look(const FInputActionInstance& _Instance)
 void APlayerBase::DashInput()
 {
 	IsSprint = false;
-	if (HasAuthority() == true)
+	if (HasAuthority() && !CodyHoldEnemy)
 	{
 		CustomClientDash();
 	}
@@ -587,6 +587,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, IsFly);
 	DOREPLIFETIME(APlayerBase, FlyForwardVector);
 	DOREPLIFETIME(APlayerBase, FlyingSpeed);
+	DOREPLIFETIME(APlayerBase, CodyHoldEnemy);
 }
 
 

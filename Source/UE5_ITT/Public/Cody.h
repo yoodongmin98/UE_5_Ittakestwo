@@ -87,8 +87,7 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 
-	UPROPERTY(Replicated)
-	bool CodyHoldEnemy = false;
+
 
 	float CameraSpeed;
 

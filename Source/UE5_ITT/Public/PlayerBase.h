@@ -495,4 +495,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	class UPlayerMarkerUI* MarkerUIWidget;
+
+	UPROPERTY(Replicated)
+	bool CodyHoldEnemy = false;
 };
