@@ -16,11 +16,12 @@ ALaser::ALaser()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
+		LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
+		RootComponent = LaserMesh;
+
+		SetupFsm();
 	}
 
-	LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
-
-	SetupFsm();
 
 }
 
@@ -32,7 +33,7 @@ void ALaser::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::Wait);
+		FsmComp->ChangeState(Fsm::LaserOn);
 
 		bPhaseEnd = true;
 
@@ -88,16 +89,27 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOn,
 		[this]
 		{
-
+			SetActiveLaser(true);
 		},
 
 		[this](float DT)
 		{
-			FsmComp->ChangeState(Fsm::Attack);
+			//레이저 길이 증가하는 코드
+			LaserSizeRatio += DT/ LaserIncreaseTime;
+			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
+			{
+				LaserSizeRatio = 1.f;
+				SetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
+				FsmComp->ChangeState(Fsm::Attack);
+				return;
+			}
+
+			SetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
 		},
 
 		[this]
 		{
+			LaserSizeRatio = 0.f;
 		});
 
 	FsmComp->CreateState(Fsm::Attack,
@@ -113,24 +125,24 @@ void ALaser::SetupFsm()
 				FsmComp->ChangeState(Fsm::LaserOff);
 			}
 
-			RotateTime -= DT;
 
-			AddActorLocalRotation({ 0.f,360.f * DT,0.f });
+			AddActorLocalRotation({ 0.f,RotateSpeed * DT,0.f });
 		},
 
 		[this]
 		{
-			RotateTime = 15.f;
 		});
 
 	FsmComp->CreateState(Fsm::LaserOff,
 		[this]
 		{
-
+			SetActiveLaser(false);
+			UE_LOG(LogTemp, Display, TEXT("OffLaser"));
 		},
 
 		[this](float DT)
 		{
+			//레이저 감소 증가하는 코드
 			FsmComp->ChangeState(Fsm::MoveDown);
 		},
 

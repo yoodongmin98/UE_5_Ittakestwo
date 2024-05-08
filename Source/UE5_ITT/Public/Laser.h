@@ -35,8 +35,24 @@ public:
 		bAttackStart = bValue;
 	}
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetLaserSize(float SizeParam);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveLaser(bool bValue);
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")
 	class UStaticMeshComponent* LaserMesh = nullptr;
+
+	/// <summary>
+	/// rotatespeed/s
+	/// </summary>
+	/// <param name="SpeedParam"></param>
+	void SetRotateSpeed(float SpeedParam)
+	{
+		RotateSpeed = SpeedParam;
+	}
 
 protected:
 	// Called when the game starts or when spawned
@@ -45,15 +61,18 @@ protected:
 private:	
 	bool bAttackStart = false;
 
-	bool bPhaseEnd = false;	
+	bool bPhaseEnd = false;
+	float RotateSpeed = 180.f;
+
+	float LaserIncreaseTime = 3.f;
+	float LaserSizeRatio = 0.f;
+	float LaserMaxSize = 11000.f;
 
 	FVector DefaultPos = FVector::Zero();
 	FVector AttackPos = FVector::Zero();
 	float AttackMoveSize = 500.f;
 
 	float MovingRatio = 0.f;
-
-	float RotateTime = 15.f;
 
 	class UFsmComponent* FsmComp = nullptr;
 

@@ -192,6 +192,14 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			////////////////TEST//////////////
+			if (bDone == true)
+			{
+				FsmComp->ChangeState(Fsm::Boom);
+				return;
+			}
+			////////////////TEST//////////////
+
 			//플레이어가 떨어짐
 			if (false == bOnPlayer)
 			{
