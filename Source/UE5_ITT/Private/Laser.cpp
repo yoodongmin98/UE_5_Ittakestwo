@@ -16,11 +16,11 @@ ALaser::ALaser()
 		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
+		LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
+		RootComponent = LaserMesh;
+		SetupFsm();
 	}
 
-	LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
-
-	SetupFsm();
 
 }
 
@@ -33,8 +33,6 @@ void ALaser::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Wait);
-
-		bPhaseEnd = true;
 
 		DefaultPos = LaserMesh->GetRelativeLocation();
 		AttackPos = DefaultPos;
@@ -88,12 +86,22 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOn,
 		[this]
 		{
-
+			MultiActiveLaser(true);
 		},
 
 		[this](float DT)
 		{
-			FsmComp->ChangeState(Fsm::Attack);
+			//레이저 길이 증가하는 코드
+			LaserSizeRatio += DT/ LaserIncreaseTime;
+			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
+			{
+				LaserSizeRatio = 1.f;
+				SetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
+				FsmComp->ChangeState(Fsm::Attack);
+				return;
+			}
+
+			SetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
 		},
 
 		[this]
@@ -113,29 +121,38 @@ void ALaser::SetupFsm()
 				FsmComp->ChangeState(Fsm::LaserOff);
 			}
 
-			RotateTime -= DT;
 
-			AddActorLocalRotation({ 0.f,360.f * DT,0.f });
+			AddActorLocalRotation({ 0.f,RotateSpeed * DT,0.f });
 		},
 
 		[this]
 		{
-			RotateTime = 15.f;
 		});
 
 	FsmComp->CreateState(Fsm::LaserOff,
 		[this]
 		{
-
+			LaserSizeRatio = 0.f;
 		},
 
 		[this](float DT)
 		{
-			FsmComp->ChangeState(Fsm::MoveDown);
+			//레이저 길이 감소하는 코드
+			LaserSizeRatio += DT / LaserIncreaseTime;
+			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
+			{
+				LaserSizeRatio = 1.f;
+				SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
+				FsmComp->ChangeState(Fsm::MoveDown);
+				return;
+			}
+
+			SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
 		},
 
 		[this]
 		{
+			MultiActiveLaser(false);
 		});
 
 	FsmComp->CreateState(Fsm::MoveDown,
@@ -169,3 +186,7 @@ void ALaser::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ALaser::MultiActiveLaser_Implementation(bool bValue)
+{
+	SetActiveLaser(bValue);
+}

@@ -31,8 +31,8 @@ APillar::APillar()
 	{
 		bReplicates = true;
 		SetReplicateMovement(true);
+		SetupFsm();
 	}
-	SetupFsm();
 }
 
 // Called when the game starts or when spawned
@@ -192,6 +192,15 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
+			
+			//////////////////Debug//////////////
+			//if (bDone == true)
+			//{
+			//	FsmComp->ChangeState(Fsm::Boom);
+			//	return;
+			//}
+			//////////////////Debug//////////////
+
 			//ÇÃ·¹ÀÌ¾î°¡ ¶³¾îÁü
 			if (false == bOnPlayer)
 			{
