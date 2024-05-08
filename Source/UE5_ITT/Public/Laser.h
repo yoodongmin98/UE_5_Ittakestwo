@@ -6,11 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "Laser.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActiveLaser);
+
 UCLASS()
 class ALaser : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:	
 	// Sets default values for this actor's properties
 	ALaser();
@@ -18,6 +20,9 @@ public:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(BlueprintAssignable)
+	FActiveLaser ActiveLaser;
 
 public:
 	enum class Fsm
@@ -66,8 +71,8 @@ protected:
 
 private:	
 	bool bAttackStart = false;
-
 	float RotateSpeed = 30.f;
+
 
 	float LaserIncreaseTime = 3.f;
 	float LaserSizeRatio = 0.f;
