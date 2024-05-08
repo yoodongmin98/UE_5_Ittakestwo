@@ -34,6 +34,7 @@ void ALaser::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::LaserOn);
+		bAttackStart = true;
 
 		bPhaseEnd = true;
 

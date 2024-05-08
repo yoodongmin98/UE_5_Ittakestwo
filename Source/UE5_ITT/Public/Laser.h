@@ -62,7 +62,7 @@ private:
 	bool bAttackStart = false;
 
 	bool bPhaseEnd = false;
-	float RotateSpeed = 180.f;
+	float RotateSpeed = 45.f;
 
 	float LaserIncreaseTime = 3.f;
 	float LaserSizeRatio = 0.f;
