@@ -537,7 +537,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -758,9 +758,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 
-			// 레이저타겟방향을 포커스 
-			FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
-			Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
+			// 레이저타겟방향을 포커스, 임시주석
+			if (nullptr != LaserTargetActor)
+			{
+				FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
+				Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
+			}
+			
 		},
 
 		[this](float DT)
