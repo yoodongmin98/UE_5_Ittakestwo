@@ -234,7 +234,7 @@ void AHomingRocket::SetupFsmComponent()
 					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
-					OverlapActor->SetLocationBool();
+					OverlapActor->SetLocationBool(); // ?? 
 					
 					// EnablePlayerFlying();
 					Multicast_ActivateFireEffectComponent();

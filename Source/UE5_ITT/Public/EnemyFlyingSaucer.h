@@ -373,4 +373,10 @@ private:
 	// 보스 탈출 관련
 	UPROPERTY(Replicated)
 	bool bIsEject = false;
+
+	class APlayerController* ViewTargetChangeController = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase1EndCameraRail = nullptr;
+
 };

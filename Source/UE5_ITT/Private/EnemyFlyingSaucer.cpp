@@ -29,6 +29,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "GroundPoundEffect.h"
+#include "PhaseEndCameraRail.h"
 //#include "PhysicsEngine/PhysicsAsset.h"
 
 // Sets default values
@@ -538,7 +539,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -766,6 +767,32 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
 			}
 			
+
+			// 플레이어 카메라 변경
+			// 일단 임시로 그냥 1번카메라 변경함 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr != PlayerController)
+			{
+				ViewTargetChangeController = PlayerController;
+				//// 컨트롤러의 폰이 코디라면 뷰변경 컨트롤러를 이녀석으로 세팅
+				//if (true == PlayerController->GetPawn()->ActorHasTag(TEXT("Cody")))
+				//{
+				//	ViewTargetChangeController = PlayerController;
+				//}
+				//// 코디가 아니라면 두번째 플레이어가 코디인거고, 그녀석의 컨트롤러를 변경할 컨트롤러로 세팅해준다. 
+				//else
+				//{
+				//	PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 1);
+				//	ViewTargetChangeController = PlayerController;
+				//}
+			}
+			if (nullptr != ViewTargetChangeController)
+			{
+
+				// 이전에 사용하던 카메라를 Prev 카메라변수에 저장해두고, 재생완료 후 상태전환시 원래카메라로 다시 블렌드 
+				ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
+				Phase1EndCameraRail->EnableCameraMove();
+			}
 		},
 
 		[this](float DT)
