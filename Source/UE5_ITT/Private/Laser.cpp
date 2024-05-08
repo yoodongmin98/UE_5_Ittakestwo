@@ -18,7 +18,6 @@ ALaser::ALaser()
 		SetReplicateMovement(true);
 		LaserMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaserMesh"));
 		RootComponent = LaserMesh;
-
 		SetupFsm();
 	}
 
@@ -87,7 +86,7 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOn,
 		[this]
 		{
-			SetActiveLaser(true);
+			MultiActiveLaser(true);
 		},
 
 		[this](float DT)
@@ -144,17 +143,16 @@ void ALaser::SetupFsm()
 			{
 				LaserSizeRatio = 1.f;
 				SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
-				FsmComp->ChangeState(Fsm::Attack);
+				FsmComp->ChangeState(Fsm::MoveDown);
 				return;
 			}
 
 			SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
-			FsmComp->ChangeState(Fsm::MoveDown);
 		},
 
 		[this]
 		{
-			SetActiveLaser(false);
+			MultiActiveLaser(false);
 		});
 
 	FsmComp->CreateState(Fsm::MoveDown,
@@ -188,4 +186,7 @@ void ALaser::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
+void ALaser::MultiActiveLaser_Implementation(bool bValue)
+{
+	SetActiveLaser(bValue);
+}

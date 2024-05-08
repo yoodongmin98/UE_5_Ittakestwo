@@ -192,13 +192,14 @@ void APillar::SetupFsm()
 
 		[this](float DT)
 		{
-			////////////////TEST//////////////
-			if (bDone == true)
-			{
-				FsmComp->ChangeState(Fsm::Boom);
-				return;
-			}
-			////////////////TEST//////////////
+			
+			//////////////////Debug//////////////
+			//if (bDone == true)
+			//{
+			//	FsmComp->ChangeState(Fsm::Boom);
+			//	return;
+			//}
+			//////////////////Debug//////////////
 
 			//ÇÃ·¹ÀÌ¾î°¡ ¶³¾îÁü
 			if (false == bOnPlayer)

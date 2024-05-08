@@ -37,7 +37,6 @@ void AUfoCameraRail::Tick(float DeltaTime)
 
 void AUfoCameraRail::MoveRailCamera_Implementation(float RailRatio)
 {
-	UE_LOG(LogTemp, Display, TEXT("tset"));
 	CurrentPositionOnRail = RailRatio;
 	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
 }

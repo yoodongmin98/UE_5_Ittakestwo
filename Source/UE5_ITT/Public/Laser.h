@@ -6,8 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "Laser.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActiveLaser);
-
 UCLASS()
 class ALaser : public AActor
 {
@@ -21,8 +19,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(BlueprintAssignable)
-	FActiveLaser ActiveLaser;
 
 public:
 	enum class Fsm
@@ -45,6 +41,8 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetActiveLaser(bool bValue);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiActiveLaser(bool bValue);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")
@@ -72,7 +70,6 @@ protected:
 private:	
 	bool bAttackStart = false;
 	float RotateSpeed = 30.f;
-
 
 	float LaserIncreaseTime = 3.f;
 	float LaserSizeRatio = 0.f;
