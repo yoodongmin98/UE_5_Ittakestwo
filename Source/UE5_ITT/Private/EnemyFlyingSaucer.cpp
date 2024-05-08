@@ -29,6 +29,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "GroundPoundEffect.h"
+//#include "PhysicsEngine/PhysicsAsset.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -537,7 +538,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -1114,8 +1115,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
-			// 얘를 다른코드로 변경해야함, 현재 오류 
 			if (6.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
@@ -1131,6 +1130,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
 		[this]
 		{
+			// test, 피직스 false 
+			/*int32 PhysicsBodyIndex = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("Base"));
+			int32 PhysicsBodyIndex2 = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("LaserGun"));
+			SkeletalMeshComp->GetPhysicsAsset()->DisableCollision(PhysicsBodyIndex, PhysicsBodyIndex2);*/
 			// 원숭이 타자열심히치는 애니메이션으로 변경
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
 		},
@@ -1142,7 +1145,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 임시,
 			if (2.0f <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_Fly);
+				// FsmComp->ChangeState(EBossState::Phase2_Fly);
 				return;
 			}
 		},
