@@ -27,9 +27,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
 
-	UFUNCTION(BlueprintCallable)
-	void AddPatternMatchCount();
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	
@@ -73,9 +70,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Replicated)
-	int32 PatternMatchCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsSetupPlayerRef= false;

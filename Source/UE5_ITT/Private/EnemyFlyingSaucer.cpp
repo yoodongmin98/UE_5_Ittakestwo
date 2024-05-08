@@ -749,19 +749,18 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
 
-
 			// UI Component Activate
 			FTimerHandle TimerHandle;
 			FTimerDelegate TimerDelegate;
 			TimerDelegate.BindUFunction(this, TEXT("Multicast_SetActivateUIComponent"), CodyHoldingUIComp, true, true);
 			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
-			
-			// 기존코드 
-			// GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateCodyHoldingUIComponent, 4.5f, false);
 
-			// OverlapActor Spawn : 변경예정
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
+
+			// 레이저타겟방향을 포커스 
+			FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
+			Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
 		},
 
 		[this](float DT)
@@ -920,14 +919,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 원래대로라면 메이 인터랙트 체크 필요. 
 			// 페이즈 넘기기용 테스트 코드 
-			/*if (true)
+			if (true)
 			{
 				Multicast_SetActivateUIComponent(CodyHoldingUIComp, false, true);
 				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			}*/
+			}
 
 			// 기존 동작 코드 
-			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			/*APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (OverlapPlayer != nullptr)
 			{
 				if (true == OverlapPlayer->ActorHasTag("May"))
@@ -945,7 +944,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 						UE_LOG(LogTemp, Warning, TEXT("Key Input False"));
 					}
 				}
-			}
+			}*/
 			KeyInputTime -= DT;
 		},
 
