@@ -74,7 +74,7 @@ void AHomingRocket::BeginPlay()
 
 	if (true == HasAuthority())
 	{
-		// 테스트코드 
+		// 테스트코드, 바꿔야함 
 		RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
 		SetupOverlapEvent();
 	}

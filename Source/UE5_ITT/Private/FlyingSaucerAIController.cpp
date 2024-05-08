@@ -25,12 +25,6 @@ AFlyingSaucerAIController::AFlyingSaucerAIController()
 	}
 }
 
-void AFlyingSaucerAIController::AddPatternMatchCount()
-{
-	++PatternMatchCount;
-	GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
-}
-
 void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -41,7 +35,6 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase3);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTree);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTreeComp);
-	DOREPLIFETIME(AFlyingSaucerAIController, PatternMatchCount);
 }
 
 
@@ -99,7 +92,6 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCody"), PlayerRef1);
 		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMay"), PlayerRef2);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
-		GetBlackboardComponent()->SetValueAsInt(TEXT("PatternMatchCount"), PatternMatchCount);
 	}
 }
 

@@ -29,6 +29,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "GroundPoundEffect.h"
+//#include "PhysicsEngine/PhysicsAsset.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -537,8 +538,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::TestState);
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -703,10 +704,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
 				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
-
-				// test
-				++PatternDestroyCount;
-
 				return;
 			}
 
@@ -753,19 +750,22 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
 
-
 			// UI Component Activate
 			FTimerHandle TimerHandle;
 			FTimerDelegate TimerDelegate;
 			TimerDelegate.BindUFunction(this, TEXT("Multicast_SetActivateUIComponent"), CodyHoldingUIComp, true, true);
 			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
-			
-			// 기존코드 
-			// GetWorldTimerManager().SetTimer(TimerHandle, this, &AEnemyFlyingSaucer::ActivateCodyHoldingUIComponent, 4.5f, false);
 
-			// OverlapActor Spawn : 변경예정
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
+
+			// 레이저타겟방향을 포커스, 임시주석
+			if (nullptr != LaserTargetActor)
+			{
+				FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
+				Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
+			}
+			
 		},
 
 		[this](float DT)
@@ -923,40 +923,25 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 원래대로라면 메이 인터랙트 체크 필요. 
+			// 페이즈 넘기기용 테스트 코드 
 			if (true)
 			{
 				Multicast_SetActivateUIComponent(CodyHoldingUIComp, false, true);
 				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 			}
 
-
-			//if (2.5f <= FsmComp->GetStateLiveTime())
-			//{
-			//	FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
-			//	
-			//	// 여기서 베이스본위치 현재 애니메이션의 본위치 받아와서 저장
-			//	
-
-			//	
-
-			//	return;
-			//}
-
-
-			// 현재 메이 인터랙트 인풋바인딩 제대로 동작안해서 테스트불가능 임시로 2초뒤에 페이즈변경하는 형태로 테스트.
-			/*UE_LOG(LogTemp, Warning, TEXT("CodyHolding_InputKey Tick"));
-			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();*/
-			/*if (OverlapPlayer != nullptr)
+			// 기존 동작 코드 
+			/*APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (OverlapPlayer != nullptr)
 			{
 				if (true == OverlapPlayer->ActorHasTag("May"))
 				{
-					
 					PlayerMay = Cast<AMay>(OverlapPlayer);
 					bool MayInput = PlayerMay->GetIsInteract();
 					if (true == MayInput)
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Key Input True"));
-						FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
+						FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 						return;
 					}
 					else
@@ -965,7 +950,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					}
 				}
 			}*/
-				
 			KeyInputTime -= DT;
 		},
 
@@ -1131,8 +1115,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 여기서 우주선 애니메이션 재생 완료시 3페이즈 변경 대기상태로 변경
-			// 얘를 다른코드로 변경해야함, 현재 오류 
 			if (6.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
@@ -1148,6 +1130,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
 		[this]
 		{
+			// test, 피직스 false 
+			/*int32 PhysicsBodyIndex = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("Base"));
+			int32 PhysicsBodyIndex2 = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("LaserGun"));
+			SkeletalMeshComp->GetPhysicsAsset()->DisableCollision(PhysicsBodyIndex, PhysicsBodyIndex2);*/
 			// 원숭이 타자열심히치는 애니메이션으로 변경
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
 		},
@@ -1159,7 +1145,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 임시,
 			if (2.0f <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_Fly);
+				// FsmComp->ChangeState(EBossState::Phase2_Fly);
 				return;
 			}
 		},
@@ -1268,21 +1254,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
 				// UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
-
-			// test
-			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
-			// 이젝트버튼 눌렸는지 체크 
-			/*if (true == bIsEject)
-			{
-				FsmComp->ChangeState(EBossState::Phase3_Eject);
-				return;
-			}*/
-
-
 			MoveToTargetLerpRatio += DT;
 			if (1.0f <= MoveToTargetLerpRatio)
 			{
@@ -1308,21 +1283,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
-
-			// test
-			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
-			// 이젝트버튼 눌렸는지 체크 
-		/*	if (true == bIsEject)
-			{
-				FsmComp->ChangeState(EBossState::Phase3_Eject);
-				return;
-			}*/
-
-
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
 				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
@@ -1345,8 +1309,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase3_Eject,
 		[this]
 		{
-			// 카메라 적용할거라서 그냥 Z위치 + 200해주고 카메라 시점전환 하면 될듯. 
-			// 탈출애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 		},
 
@@ -1363,11 +1325,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			// 그라운드파운딩 애니메이션 
-			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, true);
-			
-			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
-			
 		},
 
 		[this](float DT)
