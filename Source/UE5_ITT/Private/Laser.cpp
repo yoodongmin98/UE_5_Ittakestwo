@@ -33,10 +33,7 @@ void ALaser::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::LaserOn);
-		bAttackStart = true;
-
-		bPhaseEnd = true;
+		FsmComp->ChangeState(Fsm::Wait);
 
 		DefaultPos = LaserMesh->GetRelativeLocation();
 		AttackPos = DefaultPos;
@@ -110,7 +107,6 @@ void ALaser::SetupFsm()
 
 		[this]
 		{
-			LaserSizeRatio = 0.f;
 		});
 
 	FsmComp->CreateState(Fsm::Attack,
@@ -137,18 +133,28 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOff,
 		[this]
 		{
-			SetActiveLaser(false);
-			UE_LOG(LogTemp, Display, TEXT("OffLaser"));
+			LaserSizeRatio = 0.f;
 		},
 
 		[this](float DT)
 		{
-			//레이저 감소 증가하는 코드
+			//레이저 길이 감소하는 코드
+			LaserSizeRatio += DT / LaserIncreaseTime;
+			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
+			{
+				LaserSizeRatio = 1.f;
+				SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
+				FsmComp->ChangeState(Fsm::Attack);
+				return;
+			}
+
+			SetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f-LaserSizeRatio));
 			FsmComp->ChangeState(Fsm::MoveDown);
 		},
 
 		[this]
 		{
+			SetActiveLaser(false);
 		});
 
 	FsmComp->CreateState(Fsm::MoveDown,
@@ -181,4 +187,5 @@ void ALaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
+
 

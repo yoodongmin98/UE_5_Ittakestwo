@@ -31,8 +31,8 @@ APillar::APillar()
 	{
 		bReplicates = true;
 		SetReplicateMovement(true);
+		SetupFsm();
 	}
-	SetupFsm();
 }
 
 // Called when the game starts or when spawned

@@ -34,6 +34,18 @@ void AFloor::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Phase1_1);
+
+		MainLaser->SetLaserMaxSize(6000.f);
+		ArraySubLaser.Push(SubLaser0);
+		SubLaser0->SetRotateSpeed(12.f);
+		ArraySubLaser.Push(SubLaser1);
+		SubLaser1->SetRotateSpeed(9.f);
+		ArraySubLaser.Push(SubLaser2);
+		SubLaser2->SetRotateSpeed(6.f);
+		for (size_t i = 0; i < ArraySubLaser.Num(); i++)
+		{
+			ArraySubLaser[i]->SetActorHiddenInGame(true);
+		}
 	}
 }
 
@@ -256,10 +268,24 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::KeepPhase,
 		[this]
 		{
+			CheckTime = SubLaserUpTime;
 		},
 
 		[this](float DT)
 		{
+			if (SubLaserIndex == ArraySubLaser.Num())
+			{
+				FsmComp->ChangeState(Fsm::End);
+				return;
+			}
+			CheckTime -= DT;
+			if (CheckTime <=0.f)
+			{
+				ArraySubLaser[SubLaserIndex]->SetActorHiddenInGame(false);
+				ArraySubLaser[SubLaserIndex]->SetAttack(true);
+				CheckTime = SubLaserUpTime;
+				++SubLaserIndex;
+			}
 		},
 
 		[this]

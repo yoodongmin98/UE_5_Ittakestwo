@@ -26,10 +26,14 @@ public:
 	};
 	virtual void Tick(float DeltaTime)override;
 
+	UFUNCTION(NetMulticast,Reliable)
+	void MoveRailCamera(float RailRatio);
+
 protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(EditAnywhere)
 	class UCameraComponent* CamComp = nullptr;
 	class UFsmComponent* FsmComp;
 	void SetupFsm();

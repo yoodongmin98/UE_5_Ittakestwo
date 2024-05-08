@@ -37,7 +37,7 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetLaserSize(float SizeParam);
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetActiveLaser(bool bValue);
 
@@ -54,6 +54,12 @@ public:
 		RotateSpeed = SpeedParam;
 	}
 
+
+	void SetLaserMaxSize(float SizeParam)
+	{
+		LaserMaxSize = SizeParam;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -61,8 +67,7 @@ protected:
 private:	
 	bool bAttackStart = false;
 
-	bool bPhaseEnd = false;
-	float RotateSpeed = 45.f;
+	float RotateSpeed = 30.f;
 
 	float LaserIncreaseTime = 3.f;
 	float LaserSizeRatio = 0.f;

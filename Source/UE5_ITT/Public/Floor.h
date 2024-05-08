@@ -30,7 +30,8 @@ public:
 		Phase1End,
 		Phase2,
 		Phase3,
-		KeepPhase
+		KeepPhase,
+		End,
 	};
 	void SetPhase(Fsm Phase);
 
@@ -68,6 +69,19 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class ALaser* MainLaser = nullptr;
+
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser0 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser1 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser2 = nullptr;
+	TArray<ALaser*> ArraySubLaser;
+	int SubLaserIndex = 0;
+
+	float SubLaserUpTime = 12.f;
+	float CheckTime = -1.f;
 
 	class UFsmComponent* FsmComp = nullptr;
 
