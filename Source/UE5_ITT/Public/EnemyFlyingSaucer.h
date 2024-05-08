@@ -141,14 +141,13 @@ public:
 		Phase1_Progress_ArcingProjectile_2,
 		Phase1_Progress_LaserBeam_3,
 		Phase1_BreakThePattern,
+
 		CodyHolding_Enter,
 		CodyHolding_Low,
 		CodyHolding_ChangeOfAngle,
 		CodyHolding_InputKey,
 		CodyHolding_ChangeOfAngle_Reverse,
 		Phase1_ChangePhase_2,
-
-
 
 		Phase2_RotateSetting,
 		Phase2_Rotating,
@@ -176,9 +175,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// 보스 FSM 상태값 
-	
-
 	// 보스애니메이션 변경시 사용하는 애니메이션 리소스 정보 애니메이션 시퀀스 or 애니메이션 블루프린트 
 	enum class EAnimationAssetType : uint8
 	{

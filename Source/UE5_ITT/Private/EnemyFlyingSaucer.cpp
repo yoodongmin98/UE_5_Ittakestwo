@@ -537,8 +537,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				// FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				FsmComp->ChangeState(EBossState::TestState);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 		},
@@ -703,10 +703,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
 				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
-
-				// test
-				++PatternDestroyCount;
-
 				return;
 			}
 
@@ -923,40 +919,25 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 원래대로라면 메이 인터랙트 체크 필요. 
-			if (true)
+			// 페이즈 넘기기용 테스트 코드 
+			/*if (true)
 			{
 				Multicast_SetActivateUIComponent(CodyHoldingUIComp, false, true);
 				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			}
+			}*/
 
-
-			//if (2.5f <= FsmComp->GetStateLiveTime())
-			//{
-			//	FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
-			//	
-			//	// 여기서 베이스본위치 현재 애니메이션의 본위치 받아와서 저장
-			//	
-
-			//	
-
-			//	return;
-			//}
-
-
-			// 현재 메이 인터랙트 인풋바인딩 제대로 동작안해서 테스트불가능 임시로 2초뒤에 페이즈변경하는 형태로 테스트.
-			/*UE_LOG(LogTemp, Warning, TEXT("CodyHolding_InputKey Tick"));
-			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();*/
-			/*if (OverlapPlayer != nullptr)
+			// 기존 동작 코드 
+			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			if (OverlapPlayer != nullptr)
 			{
 				if (true == OverlapPlayer->ActorHasTag("May"))
 				{
-					
 					PlayerMay = Cast<AMay>(OverlapPlayer);
 					bool MayInput = PlayerMay->GetIsInteract();
 					if (true == MayInput)
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Key Input True"));
-						FsmComp->ChangeState(EBossState::Phase1_ChangePhase);
+						FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 						return;
 					}
 					else
@@ -964,8 +945,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 						UE_LOG(LogTemp, Warning, TEXT("Key Input False"));
 					}
 				}
-			}*/
-				
+			}
 			KeyInputTime -= DT;
 		},
 
@@ -1268,21 +1248,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
 				// UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
-
-			// test
-			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
-			// 이젝트버튼 눌렸는지 체크 
-			/*if (true == bIsEject)
-			{
-				FsmComp->ChangeState(EBossState::Phase3_Eject);
-				return;
-			}*/
-
-
 			MoveToTargetLerpRatio += DT;
 			if (1.0f <= MoveToTargetLerpRatio)
 			{
@@ -1308,21 +1277,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
-
-			// test
-			bIsEject = true;
 		},
 
 		[this](float DT)
 		{
-			// 이젝트버튼 눌렸는지 체크 
-		/*	if (true == bIsEject)
-			{
-				FsmComp->ChangeState(EBossState::Phase3_Eject);
-				return;
-			}*/
-
-
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
 				FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
@@ -1345,8 +1303,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase3_Eject,
 		[this]
 		{
-			// 카메라 적용할거라서 그냥 Z위치 + 200해주고 카메라 시점전환 하면 될듯. 
-			// 탈출애니메이션 적용
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 		},
 
@@ -1363,11 +1319,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			// 그라운드파운딩 애니메이션 
-			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, true);
-			
-			//Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
-			
 		},
 
 		[this](float DT)
