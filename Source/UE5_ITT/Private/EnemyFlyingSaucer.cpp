@@ -550,7 +550,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -744,7 +744,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (3 == PatternDestroyCount)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_BreakThePattern"));
+				// UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_BreakThePattern"));
 				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
@@ -771,14 +771,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 
-			// 레이저타겟방향을 포커스, 임시주석
-			if (nullptr != LaserTargetActor)
-			{
-				// 레이저타겟 방향으로 포커스를 고정시킴. 
-				FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
-				Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
-			}
-
 			// 임시로 0번 플레이어 카메라만 블렌드 처리 
 			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 			if (nullptr == PlayerController)
@@ -799,6 +791,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 카메라 변경 후 재생비율 세팅
 			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
 			Phase1EndCameraRail->EnableCameraMove(0.25f);
+
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		},
 
 		[this](float DT)
@@ -858,7 +853,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
-			UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
+			// UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
 		},
 
 		[this](float DT)
@@ -1066,10 +1061,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 
-			
 
-
-			
 		},
 
 		[this](float DT)
@@ -1079,25 +1071,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
-
-				// 전방벡터 받아와 
-				FVector ForwardVector = GetActorForwardVector();
-				FVector TargetLocation = FloorObject->GetActorLocation() - GetActorLocation();
-				float Lengthfloat = TargetLocation.Size();
-
-				// 전방벡터방향으로 내가 원하는 크기만큼 커진놈.  
-				FVector ResultVector = ForwardVector * Lengthfloat;
-
-				FVector PivotSettingLocation = GetActorLocation() + ResultVector;
-				RotatingComp->PivotTranslation = PivotSettingLocation;
-				RotatingComp->RotationRate = FRotator(0.0f, 70.0f, 0.0f);
-
-
-
-
-				UE_LOG(LogTemp, Warning, TEXT("Forward Vector : %s"), *ForwardVector.ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Target Location : %s"), *TargetLocation.ToString());
-				UE_LOG(LogTemp, Warning, TEXT("TestVector : %f"), Lengthfloat);
 			}
 
 			FsmComp->ChangeState(EBossState::Phase2_Rotating);
@@ -1105,7 +1078,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			
+			// 타겟의 위치를 받아오고. 
+			FVector TargetLocation = FloorObject->GetActorLocation() - GetActorLocation();
+			TargetLocation = TargetLocation.RotateAngleAxis(-(GetActorRotation().Yaw), FVector::UpVector);
+			RotatingComp->PivotTranslation = TargetLocation;
+			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
 			bIsCorretLocation = false;
 		});
 
@@ -1117,8 +1094,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			}
-
-			RotatingComp->RotationRate = FRotator(0.0f, 70.0f, 0.0f);
 		},
 
 		[this](float DT)
@@ -1146,7 +1121,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_RocketHit,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
+			// UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
 
 			// 우주선 히트 애니메이션 적용 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
@@ -1275,7 +1250,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				MoveToCenterLerpRatio = 1.0f;
 				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
-				SetActorLocation(TargetLocation);
+				
+				(TargetLocation);
 				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
 				FloorObject->SetPhase(AFloor::Fsm::Phase3);
 				return;
@@ -1335,7 +1311,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (nullptr != Controller)
 			{
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
-				// UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
 		},
 
@@ -1419,7 +1394,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (true == Phase3EndCameraRail_1->IsMoveEnd())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Camera Move End"));
 				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
 				return;
 			}
