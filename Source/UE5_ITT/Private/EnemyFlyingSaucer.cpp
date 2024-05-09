@@ -1055,8 +1055,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			
-
 			bIsCorretLocation = false;
 			OverlapCheckActor->Destroy();
 		});
@@ -1068,17 +1066,37 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 
-			// 최종적으로 여기에 세팅 
-			RotatingComp->PivotTranslation = RotatePivotVector;
+			
+
+
+			
 		},
 
 		[this](float DT)
 		{
-			// 보스 위치보정 적용안되어 있으면 적용하고.
+			// 보스 위치보정 적용안되어 있으면 적용하고. 로테이팅컴포넌트 피봇 세팅 
 			if (false == bIsCorretLocation)
 			{
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
+
+				FVector ForwardVector = GetActorForwardVector();
+				ForwardVector.Z = 0.0f;
+				UE_LOG(LogTemp, Warning, TEXT("Forward Vector : %s"), *ForwardVector.ToString());
+
+				FVector TargetLocation = FVector::ZeroVector - GetActorLocation();
+				UE_LOG(LogTemp, Warning, TEXT("Target Location : %s"), *TargetLocation.ToString());
+
+				float Length = TargetLocation.Size();
+
+				UE_LOG(LogTemp, Warning, TEXT("TestVector : %f"), Length);
+
+				FVector PivotSettingLocation = ForwardVector;
+				PivotSettingLocation.X += Length;
+
+				// 최종적으로 여기에 세팅 
+				RotatingComp->PivotTranslation = PivotSettingLocation;
+				RotatingComp->RotationRate = FRotator(0.0f, 70.0f, 0.0f);
 			}
 
 			FsmComp->ChangeState(EBossState::Phase2_Rotating);
@@ -1087,7 +1105,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			
-			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 			bIsCorretLocation = false;
 		});
 
@@ -1100,7 +1117,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			}
 
-			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
+			RotatingComp->RotationRate = FRotator(0.0f, 70.0f, 0.0f);
 		},
 
 		[this](float DT)
