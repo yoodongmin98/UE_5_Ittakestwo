@@ -1080,23 +1080,24 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
 
+				// 전방벡터 받아와 
 				FVector ForwardVector = GetActorForwardVector();
-				ForwardVector.Z = 0.0f;
-				UE_LOG(LogTemp, Warning, TEXT("Forward Vector : %s"), *ForwardVector.ToString());
+				FVector TargetLocation = FloorObject->GetActorLocation() - GetActorLocation();
+				float Lengthfloat = TargetLocation.Size();
 
-				FVector TargetLocation = FVector::ZeroVector - GetActorLocation();
-				UE_LOG(LogTemp, Warning, TEXT("Target Location : %s"), *TargetLocation.ToString());
+				// 전방벡터방향으로 내가 원하는 크기만큼 커진놈.  
+				FVector ResultVector = ForwardVector * Lengthfloat;
 
-				float Length = TargetLocation.Size();
-
-				UE_LOG(LogTemp, Warning, TEXT("TestVector : %f"), Length);
-
-				FVector PivotSettingLocation = ForwardVector;
-				PivotSettingLocation.X += Length;
-
-				// 최종적으로 여기에 세팅 
+				FVector PivotSettingLocation = GetActorLocation() + ResultVector;
 				RotatingComp->PivotTranslation = PivotSettingLocation;
 				RotatingComp->RotationRate = FRotator(0.0f, 70.0f, 0.0f);
+
+
+
+
+				UE_LOG(LogTemp, Warning, TEXT("Forward Vector : %s"), *ForwardVector.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Target Location : %s"), *TargetLocation.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("TestVector : %f"), Lengthfloat);
 			}
 
 			FsmComp->ChangeState(EBossState::Phase2_Rotating);
