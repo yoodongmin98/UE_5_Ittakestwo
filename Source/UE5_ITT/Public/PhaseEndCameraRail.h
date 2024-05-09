@@ -27,7 +27,11 @@ public:
 	};
 	virtual void Tick(float DeltaTime)override;
 
-	void EnableCameraMove();
+	UFUNCTION(BlueprintCallable)
+	void EnableCameraMove(const float MoveRatio = 0.25f);
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsMoveEnd() { return bIsMoveEnd; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,8 +46,9 @@ private:
 	class ACody* PlayerCody = nullptr;
 	class AMay* PlayerMay = nullptr;
 	class AEnemyFlyingSaucer* EnemyFlyingSaucer = nullptr;
-
-	FRotator LerpStartRotation = FRotator::ZeroRotator;
-	FRotator LerpEndRotation = FRotator::ZeroRotator;
-	float LerpRatio = 0.0f;
+	
+	float CameraMoveRatio = 0.0f;
+	bool bIsMoveCheck = false;		// 카메라 무브 완료 
+	bool bIsMoveEnd = false;		
+	float EndTime = 2.0f;			// 이전 카메라로 전환되기 까지의 텀 
 };

@@ -38,8 +38,14 @@ void APhaseEndCameraRail::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 	
-void APhaseEndCameraRail::EnableCameraMove()
+void APhaseEndCameraRail::EnableCameraMove(const float MoveRatio /*= 0.2f*/)
 {
+	if (0.0f >= MoveRatio)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Camera movement ratio has not been set"));
+	}
+
+	CameraMoveRatio = MoveRatio;
 	FsmComp->ChangeState(Fsm::Move);
 }
 
@@ -77,33 +83,29 @@ void APhaseEndCameraRail::SetupFsmState()
 
 			UE_LOG(LogTemp, Warning, TEXT("Start"));
 			CurrentPositionOnRail = 0;
-
-			FVector TargetLocation = EnemyFlyingSaucer->GetActorLocation() - GetActorLocation();
-
-			LerpEndRotation = TargetLocation.Rotation();
-			LerpStartRotation = GetActorRotation();
 		},
 
 		[this](float DT)
 		{
-			// 플레이어 방향으로 회전 러프 완료시 보스 포커스상태로 변경
-			CurrentPositionOnRail += DT * 0.25f;
-			CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
-
-		/*	if (1.5f <= FsmComp->GetStateLiveTime())
+			if (true == bIsMoveCheck)
 			{
-				LerpRatio += DT * 0.35f;
-				if (1.0f <= LerpRatio)
+				EndTime -= DT;
+				if (0.0f >= EndTime)
 				{
-					LerpRatio = 1.0f;
-					FRotator TargetRotation = FMath::Lerp(LerpStartRotation, LerpEndRotation, LerpRatio);
-					CamComp->SetRelativeRotation(TargetRotation);
+					bIsMoveEnd = true;
 					return;
 				}
+			}
 
-				FRotator TargetRotation = FMath::Lerp(LerpStartRotation, LerpEndRotation, LerpRatio);
-				CamComp->SetRelativeRotation(TargetRotation);
-			}*/
+			if (false == bIsMoveCheck)
+			{
+				if (1.0f <= CurrentPositionOnRail)
+				{
+					bIsMoveCheck = true;
+				}
+			}
+			CurrentPositionOnRail += DT * CameraMoveRatio;
+			CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
 		},
 
 		[this]
