@@ -388,7 +388,11 @@ private:
 	class APhaseEndCameraRail* Phase2EndCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase3EndCameraRail = nullptr;
+	class APhaseEndCameraRail* Phase3EndCameraRail_1 = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase3EndCameraRail_2 = nullptr;
+
 
 	UPROPERTY(EditAnywhere)
 	bool bIsAllPhaseEnd = false;
