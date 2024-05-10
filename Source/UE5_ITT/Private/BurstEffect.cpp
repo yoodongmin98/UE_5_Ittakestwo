@@ -35,9 +35,15 @@ void ABurstEffect::SetupComponent()
 	StaticMeshComp->SetupAttachment(SceneComp);
 }
 
-void ABurstEffect::EffectDestroy()
+void ABurstEffect::TickIncreaseScale(float DeltaTime)
 {
-	Destroy();
+	FVector NewScale = GetActorScale3D() + FVector::OneVector * 3.0f * DeltaTime;
+	GetRootComponent()->SetWorldScale3D(NewScale);
+	if (NewScale.X >= MaxScale)
+	{
+		SetupDestroyTimerEvent();
+		bDestroyValue = true;
+	}
 }
 
 void ABurstEffect::SetupDestroyTimerEvent()
@@ -58,15 +64,11 @@ void ABurstEffect::Tick(float DeltaTime)
 		{
 			return;
 		}
-
-		FVector NewScale = GetActorScale3D() + FVector(1.0f, 1.0f, 1.0f) * DeltaTime * 3.0f;
-		GetRootComponent()->SetWorldScale3D(NewScale);
-
-		if (NewScale.X >= MaxScale)
-		{
-			SetupDestroyTimerEvent();
-			bDestroyValue = true;
-		}
+		TickIncreaseScale(DeltaTime);
 	}
 }
 
+void ABurstEffect::EffectDestroy()
+{
+	Destroy();
+}
