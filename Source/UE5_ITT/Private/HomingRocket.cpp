@@ -255,7 +255,7 @@ void AHomingRocket::SetupFsmComponent()
 			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
 			{
 				// 너. 로켓하차. 코드 추가 
-
+				OverlapActor->OverlapHomingFunc();
 				// 디스트로이 대기상태로 전환하고
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
@@ -267,7 +267,7 @@ void AHomingRocket::SetupFsmComponent()
 				// 플레이어 액터 장착해제 
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 				// 플레이어한테 너 이제 로켓하차임 
-				// OverlapActor->TestFunction();
+				OverlapActor->OverlapHomingFunc();
 
 				if (nullptr == GetAttachParentActor())
 				{

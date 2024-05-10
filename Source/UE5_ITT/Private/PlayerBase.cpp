@@ -158,14 +158,7 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
-	if (JumplocationSet)
-	{
-		JumpLocationDeltas += DeltaTime;
-		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
-		SetActorLocation(ResultTargetLocations);
-	}
+	
 }
 
 // Called to bind functionality to input
@@ -356,7 +349,6 @@ void APlayerBase::ChangeServerDir_Implementation(FRotator _Rotator)
 
 void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
 {
-	IsFly = true;
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
@@ -368,7 +360,6 @@ bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
 }
 void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
 {
-	IsFly = true;
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
@@ -544,12 +535,6 @@ void APlayerBase::InteractNoneInput_Implementation()
 	IsInteract = false;
 }
 
-//////////////FSM//////////
-void APlayerBase::ChangeState(Cody_State _State)
-{
-	ITTPlayerState = _State;
-}
-
 void APlayerBase::PlayerDeathCheck()
 {
 	if (0 <= PlayerHP)
@@ -636,6 +621,15 @@ void APlayerBase::CustomClientRideJump_Implementation()
 	ChangeState(Cody_State::FLYING);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+	}
 }
 
 bool APlayerBase::CustomServerRideJump_Validate()
@@ -649,6 +643,15 @@ void APlayerBase::CustomServerRideJump_Implementation()
 	ChangeState(Cody_State::FLYING);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+	}
 }
 
 void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

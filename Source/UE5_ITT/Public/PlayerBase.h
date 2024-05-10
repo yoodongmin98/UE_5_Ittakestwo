@@ -291,10 +291,33 @@ public:
 	{
 		JumplocationSet = false;
 	}
-	
+	UFUNCTION(BlueprintCallable)
+	inline void SetFlyFalse()
+	{
+		IsFly = false;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void OverlapHomingFunc()
+	{
+		OverlapHoming = true;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetOverlapHoming()
+	{
+		OverlapHoming = false;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline bool GetOverlapHoming() const
+	{
+		return OverlapHoming;
+	}
 
 	//////////////////////////////////////////
-	void ChangeState(Cody_State _State);
+	UFUNCTION(BlueprintCallable)
+	inline void ChangeState(Cody_State _State)
+	{
+		ITTPlayerState = _State;
+	}
 	//마우스 돌아가는 스피드
 	float RotationInterpSpeed = 2.0f;
 	//상호작용
@@ -545,5 +568,5 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerRideJump();
 
-	
+	bool OverlapHoming = false;
 };
