@@ -30,11 +30,7 @@ APlayerBase::APlayerBase()
 
 	//스프링 암
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetUsingAbsoluteRotation(true);
-	SpringArm->TargetArmLength = NormalLength;
-	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = true;
+	SpringArmDefaultFunction();
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
@@ -667,4 +663,18 @@ void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, clas
 void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 
+}
+
+
+
+
+
+
+void APlayerBase::SpringArmDefaultFunction()
+{
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetUsingAbsoluteRotation(true);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
+	SpringArm->bDoCollisionTest = true;
 }

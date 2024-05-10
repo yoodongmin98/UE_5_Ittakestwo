@@ -569,4 +569,7 @@ public:
 	void CustomServerRideJump();
 
 	bool OverlapHoming = false;
+
+	UFUNCTION(BlueprintCallable)
+	void SpringArmDefaultFunction();
 };
