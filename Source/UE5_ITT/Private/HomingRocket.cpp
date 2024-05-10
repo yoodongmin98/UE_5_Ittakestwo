@@ -20,11 +20,9 @@ AHomingRocket::AHomingRocket()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	// 네트워크 권한을 확인하는 코드
+	
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
 		bReplicates = true;
 		SetReplicateMovement(true);
 		Tags.Add(FName("HomingRocket"));
@@ -46,10 +44,8 @@ AHomingRocket::AHomingRocket()
 void AHomingRocket::BeginPlay()
 {
 	Super::BeginPlay();
-
 	if (true == HasAuthority())
 	{
-		// 테스트코드, 바꿔야함 
 		RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
 		SetupOverlapEvent();
 	}
@@ -81,19 +77,8 @@ int32 AHomingRocket::GetCurrentState() const
 
 void AHomingRocket::Multicast_SpawnDestroyEffect_Implementation()
 {
-	FVector SettingLocation = GetActorLocation();
-	UE_LOG(LogTemp, Warning, TEXT("SettingLocation : %s"), *SettingLocation.ToString());
-
-	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, SettingLocation, FRotator::ZeroRotator);
-	AEnemyFlyingSaucer* ParentActor = Cast<AEnemyFlyingSaucer>(GetOwner());
-	if (Effect != nullptr)
-	{
-		if (nullptr != ParentActor)
-		{
-			AActor* FloorActor = Cast<AActor>(ParentActor->GetFloor());
-			Effect->AttachToActor(FloorActor, FAttachmentTransformRules::KeepWorldTransform);
-		}
-	}
+	FVector EffectSettingLocation = GetActorLocation();
+	AExplosionEffect* Effect = GetWorld()->SpawnActor<AExplosionEffect>(ExplosionEffectClass, EffectSettingLocation, FRotator::ZeroRotator);
 }
 
 void AHomingRocket::SetupOverlapEvent()
@@ -335,14 +320,16 @@ void AHomingRocket::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		
-
 	}
 }
 
 void AHomingRocket::Multicast_ActivateFireEffectComponent_Implementation()
 {
-	FireEffectComp->ToggleActive();
+	if (nullptr != FireEffectComp)
+	{
+		FireEffectComp->ToggleActive();
+	}
+	
 }
 
 bool AHomingRocket::IsMaxFloorDistance()
@@ -385,14 +372,6 @@ void AHomingRocket::TickPlayerChaseLogic(float DeltaTime)
 	}
 }
 
-void AHomingRocket::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Rocket On Hit"));
-
-
-	
-}
-
 void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	int32 CurrentState = RocketFsmComponent->GetCurrentState();
@@ -425,8 +404,6 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (true == OtherActor->ActorHasTag(TEXT("Boss")))
 		{
-			
-			UE_LOG(LogTemp, Warning, TEXT("Boss Hit"));
 			// 불값만 변경해주고 FsmComp Tick 에서 상태변경
 			bIsBossOverlap = true;
 			BossActor = Cast<AEnemyFlyingSaucer>(OtherActor);
