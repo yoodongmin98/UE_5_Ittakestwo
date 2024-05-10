@@ -344,6 +344,15 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		if (true == OtherActor->ActorHasTag(TEXT("Player")))
 		{
+			// 여기서 만약 코디일 경우 노말 상태 일 때만 변경 
+			if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+			{
+				if (CodySize::NORMAL != Cast<ACody>(OtherActor)->GetCodySize())
+				{
+					return;
+				}
+			}
+
 			bIsPlayerOverlap = true;
 			APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
 			OverlapActor = PlayerBase;
