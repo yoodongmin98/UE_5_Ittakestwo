@@ -19,6 +19,8 @@ ACoreShutter::ACoreShutter()
 		bReplicates = true;
 		SetReplicateMovement(true);
 		SetupFsm();
+		
+		MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	}
 
 }
@@ -126,14 +128,14 @@ void ACoreShutter::SetupFsm()
 
 	[this](float DeltaTime)
 		{
-			MovingRatio -= DeltaTime * 0.5f;
+			MovingRatio -= DeltaTime * 1.f;
 			if (MovingRatio <= 0.f)
 			{
 				MovingRatio = 0.f;
 				FsmComp->ChangeState(Fsm::Close);
 			}
 
-			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 0.5f,0.f });
+			AddActorLocalRotation({ 0.f,-RotateSize * DeltaTime * 1.f,0.f });
 			SetActorRelativeLocation(FMath::Lerp(DefaultPos, OpenPos, MovingRatio));
 		},
 

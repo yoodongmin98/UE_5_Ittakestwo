@@ -87,10 +87,20 @@ void ACody::Tick(float DeltaTime)
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
 				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+				FVector CurLocation = GetActorLocation();
+				CurLocation.Z += 90.f * 4.f;
+				SetActorLocation(CurLocation);
 				break;
 			}
 			case CodySize::NORMAL:
 			{
+				if (CurCodySize == CodySize::SMALL)
+				{
+					FVector CurLocation = GetActorLocation();
+					CurLocation.Z += 9.f * 10.f;
+					SetActorLocation(CurLocation);
+				}
+
 				IsBig = false;
 				BigCanDash = true;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale;

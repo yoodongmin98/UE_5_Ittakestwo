@@ -86,7 +86,7 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOn,
 		[this]
 		{
-			MultiActiveLaser(true);
+			MulticastActiveLaser(true);
 		},
 
 		[this](float DT)
@@ -96,11 +96,11 @@ void ALaser::SetupFsm()
 			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
 			{
 				LaserSizeRatio = 1.f;
-				MultiSetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
+				MulticastSetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
 				FsmComp->ChangeState(Fsm::Attack);
 				return;
 			}
-			MultiSetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
+			MulticastSetLaserSize(FMath::Lerp(1, LaserMaxSize, LaserSizeRatio));
 		},
 
 		[this]
@@ -141,17 +141,17 @@ void ALaser::SetupFsm()
 			if (LaserIncreaseTime <= FsmComp->GetStateLiveTime())
 			{
 				LaserSizeRatio = 1.f;
-				MultiSetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f - LaserSizeRatio));
+				MulticastSetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f - LaserSizeRatio));
 				FsmComp->ChangeState(Fsm::MoveDown);
 				return;
 			}
 
-			MultiSetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f - LaserSizeRatio));
+			MulticastSetLaserSize(FMath::Lerp(1, LaserMaxSize, 1.f - LaserSizeRatio));
 		},
 
 		[this]
 		{
-			MultiActiveLaser(false);
+			MulticastActiveLaser(false);
 		});
 
 	FsmComp->CreateState(Fsm::MoveDown,
@@ -185,12 +185,12 @@ void ALaser::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ALaser::MultiActiveLaser_Implementation(bool bValue)
+void ALaser::MulticastActiveLaser_Implementation(bool bValue)
 {
 	SetActiveLaser(bValue);
 }
 
-void ALaser::MultiSetLaserSize_Implementation(float SizeParam)
+void ALaser::MulticastSetLaserSize_Implementation(float SizeParam)
 {
 	SetLaserSize(SizeParam);
 }
