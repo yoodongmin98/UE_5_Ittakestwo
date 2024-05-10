@@ -533,4 +533,17 @@ public:
 	bool JumplocationSet = false;
 	UPROPERTY(Replicated)
 	float JumpLocationDeltas = 0.0f;
+	UPROPERTY(Replicated)
+	double CustomTargetLocations;
+	UPROPERTY(Replicated)
+	double CustomTargetLocationsY;
+	UPROPERTY(Replicated)
+	FVector ResultTargetLocations;
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientRideJump();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerRideJump();
+
+	
 };

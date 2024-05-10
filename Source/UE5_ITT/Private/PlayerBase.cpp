@@ -161,9 +161,10 @@ void APlayerBase::Tick(float DeltaTime)
 	if (JumplocationSet)
 	{
 		JumpLocationDeltas += DeltaTime;
-		double CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		double CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		SetActorLocation(FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z));
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
 	}
 }
 
@@ -606,6 +607,9 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CunstomStartLocation);
 	DOREPLIFETIME(APlayerBase, JumplocationSet);
 	DOREPLIFETIME(APlayerBase, JumpLocationDeltas);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
+	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
 }
 
 
@@ -613,10 +617,36 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void APlayerBase::TestFunction()
 {
-	JumplocationSet = true;
+	IsFly = true;
+	if (HasAuthority())
+	{
+		CustomClientRideJump();
+	}
+	else
+	{
+		CustomServerRideJump();
+	}
+}
+
+
+void APlayerBase::CustomClientRideJump_Implementation()
+{
 	Jump();
+	JumplocationSet = true;
 	ChangeState(Cody_State::FLYING);
-	IsFly = !IsFly;
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+}
+
+bool APlayerBase::CustomServerRideJump_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerRideJump_Implementation()
+{
+	Jump();
+	JumplocationSet = true;
+	ChangeState(Cody_State::FLYING);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
 }
