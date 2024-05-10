@@ -254,7 +254,7 @@ void AHomingRocket::SetupFsmComponent()
 				OverlapActor->OverlapHomingFunc();
 				if (nullptr == GetAttachParentActor())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
+					// UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
 					// 디스트로이 대기상태로 전환하고
 					RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 					
@@ -283,7 +283,7 @@ void AHomingRocket::SetupFsmComponent()
 			// 상태지속시간이 10초가 넘었다면 Destroy 상태로 변경
 			if (10.0f <= RocketFsmComponent->GetStateLiveTime())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy"));
+				// UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy"));
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 			
 				return;
