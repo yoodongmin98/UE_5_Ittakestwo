@@ -3,7 +3,6 @@
 
 #include "BurstEffect.h"
 #include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 ABurstEffect::ABurstEffect()

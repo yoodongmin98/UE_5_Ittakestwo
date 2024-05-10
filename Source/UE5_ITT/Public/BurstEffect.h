@@ -34,9 +34,6 @@ private:
 	class UStaticMeshComponent* StaticMeshComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UMaterialInstanceDynamic* DynamicMaterialInstance = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
 	float MaxScale = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly)
