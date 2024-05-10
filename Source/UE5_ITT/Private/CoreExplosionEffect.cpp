@@ -12,17 +12,15 @@ ACoreExplosionEffect::ACoreExplosionEffect()
 
 	if (true == HasAuthority())
 	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+		
 		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 		SetRootComponent(SceneComp);
 
 		ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("CoreExplosionEffectComponent"));
 		ExplosionEffectComp->SetupAttachment(SceneComp);
-
-		bReplicates = true;
-		SetReplicateMovement(true);
 	}
-		
-
 }
 
 // Called when the game starts or when spawned
@@ -44,7 +42,7 @@ void ACoreExplosionEffect::EffectDestroy()
 void ACoreExplosionEffect::SetupDestroyTimerEvent()
 {
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACoreExplosionEffect::EffectDestroy, 2.9f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ACoreExplosionEffect::EffectDestroy, DestroyDelayTime, false);
 }
 
 // Called every frame
