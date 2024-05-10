@@ -166,10 +166,16 @@ public:
 
 		FireHomingRocket,
 		FireArcingProjectile,
+
+		AllPhaseEnd,
 		TestState
 	};
 
-	void SetActiveEject() { bIsEject = true; }
+	void EnableEject() 
+	{ 
+		bIsEject = true; 
+		bIsAllPhaseEnd = true;
+	}
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -210,7 +216,7 @@ private:
 
 	// 클라이언트 접속까지의 대기시간, 추후 수정할수도 
 	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 4.0f;
+	float ServerDelayTime = 6.0f;
 
 	void SetupComponent();
 	void SetupFsmComponent();
@@ -373,4 +379,23 @@ private:
 	// 보스 탈출 관련
 	UPROPERTY(Replicated)
 	bool bIsEject = false;
+
+	class APlayerController* ViewTargetChangeController = nullptr;
+	class AActor* PrevViewTarget = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase1EndCameraRail = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase2EndCameraRail = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase3EndCameraRail_1 = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	class APhaseEndCameraRail* Phase3EndCameraRail_2 = nullptr;
+
+
+	UPROPERTY(EditAnywhere)
+	bool bIsAllPhaseEnd = false;
 };

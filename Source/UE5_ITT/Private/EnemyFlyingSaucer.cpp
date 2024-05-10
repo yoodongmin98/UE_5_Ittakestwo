@@ -29,6 +29,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "GroundPoundEffect.h"
+#include "PhaseEndCameraRail.h"
 //#include "PhysicsEngine/PhysicsAsset.h"
 
 // Sets default values
@@ -82,7 +83,6 @@ void AEnemyFlyingSaucer::BeginPlay()
 		FsmComp->ChangeState(EBossState::None);
 
 		SetupOverlapEvent();
-		
 	}
 }
 
@@ -326,6 +326,20 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
+		// 내상태가 페이즈종료 일경우 그냥 return; 하도록. 
+
+		if (true == bIsAllPhaseEnd)
+		{
+			return;
+		}
+
+		if (false == bIsAllPhaseEnd && true == bIsEject)
+		{
+			FsmComp->ChangeState(EBossState::Phase3_Eject);
+			bIsAllPhaseEnd = true;
+			return;
+		}
+
 		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
@@ -538,7 +552,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -732,7 +746,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (3 == PatternDestroyCount)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_BreakThePattern"));
+				// UE_LOG(LogTemp, Warning, TEXT("Change State : Phase1_BreakThePattern"));
 				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
@@ -759,13 +773,29 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 
-			// 레이저타겟방향을 포커스, 임시주석
-			if (nullptr != LaserTargetActor)
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
 			{
-				FVector TargetLocation = LaserTargetActor->GetActorLocation() - GetActorLocation();
-				Cast<AFlyingSaucerAIController>(GetController())->SetFocalPoint(TargetLocation);
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
 			}
-			
+
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
+			Phase1EndCameraRail->EnableCameraMove(0.25f);
+
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		},
 
 		[this](float DT)
@@ -773,6 +803,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (nullptr == OverlapCheckActor)
 			{
 				return;
+			}
+
+			if (true == Phase1EndCameraRail->IsMoveEnd())
+			{
+				if (nullptr != ViewTargetChangeController)
+				{
+					// 기존 카메라로 뷰타겟 변경 후 nullptr 처리 
+					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+					ViewTargetChangeController = nullptr;
+				}
 			}
 
 			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
@@ -796,15 +836,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-
+			
 		});
 
 	// 코디가 널부러져있는 보스 살짝 들기 수행
 	FsmComp->CreateState(EBossState::CodyHolding_Enter,
 		[this]
 		{
-			// Multicast_SetFocusHoldingCody();
-
 			// 시작할때 한번 돌리고 끝나고 한번 더돌려 
 			FVector TargetLocation = GetActorLocation();
 			TargetLocation.Z = 0.0f;
@@ -817,7 +855,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
-			UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
+			// UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
 		},
 
 		[this](float DT)
@@ -1008,6 +1046,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
+				
 			}
 		},
 
@@ -1023,12 +1062,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
-			RotatingComp->PivotTranslation = RotatePivotVector;
 		},
 
 		[this](float DT)
 		{
-			// 보스 위치보정 적용안되어 있으면 적용하고.
+			// 보스 위치보정 적용안되어 있으면 적용하고. 로테이팅컴포넌트 피봇 세팅 
 			if (false == bIsCorretLocation)
 			{
 				SetActorLocation(PrevAnimBoneLocation);
@@ -1040,7 +1078,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+			// 타겟의 위치를 받아오고. 
+			FVector TargetLocation = FloorObject->GetActorLocation() - GetActorLocation();
+			TargetLocation = TargetLocation.RotateAngleAxis(-(GetActorRotation().Yaw), FVector::UpVector);
+			RotatingComp->PivotTranslation = TargetLocation;
+			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
 			bIsCorretLocation = false;
 		});
 
@@ -1052,8 +1094,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			}
-
-			RotatingComp->RotationRate = FRotator(0.0f, 7.0f, 0.0f);
 		},
 
 		[this](float DT)
@@ -1081,7 +1121,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_RocketHit,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
+			// UE_LOG(LogTemp, Warning, TEXT("RocketHit State Start"));
 
 			// 우주선 히트 애니메이션 적용 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Laser_HitPod_Anim"), 1, false);
@@ -1108,14 +1148,35 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
-			
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
+			
+			// 카메라 블렌딩 코드 
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
+			}
+
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase2EndCameraRail), 0.2f);
+			Phase2EndCameraRail->EnableCameraMove(0.25f);
 		},
 
 		[this](float DT)
 		{
-			if (6.5f <= FsmComp->GetStateLiveTime())
+			if (7.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
 				return;
@@ -1124,16 +1185,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			
+			ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+			ViewTargetChangeController = nullptr;
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
 		[this]
 		{
-			// test, 피직스 false 
-			/*int32 PhysicsBodyIndex = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("Base"));
-			int32 PhysicsBodyIndex2 = SkeletalMeshComp->GetPhysicsAsset()->FindBodyIndex(TEXT("LaserGun"));
-			SkeletalMeshComp->GetPhysicsAsset()->DisableCollision(PhysicsBodyIndex, PhysicsBodyIndex2);*/
 			// 원숭이 타자열심히치는 애니메이션으로 변경
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
 		},
@@ -1145,7 +1203,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 임시,
 			if (2.0f <= FsmComp->GetStateLiveTime())
 			{
-				// FsmComp->ChangeState(EBossState::Phase2_Fly);
+				FsmComp->ChangeState(EBossState::Phase2_Fly);
 				return;
 			}
 		},
@@ -1192,7 +1250,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				MoveToCenterLerpRatio = 1.0f;
 				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
-				SetActorLocation(TargetLocation);
+				(TargetLocation); // ???? 뭐지이건 
 				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
 				FloorObject->SetPhase(AFloor::Fsm::Phase3);
 				return;
@@ -1252,7 +1310,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (nullptr != Controller)
 			{
 				Controller->SetFocus(Cast<AActor>(PlayerCody));
-				// UE_LOG(LogTemp, Warning, TEXT("Player Cody Focus"));
 			}
 		},
 
@@ -1283,6 +1340,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_GroundPound_Anim"), 1, false);
 		},
 
 		[this](float DT)
@@ -1304,12 +1362,63 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsSetGroundPoundEffect = false;
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		});
 
 	FsmComp->CreateState(EBossState::Phase3_Eject,
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
+			
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
+			}
+
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
+			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 재생 완료시 페이즈 종료 상태로 전환, 아무작업도 수행 X 
+			// 여기서 되돌리지말고 그냥 End; 
+			if (6.0f <= FsmComp->GetStateLiveTime())
+			{
+				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				FsmComp->ChangeState(EBossState::AllPhaseEnd);
+				return;
+			}
+
+			/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
+				{
+					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+					return;
+				}*/
+		},
+
+		[this]
+		{
+			ViewTargetChangeController = nullptr;
+		});
+
+	FsmComp->CreateState(EBossState::AllPhaseEnd,
+		[this]
+		{
 		},
 
 		[this](float DT)
@@ -1318,21 +1427,59 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
+			
 		});
 
 
 
+
+	// TEST 전용 state 
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
+			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
+			}
+			
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
+			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
 		{
+
+			// 여기서 되돌리지말고 그냥 End; 
+			if (6.0f <= FsmComp->GetStateLiveTime())
+			{
+				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				return;
+			}
+
+		/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
+			{
+				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				return;
+			}*/
 		},
 
 		[this]
 		{
+			
 		});
 }
 
