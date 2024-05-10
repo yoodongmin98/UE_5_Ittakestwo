@@ -64,6 +64,23 @@ public:
 	{
 		return CodyHoldEnemy;
 	}
+
+
+	UFUNCTION(BlueprintCallable)
+	inline void SetCodyMoveable()
+	{
+		CodyHoldEnemy = false;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	inline void CutScenceStart();
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCutScenceTrigger() const
+	{
+		return CutsceneTrigger;
+	}
+
+
 	
 
 
@@ -93,5 +110,8 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+
+	bool CutsceneTrigger;
+	void TriggerTest();
 
 };

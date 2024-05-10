@@ -184,7 +184,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerBase::SprintInput);
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::None, this, &APlayerBase::SprintNoneInput);
 
-		PlayerInput->BindAction(TestAction, ETriggerEvent::Triggered, this, &APlayerBase::TestFunction);
+		
 	}
 }
 

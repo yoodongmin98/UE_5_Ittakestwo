@@ -163,6 +163,11 @@ void ACody::Tick(float DeltaTime)
 			break;
 		}
 	}
+
+	if (CutsceneTrigger)
+	{
+		CutsceneTrigger = false;
+	}
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -171,6 +176,7 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (PlayerInput != nullptr)
 	{
+		PlayerInput->BindAction(TestAction, ETriggerEvent::Triggered, this, &ACody::TriggerTest);
 		if(true == HasAuthority())
 		{
 			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
@@ -355,4 +361,15 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 
 
 
+}
+
+void ACody::TriggerTest()
+{
+	CutsceneTrigger = !CutsceneTrigger;
+}
+
+void ACody::CutScenceStart()
+{
+	CutsceneTrigger = true;
+	ChangeState(Cody_State::CUTSCENE);
 }

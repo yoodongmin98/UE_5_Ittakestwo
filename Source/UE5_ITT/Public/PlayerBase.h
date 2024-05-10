@@ -32,6 +32,7 @@ enum class Cody_State : uint8
 	PlayerDeath UMETA(DisPlayName = "PlayerDeath"),
 	HOLDENEMY UMETA(DisPlayName = "HoldEnemy"),
 	FLYING UMETA(DisPlayName = "FLYING"),
+	CUTSCENE UMETA(DisPlayName = "CUTSCENE"),
 };
 
 UCLASS()
