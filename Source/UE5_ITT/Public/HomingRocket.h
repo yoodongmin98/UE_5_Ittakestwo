@@ -28,9 +28,8 @@ public:
 	}
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	
-	const int32 GetCurrentState() const;
+	int32 GetCurrentState() const;
 
 	UFUNCTION()
 	void DestroyRocket();
@@ -51,23 +50,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
-	
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SpawnDestroyEffect();
-
-	void SetupOverlapEvent();
-
-	void SetupFsmComponent();
-
-	void InActive()
-	{
-		bIsActive = false;
-	}
-	
-	void TickPlayerChaseLogic(float DeltaTime);
-
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -77,15 +59,35 @@ private:
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	
+private:
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnDestroyEffect();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ActivateFireEffectComponent();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	void SetupOverlapEvent();
+	void SetupFsmComponent();
+	void TickPlayerChaseLogic(float DeltaTime);
+
+	void InActive()
+	{
+		bIsActive = false;
+	}
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	class UFsmComponent* RocketFsmComponent = nullptr;
+
+	UPROPERTY(Replicated)
+	class UNiagaraComponent* FireEffectComp = nullptr;
+
+		
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketLifeTime = 30.0f;
 	
@@ -97,13 +99,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bIsActive = true;
-
-	// 파티클
-	UPROPERTY(Replicated)
-	class UNiagaraComponent* FireEffectComp = nullptr;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateFireEffectComponent();
 	
 	// 파티클
 	UPROPERTY(EditDefaultsOnly)
@@ -111,9 +106,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class AActor* TargetActor = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	class UFsmComponent* RocketFsmComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsPlayerEquip = false;
@@ -126,7 +118,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float MaxFloorDistance = 425.0f;
-
 	bool IsMaxFloorDistance();
 	
 	UFUNCTION()
