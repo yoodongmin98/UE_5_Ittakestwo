@@ -4,14 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "CutSceneAnimnotify.generated.h"
+#include "CutSceneAnimationNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UE5_ITT_API UCutSceneAnimnotify : public UAnimNotify
+class UE5_ITT_API UCutSceneAnimationNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	
 };
