@@ -353,8 +353,7 @@ void ACody::DashEnd()
 void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-
+	DOREPLIFETIME(ACody, CutsceneTrigger);
 
 }
 
@@ -363,8 +362,60 @@ void ACody::TriggerTest()
 	CutsceneTrigger = !CutsceneTrigger;
 }
 
+
+
+
 void ACody::CutScenceStart()
 {
+	if (HasAuthority())
+	{
+		CustomClientCutScene();
+	}
+	else
+	{
+		CustomServerCutScene();
+	}
+}
+
+void ACody::CustomClientCutScene_Implementation()
+{
 	CutsceneTrigger = true;
-	ChangeState(Cody_State::CUTSCENE);
+}
+bool ACody::CustomServerCutScene_Validate()
+{
+	return true;
+}
+
+void ACody::CustomServerCutScene_Implementation()
+{
+	CutsceneTrigger = true;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+
+
+void ACody::SetCodyMoveable()
+{
+	if (HasAuthority())
+	{
+		CustomClientMoveable();
+	}
+	else
+	{
+		CustomServerMoveable();
+	}
+}
+
+void ACody::CustomClientMoveable_Implementation()
+{
+	CodyHoldEnemy = false;
+}
+bool ACody::CustomServerMoveable_Validate()
+{
+	return true;
+}
+void ACody::CustomServerMoveable_Implementation()
+{
+	CodyHoldEnemy = false;
 }

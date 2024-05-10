@@ -18,10 +18,6 @@ void UCutSceneAnimationNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	{
 		ACody* Codys = Cast<ACody>(MeshComp->GetOwner());
 		AMay* Mays = Cast<AMay>(MeshComp->GetOwner());
-		if (Codys == nullptr || Mays == nullptr)
-		{
-			return;
-		}
 		
 		if (Codys != nullptr)
 		{

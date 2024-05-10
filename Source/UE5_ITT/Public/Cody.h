@@ -66,14 +66,7 @@ public:
 	}
 
 
-	UFUNCTION(BlueprintCallable)
-	inline void SetCodyMoveable()
-	{
-		CodyHoldEnemy = false;
-	}
 
-	UFUNCTION(BlueprintCallable)
-	inline void CutScenceStart();
 	UFUNCTION(BlueprintCallable)
 	inline bool GetCutScenceTrigger() const
 	{
@@ -86,8 +79,6 @@ public:
 
 	virtual void SprintInput() override;
 	virtual void DashEnd() override;
-
-	//UPROPERTY(Replicated)
 
 
 	//Size
@@ -110,8 +101,22 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-
+	UPROPERTY(Replicated)
 	bool CutsceneTrigger;
 	void TriggerTest();
 
+	UFUNCTION(BlueprintCallable)
+	inline void CutScenceStart();
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientCutScene();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerCutScene();
+
+	void SetCodyMoveable();
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientMoveable();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerMoveable();
 };
