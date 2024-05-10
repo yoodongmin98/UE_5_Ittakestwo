@@ -121,6 +121,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, MaxHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsRocketHit);
+	
 }
 
 void AEnemyFlyingSaucer::Multicast_ChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
@@ -1104,6 +1106,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
+			if (true == bIsRocketHit)
+			{
+				FsmComp->ChangeState(EBossState::Phase2_RocketHit);
+				return;
+			}
+
+
 			// 유도로켓 발사 
 			HomingRocketFireTime -= DT;
 			if (0.0f >= HomingRocketFireTime)
@@ -1139,7 +1148,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-
+			bIsRocketHit = false;
 		});
 
 
@@ -1568,18 +1577,18 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 	}
 }
 
-
-
 void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 해당 액터가 호밍 로켓이고, 플레이어 이큅 상태라면 
 	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
 	{
+		// 로켓으로 cast 
 		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
+		// State 확인 
 		int32 RocketStateToInt = HomingRocket->GetCurrentState();
+		// 플레이어 장착 state 라면 로켓을 
 		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
 		{
-			FsmComp->ChangeState(EBossState::Phase2_RocketHit);
+			UE_LOG(LogTemp, Warning, TEXT("Boss Rocket Hit True"));
 		}
 	}
 }

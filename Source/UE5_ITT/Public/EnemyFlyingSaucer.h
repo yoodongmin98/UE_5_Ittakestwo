@@ -176,6 +176,12 @@ public:
 		bIsEject = true; 
 		bIsAllPhaseEnd = true;
 	}
+
+	void SetRocketHit()
+	{
+		bIsRocketHit = true;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -197,7 +203,6 @@ private:
 
 	void SetupOverlapEvent();
 
-	// 멀티캐스트 관련 
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -233,6 +238,9 @@ private:
 
 	UPROPERTY(Replicated, EditAnywhere)
 	float MaxHp = 100.0f;
+
+	UPROPERTY(Replicated, EditAnywhere)
+	bool bIsRocketHit = false;
 
 	// 특정시간 내에 State 변경 시 해당 변수 사용
 	UPROPERTY(EditDefaultsOnly)

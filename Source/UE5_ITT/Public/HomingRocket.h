@@ -19,7 +19,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION()
-	void SetupTarget(AActor* Target) 
+	void SetupTarget(AActor* const Target) 
 	{
 		if (nullptr != Target)
 		{
@@ -28,9 +28,8 @@ public:
 	}
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 	
-	const int32 GetCurrentState() const;
+	int32 GetCurrentState() const;
 
 	UFUNCTION()
 	void DestroyRocket();
@@ -51,59 +50,52 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
-	
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SpawnDestroyEffect();
-
-	void SetupOverlapEvent();
-
-	void SetupFsmComponent();
-
-	void InActive()
-	{
-		bIsActive = false;
-	}
-	
-	void TickPlayerChaseLogic(float DeltaTime);
-
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+private:
+	void SetupOverlapEvent();
+	void SetupFsmComponent();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnDestroyEffect();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ActivateFireEffectComponent();
 	
+	void TickPlayerChaseLogic(float DeltaTime);
 
-
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
+	class UFsmComponent* RocketFsmComponent = nullptr;
+
+	UPROPERTY(Replicated)
+	class UNiagaraComponent* FireEffectComp = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketLifeTime = 30.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketMoveSpeed = 750.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MaxFloorDistance = 425.0f;
+
+	bool IsMaxFloorDistance();
+
 	UPROPERTY(VisibleAnywhere)
 	class ACody* PlayerCodyRef = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	bool bIsActive = true;
-
-	// 파티클
-	UPROPERTY(Replicated)
-	class UNiagaraComponent* FireEffectComp = nullptr;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateFireEffectComponent();
 	
 	// 파티클
 	UPROPERTY(EditDefaultsOnly)
@@ -113,9 +105,6 @@ private:
 	class AActor* TargetActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UFsmComponent* RocketFsmComponent = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
 	bool bIsPlayerEquip = false;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -123,26 +112,21 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class APlayerBase* OverlapActor = nullptr;
-
-	UPROPERTY(EditAnywhere)
-	float MaxFloorDistance = 425.0f;
-
-	bool IsMaxFloorDistance();
 	
-	UFUNCTION()
 	void SetRocektLifeTime(const float LifeTime) { RocketLifeTime = LifeTime; }
 	bool bIsSetLifeTime = false;
 
 	UPROPERTY(EditAnywhere)
 	bool bIsBossOverlap = false;
 
-	// 파티클
 	UPROPERTY(Replicated)
 	class AEnemyFlyingSaucer* BossActor = nullptr;
 		
 	UPROPERTY(Replicated)
 	float RocketDamageToBoss = 7.5f;
 
+
+	// 플레이어 회전보정관련 
 	UPROPERTY(Replicated)
 	float PlayerEquipLerpRatio = 0.0f;
 
