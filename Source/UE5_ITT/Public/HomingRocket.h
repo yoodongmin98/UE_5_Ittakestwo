@@ -67,6 +67,7 @@ private:
 	void Multicast_FireEffectToggleSwitch();
 	
 	void TickPlayerChaseLogic(float DeltaTime);
+	void PlayerEquipBegin();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;

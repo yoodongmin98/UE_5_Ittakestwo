@@ -174,9 +174,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
-			// 보정이 완료되면 변경시켜줄거고. 
 			EnablePlayerFlying();
-			
 			FVector TargetVector = GetActorForwardVector();
 			PlayerEquipLerpEndRotation = TargetVector.Rotation();
 			PlayerEquipLerpStartRotation = OverlapActor->GetActorRotation();
@@ -206,44 +204,25 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquip,
 		[this]
 		{
-			if (nullptr != OverlapActor)
-			{
-				bIsPlayerEquip = true;
-				RocketMeshComp->SetSimulatePhysics(false);
-				RocketMeshComp->SetEnableGravity(false);
-				RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
-
-				USkeletalMeshComponent* ActorMesh = OverlapActor->GetMesh();
-				if (nullptr != ActorMesh)
-				{
-					SetActorRelativeLocation(FVector::ZeroVector);
-					RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
-					this->SetOwner(OverlapActor);
-					OverlapActor->SetLocationBool(); // ?? 
-					Multicast_FireEffectToggleSwitch();
-				}
-			}
+			PlayerEquipBegin();
+			Multicast_FireEffectToggleSwitch();
 		},
 
 		[this](float DT)
 		{
-
+			//  함수로 변경할거고, 이름..은 
 			// 해당상태로 전환된지 10초 이상 지났다면 플레이어 장착 해제 후 Destroy;
 			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
 			{
 				Multicast_SpawnDestroyEffect();
-
-				// 플레이어 액터 장착해제 
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
-				// 너. 로켓하차. 코드 추가 
+				
+				// 플레이어 로켓하차 함수 호출 
 				OverlapActor->OverlapHomingFunc();
-				// 디스트로이 대기상태로 전환하고
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
 			}
 			
-			// 보스와의 오버랩 상태가 true라면 
 			if (true == bIsBossOverlap)
 			{
 				Multicast_SpawnDestroyEffect();
@@ -411,6 +390,26 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 			bIsPlayerOverlap = false;
 		}
 	}
+}
+
+void AHomingRocket::PlayerEquipBegin()
+{
+	bIsPlayerEquip = true;
+	RocketMeshComp->SetSimulatePhysics(false);
+	RocketMeshComp->SetEnableGravity(false);
+	// 부착해제 되었던 로켓메시를 다시 부착
+	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
+
+	// 로컬값 초기화
+	SetActorRelativeLocation(FVector::ZeroVector);
+	RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+
+	// 플레이어의 메시에 로켓메시 부착
+	AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
+	this->SetOwner(OverlapActor);
+
+	// 플레이어함수 세팅함수 호출 
+	OverlapActor->SetLocationBool();
 }
 
 void AHomingRocket::DestroyRocket()
