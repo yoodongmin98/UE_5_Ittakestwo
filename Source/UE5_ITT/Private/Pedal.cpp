@@ -14,6 +14,9 @@ APedal::APedal()
 
 	if (HasAuthority()== true)
 	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+
 		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
 		SetRootComponent(SceneComp);
 
