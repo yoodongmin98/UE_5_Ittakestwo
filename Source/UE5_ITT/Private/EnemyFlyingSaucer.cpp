@@ -326,6 +326,8 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
+		// 내상태가 페이즈종료 일경우 그냥 return; 하도록. 
+
 		if (true == bIsAllPhaseEnd)
 		{
 			return;
@@ -1060,8 +1062,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
-
-
 		},
 
 		[this](float DT)
@@ -1250,8 +1250,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				MoveToCenterLerpRatio = 1.0f;
 				FVector TargetLocation = FMath::Lerp(MoveStartLocation, FVector(0.0f, 0.0f, MoveStartLocation.Z), MoveToCenterLerpRatio);
-				
-				(TargetLocation);
+				(TargetLocation); // ???? 뭐지이건 
 				FsmComp->ChangeState(EBossState::Phase3_MoveFloor);
 				FloorObject->SetPhase(AFloor::Fsm::Phase3);
 				return;
@@ -1341,8 +1340,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			// 그라운드파운딩 애니메이션 
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_GroundPound_Anim"), 1, false);
-
-			// 원숭이도 애니메이션 있음 
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_GroundPound_Anim"), 1, false);
 		},
 
 		[this](float DT)
@@ -1364,12 +1362,63 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsSetGroundPoundEffect = false;
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		});
 
 	FsmComp->CreateState(EBossState::Phase3_Eject,
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
+			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
+			
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
+			}
+
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
+			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+		},
+
+		[this](float DT)
+		{
+			// 애니메이션 재생 완료시 페이즈 종료 상태로 전환, 아무작업도 수행 X 
+			// 여기서 되돌리지말고 그냥 End; 
+			if (6.0f <= FsmComp->GetStateLiveTime())
+			{
+				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				FsmComp->ChangeState(EBossState::AllPhaseEnd);
+				return;
+			}
+
+			/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
+				{
+					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+					return;
+				}*/
+		},
+
+		[this]
+		{
+			ViewTargetChangeController = nullptr;
+		});
+
+	FsmComp->CreateState(EBossState::AllPhaseEnd,
+		[this]
+		{
 		},
 
 		[this](float DT)
@@ -1378,74 +1427,60 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
+			
 		});
 
+
+
+
+	// TEST 전용 state 
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
-			Multicast_ChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
-
-
+			// 임시로 0번 플레이어 카메라만 블렌드 처리 
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (nullptr == PlayerController)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+				return;
+			}
 			
+			// 플레이어 컨트롤러 세팅 
+			ViewTargetChangeController = PlayerController;
+			// 플레이어 컨트롤러의 이전 카메라 액터 저장
+			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevCameraActor)
+			{
+				PrevViewTarget = PrevCameraActor;
+			}
+
+			// 카메라 변경 후 재생비율 세팅
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
+			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
 		{
-			if (true == Phase3EndCameraRail_1->IsMoveEnd())
+
+			// 여기서 되돌리지말고 그냥 End; 
+			if (6.0f <= FsmComp->GetStateLiveTime())
 			{
 				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
 				return;
 			}
+
+		/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
+			{
+				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				return;
+			}*/
 		},
 
 		[this]
 		{
 			
 		});
-
-	// 이거 2페이즈 종료 후 카메라 전환 코드 
-	//FsmComp->CreateState(EBossState::TestState,
-	//	[this]
-	//	{
-	//		Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
-	//		
-	//		// 임시로 0번 플레이어 카메라만 블렌드 처리 
-	//		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//		if (nullptr == PlayerController)
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-	//			return;
-	//		}
-	//		
-	//		// 플레이어 컨트롤러 세팅 
-	//		ViewTargetChangeController = PlayerController;
-	//		// 플레이어 컨트롤러의 이전 카메라 액터 저장
-	//		AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-	//		if (nullptr != PrevCameraActor)
-	//		{
-	//			PrevViewTarget = PrevCameraActor;
-	//		}
-
-	//		// 카메라 변경 후 재생비율 세팅
-	//		ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase2EndCameraRail), 0.2f);
-	//		Phase2EndCameraRail->EnableCameraMove(0.25f);
-	//	},
-
-	//	[this](float DT)
-	//	{
-	//		if (true == Phase2EndCameraRail->IsMoveEnd())
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("Camera Move End"));
-	//			ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-	//			return;
-	//		}
-	//	},
-
-	//	[this]
-	//	{
-	//		
-	//	});
 }
 
 

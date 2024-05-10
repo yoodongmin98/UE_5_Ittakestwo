@@ -166,6 +166,8 @@ public:
 
 		FireHomingRocket,
 		FireArcingProjectile,
+
+		AllPhaseEnd,
 		TestState
 	};
 
@@ -214,7 +216,7 @@ private:
 
 	// 클라이언트 접속까지의 대기시간, 추후 수정할수도 
 	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 4.0f;
+	float ServerDelayTime = 6.0f;
 
 	void SetupComponent();
 	void SetupFsmComponent();
