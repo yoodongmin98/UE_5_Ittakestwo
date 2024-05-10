@@ -3,6 +3,7 @@
 
 #include "CutSceneAnimationNotify.h"
 #include "Cody.h"
+#include "May.h"
 
 
 
@@ -15,11 +16,20 @@ void UCutSceneAnimationNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 
 	if (MeshComp != nullptr)
 	{
-		ACody* Owner = Cast<ACody>(MeshComp->GetOwner());
-		if (Owner == nullptr)
+		ACody* Codys = Cast<ACody>(MeshComp->GetOwner());
+		AMay* Mays = Cast<AMay>(MeshComp->GetOwner());
+		if (Codys == nullptr || Mays == nullptr)
 		{
 			return;
 		}
-		Owner->SetCodyMoveable();
+		
+		if (Codys != nullptr)
+		{
+			Codys->SetCodyMoveable();
+		}
+		if (Mays != nullptr)
+		{
+			Mays->SetMayMoveable();
+		}
 	}
 }

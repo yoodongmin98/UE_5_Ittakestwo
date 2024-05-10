@@ -163,11 +163,6 @@ void ACody::Tick(float DeltaTime)
 			break;
 		}
 	}
-
-	if (CutsceneTrigger)
-	{
-		CutsceneTrigger = false;
-	}
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
