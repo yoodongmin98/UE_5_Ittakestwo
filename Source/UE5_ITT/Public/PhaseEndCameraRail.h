@@ -49,6 +49,6 @@ private:
 	
 	float CameraMoveRatio = 0.0f;
 	bool bIsMoveCheck = false;		// 카메라 무브 완료 
-	bool bIsMoveEnd = false;		
+	bool bIsMoveEnd = false;		// 완전히 종료 되었는지 
 	float EndTime = 2.0f;			// 이전 카메라로 전환되기 까지의 텀 
 };

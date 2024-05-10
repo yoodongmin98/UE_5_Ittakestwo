@@ -51,6 +51,17 @@ void AHomingRocket::BeginPlay()
 	}
 }
 
+// Called every frame
+void AHomingRocket::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+	}
+}
+
 void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -100,28 +111,22 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 오버랩이벤트에서 비활성체크, 비활성일 경우 Destroy 로 변경.
 			if (false == bIsActive)
 			{
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
 			}
-
-			// 타겟액터가 nullptr 이라면 return;
-			// 여기 들어오나..? 
+			
 			if (nullptr == TargetActor)
 			{
 				return;
 			}
 
-			// 타겟액터가 nullptr이거나, 현재 로켓의 수명을 모두 소진했다면 -> ChangeState
 			if (0.0f >= RocketLifeTime)
 			{
- 				if (nullptr != RocketFsmComponent)
-				{
-					RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
-					return;
-				}
+				RocketLifeTime = 0.0f;
+				RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
+				return;
 			}
 
 			// 플레이어 추적 로직 
@@ -137,19 +142,20 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipWait,
 		[this]
 		{
-			// 대기상태로 전환 될 때, 중력 온시켜서 바닥에 떨어지는 거처럼 만들고. 
+			// 중력 ON, 피직스 ON
 			RocketMeshComp->SetSimulatePhysics(true);
 			RocketMeshComp->SetEnableGravity(true);
-			Multicast_ActivateFireEffectComponent();
+
+			// 나이아가라 이펙트 off 
+			Multicast_FireEffectToggleSwitch();
 		},
 
 		[this](float DT)
 		{
-			// 대기상태일 때 플레이어 키 눌렸는지 확인하여 상태변경
 			if (true == bIsPlayerOverlap && nullptr != OverlapActor)
 			{
-				bool KeyCheck = OverlapActor->GetIsInteract();
-				if (true == KeyCheck)
+				bool InputCheck = OverlapActor->GetIsInteract();
+				if (true == InputCheck)
 				{
 					RocketFsmComponent->ChangeState(ERocketState::PlayerEquipCorrect);
 					return;
@@ -168,27 +174,23 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
+			// 보정이 완료되면 변경시켜줄거고. 
 			EnablePlayerFlying();
-			// 플레이어 방향보정
+			
 			FVector TargetVector = GetActorForwardVector();
-			// 타겟로테이션
 			PlayerEquipLerpEndRotation = TargetVector.Rotation();
-			// 스타트로테이션
 			PlayerEquipLerpStartRotation = OverlapActor->GetActorRotation();
 		},
 
 		[this](float DT)
 		{
-			PlayerEquipLerpRatio += DT * 3.0f;
+			PlayerEquipLerpRatio += DT * 2.0f;
 			if (1.0f <= PlayerEquipLerpRatio)
 			{
 				PlayerEquipLerpRatio = 1.0f;
 				FRotator TargetRotation = FMath::Lerp(PlayerEquipLerpStartRotation, PlayerEquipLerpEndRotation, PlayerEquipLerpRatio);
 				OverlapActor->SetActorRotation(TargetRotation);
-				if (!OverlapActor->GetMovementComponent()->IsFalling())
-				{
-					RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
-				}
+				RocketFsmComponent->ChangeState(ERocketState::PlayerEquip);
 				return;
 			}
 
@@ -219,9 +221,7 @@ void AHomingRocket::SetupFsmComponent()
 					AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 					this->SetOwner(OverlapActor);
 					OverlapActor->SetLocationBool(); // ?? 
-					
-					// EnablePlayerFlying();
-					Multicast_ActivateFireEffectComponent();
+					Multicast_FireEffectToggleSwitch();
 				}
 			}
 		},
@@ -307,23 +307,9 @@ void AHomingRocket::SetupFsmComponent()
 		[this]
 		{
 		});
-
-	// 디스트로이 대기 상태 만들기 
-
 }
 
-// Called every frame
-void AHomingRocket::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
-	{
-	}
-}
-
-void AHomingRocket::Multicast_ActivateFireEffectComponent_Implementation()
+void AHomingRocket::Multicast_FireEffectToggleSwitch_Implementation()
 {
 	if (nullptr != FireEffectComp)
 	{
