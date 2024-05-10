@@ -38,11 +38,12 @@ void APhaseEndCameraRail::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 	
-void APhaseEndCameraRail::EnableCameraMove(const float MoveRatio /*= 0.2f*/)
+void APhaseEndCameraRail::EnableCameraMove(const float MoveRatio /*= 0.25f*/)
 {
 	if (0.0f >= MoveRatio)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Camera movement ratio has not been set"));
+		return;
 	}
 
 	CameraMoveRatio = MoveRatio;

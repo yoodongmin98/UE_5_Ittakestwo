@@ -64,9 +64,10 @@ private:
 	void Multicast_SpawnDestroyEffect();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ActivateFireEffectComponent();
+	void Multicast_FireEffectToggleSwitch();
 	
 	void TickPlayerChaseLogic(float DeltaTime);
+	void PlayerEquipBegin();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
