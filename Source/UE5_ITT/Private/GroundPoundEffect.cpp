@@ -10,11 +10,17 @@ AGroundPoundEffect::AGroundPoundEffect()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SetRootComponent(SceneComp);
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
 
-	GroundPoundEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("GroundPoundEffectComponent"));
-	GroundPoundEffectComp->SetupAttachment(SceneComp);
+		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+		SetRootComponent(SceneComp);
+
+		GroundPoundEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("GroundPoundEffectComponent"));
+		GroundPoundEffectComp->SetupAttachment(SceneComp);
+	}
 }
 
 // Called when the game starts or when spawned

@@ -41,7 +41,9 @@ protected:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:	
-	UPROPERTY(EditDefaultsOnly)
+	void SetupOverlapEvent();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* StaticMeshComp = nullptr;
 
 	UPROPERTY(EditAnywhere)
