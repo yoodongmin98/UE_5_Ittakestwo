@@ -25,11 +25,14 @@ protected:
 private:
 	void EffectDestroy();
 	void SetupDestroyTimerEvent();
+	void SetupComponent();
 
 	UPROPERTY(EditDefaultsOnly)
 	class USceneComponent* SceneComp = nullptr;
 
-
 	UPROPERTY(EditDefaultsOnly)
 	class UNiagaraComponent* ExplosionEffectComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DestroyDelayTime = 3.0f;
 };

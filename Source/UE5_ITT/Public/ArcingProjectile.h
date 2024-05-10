@@ -28,13 +28,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UFUNCTION()
-	void SetupComponent();
-
 	// overlap event
-	UFUNCTION()
-	void SetupOverlapEvent();
-
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -44,6 +38,12 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsOverlapEvent = false;
 
+	UFUNCTION()
+	void SetupOverlapEvent();
+
+	UFUNCTION()
+	void SetupComponent();
+
 	UPROPERTY(EditDefaultsOnly)
 	FVector TargetLocation = FVector::ZeroVector;
 
@@ -52,20 +52,15 @@ private:
 	TSubclassOf<class ABurstEffect> BurstEffectClass;
 
 	// Component
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* ProjectileMeshComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UProjectileMovementComponent* ProjectileMovementComp = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UNiagaraComponent* TrailEffectComp = nullptr;
-	
-	
-
-
-	
 };
