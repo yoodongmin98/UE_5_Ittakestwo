@@ -43,9 +43,9 @@ public:
 	void SetActiveLaser(bool bValue);
 	UFUNCTION(NetMulticast, Reliable)
 
-	void MultiActiveLaser(bool bValue);
+	void MulticastActiveLaser(bool bValue);
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiSetLaserSize(float SizeParam);
+	void MulticastSetLaserSize(float SizeParam);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")

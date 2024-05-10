@@ -283,6 +283,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::Boom,
 		[this]
 		{
+			ParentShutter->SetDone();
 			EnergyCoreActor->Destroy();
 		},
 
@@ -300,12 +301,11 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::ShutterClose,
 		[this]
 		{
-			ParentShutter->SetDone();
 		},
 
 		[this](float DT)
 		{
-			if (FsmComp->GetStateLiveTime() > 2.f)
+			if (FsmComp->GetStateLiveTime() > 1.f)
 			{
 				FsmComp->ChangeState(Fsm::Close);
 			}

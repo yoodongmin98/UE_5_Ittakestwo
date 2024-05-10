@@ -37,6 +37,8 @@ private:
 
 	TArray<class ACoreShutter*> ArrayCoreShutter;
 
+	class UStaticMeshComponent* CompMesh = nullptr;
+
 	UPROPERTY(EditAnywhere)
 	class ACoreShutter* Shutter0= nullptr;
 	UPROPERTY(EditAnywhere)
