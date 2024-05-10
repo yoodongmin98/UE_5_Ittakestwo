@@ -42,7 +42,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetActiveLaser(bool bValue);
 	UFUNCTION(NetMulticast, Reliable)
+
 	void MultiActiveLaser(bool bValue);
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiSetLaserSize(float SizeParam);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")
@@ -56,8 +59,7 @@ public:
 	{
 		RotateSpeed = SpeedParam;
 	}
-
-
+	
 	void SetLaserMaxSize(float SizeParam)
 	{
 		LaserMaxSize = SizeParam;
