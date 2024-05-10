@@ -210,14 +210,11 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			//  함수로 변경할거고, 이름..은 
-			// 해당상태로 전환된지 10초 이상 지났다면 플레이어 장착 해제 후 Destroy;
 			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
 			{
 				Multicast_SpawnDestroyEffect();
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
-				
-				// 플레이어 로켓하차 함수 호출 
+				// 플레이어 로켓하차 함수 
 				OverlapActor->OverlapHomingFunc();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
@@ -226,23 +223,13 @@ void AHomingRocket::SetupFsmComponent()
 			if (true == bIsBossOverlap)
 			{
 				Multicast_SpawnDestroyEffect();
-
-				// 플레이어 액터 장착해제 
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 				// 플레이어한테 너 이제 로켓하차임 
 				OverlapActor->OverlapHomingFunc();
-				if (nullptr == GetAttachParentActor())
-				{
-					// UE_LOG(LogTemp, Warning, TEXT("Parent Actor Detach"));
-					// 디스트로이 대기상태로 전환하고
-					RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
-					
-					// 보스한테 데미지 
-					BossActor->SetDamage(RocketDamageToBoss);
-				}
+				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				BossActor->SetDamage(RocketDamageToBoss);
 				return;
 			}
-
 		},
 
 		[this]
@@ -259,12 +246,9 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 상태지속시간이 10초가 넘었다면 Destroy 상태로 변경
 			if (10.0f <= RocketFsmComponent->GetStateLiveTime())
 			{
-				// UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy"));
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
-			
 				return;
 			}
 		},
@@ -276,7 +260,8 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
+			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
+			DestroyRocket();
 		},
 
 		[this](float DT)
