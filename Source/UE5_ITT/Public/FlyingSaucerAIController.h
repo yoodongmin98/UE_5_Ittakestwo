@@ -28,8 +28,6 @@ public:
 	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -39,10 +37,6 @@ private:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase1();
-	UFUNCTION(BlueprintCallable)
-	void SetupStartBehaviorTreePhase2();
-	UFUNCTION(BlueprintCallable)
-	void SetupStartBehaviorTreePhase3();
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef1;
@@ -55,18 +49,10 @@ private:
 	class UBehaviorTree* AIBehaviorTreePhase1 = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
-	class UBehaviorTree* AIBehaviorTreePhase2 = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
-	class UBehaviorTree* AIBehaviorTreePhase3 = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
 	class UBehaviorTree* CurrentBehaviorTree = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
 	class UBehaviorTreeComponent* CurrentBehaviorTreeComp = nullptr;
-
-
 
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;

@@ -19,9 +19,9 @@ AFlyingSaucerAIController::AFlyingSaucerAIController()
 
 	if (true == HasAuthority())
 	{
-		CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
 		bReplicates = true;
 		SetReplicateMovement(true);
+		CurrentBehaviorTreeComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("CurrentBehaviorTreeCompnent"));
 	}
 }
 
@@ -31,13 +31,9 @@ void AFlyingSaucerAIController::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	
 	// 메시 컴포넌트를 Replication하기 위한 설정 추가
 	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase1);
-	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase2);
-	DOREPLIFETIME(AFlyingSaucerAIController, AIBehaviorTreePhase3);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTree);
 	DOREPLIFETIME(AFlyingSaucerAIController, CurrentBehaviorTreeComp);
 }
-
-
 
 void AFlyingSaucerAIController::BeginPlay()
 {
@@ -69,16 +65,17 @@ void AFlyingSaucerAIController::SetupPlayerRefAndBehaviorTreePhase1()
 {
 	// 여기서 게임모드를 받아와서 카운트가 2가 되었는지 확인하고 2가 되었다면 bool 값을 true로 변경
 	AITTGameModeBase* CurrentGameMode = Cast<AITTGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
-	int32 LoginCount = CurrentGameMode->GetPlayerLoginCount();
-	if (2 == LoginCount)
+	if (nullptr != CurrentGameMode)
 	{
-		TArray<AActor*> Players = CurrentGameMode->GetLoginPlayerControllers();
-		APlayerController* PlayerController0 = Cast<APlayerController>(Players[0]);
-		APlayerController* PlayerController1 = Cast<APlayerController>(Players[1]);
-		PlayerRef1 = PlayerController0->GetPawn();
-		PlayerRef2 = PlayerController1->GetPawn();
-		SetupStartBehaviorTreePhase1();
-		bIsSetupPlayerRef = true;
+		int32 LoginCount = CurrentGameMode->GetPlayerLoginCount();
+		if (2 == LoginCount)
+		{
+			TArray<AActor*> Players = CurrentGameMode->GetLoginPlayerControllers();
+			SetupStartBehaviorTreePhase1();
+
+			// 완료 
+			bIsSetupPlayerRef = true;
+		}
 	}
 }
 
@@ -89,31 +86,6 @@ void AFlyingSaucerAIController::SetupStartBehaviorTreePhase1()
 		RunBehaviorTree(AIBehaviorTreePhase1);
 		CurrentBehaviorTree = AIBehaviorTreePhase1;
 		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase1, EBTExecutionMode::Looped);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerCody"), PlayerRef1);
-		GetBlackboardComponent()->SetValueAsObject(TEXT("PlayerMay"), PlayerRef2);
 		GetBlackboardComponent()->SetValueAsInt(TEXT("Phase1TargetCount"), 1);
 	}
 }
-
-void AFlyingSaucerAIController::SetupStartBehaviorTreePhase2()
-{
-	if (nullptr != CurrentBehaviorTree && nullptr != AIBehaviorTreePhase2)
-	{
-		CurrentBehaviorTreeComp->StopTree();
-		RunBehaviorTree(AIBehaviorTreePhase2);
-		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase2);
-		CurrentBehaviorTree = AIBehaviorTreePhase2;
-	}
-}
-
-void AFlyingSaucerAIController::SetupStartBehaviorTreePhase3()
-{
-	if (nullptr != CurrentBehaviorTree && nullptr != AIBehaviorTreePhase3)
-	{
-		CurrentBehaviorTreeComp->StopTree();
-		RunBehaviorTree(AIBehaviorTreePhase3);
-		CurrentBehaviorTreeComp->StartTree(*AIBehaviorTreePhase3);
-		CurrentBehaviorTree = AIBehaviorTreePhase3;
-	}
-}
-
