@@ -47,7 +47,6 @@ void APedal::SetupFsm()
 			
 			if (CurAnimFrame>=10.f)
 			{
-				MoonBaboon->GetMesh()->GetAnimInstance()->set
 				UE_LOG(LogTemp, Display, TEXT("start"));
 				FsmComp->ChangeState(Fsm::Smash);
 			}
