@@ -43,9 +43,12 @@ void APedal::SetupFsm()
 		},
 
 		[this](float DeltaTime)
-		{
-			if (FsmComp->GetStateLiveTime() > 1.f)
+		{			
+			
+			if (CurAnimFrame>=10.f)
 			{
+				MoonBaboon->GetMesh()->GetAnimInstance()->set
+				UE_LOG(LogTemp, Display, TEXT("start"));
 				FsmComp->ChangeState(Fsm::Smash);
 			}
 		},
@@ -63,7 +66,7 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio += DeltaTime * 10.f;
+			SmashRatio += DeltaTime * 3.f;
 			if (SmashRatio >= 1.f)
 			{
 				SmashRatio = 1.f;
@@ -87,7 +90,7 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			if (FsmComp->GetStateLiveTime() > 1.f)
+			if (CurAnimFrame >= 44.f)
 			{
 				FsmComp->ChangeState(Fsm::Release);
 			}
@@ -105,7 +108,7 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio -= DeltaTime;
+			SmashRatio -= DeltaTime*1.2f;
 			if (SmashRatio <= 0.f)
 			{
 				SmashRatio = 0.f;
@@ -130,6 +133,7 @@ void APedal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 		//OverlapPlayer-> 즉사처리
 	}
 }
+
 // Called every frame
 void APedal::Tick(float DeltaTime)
 {
@@ -137,7 +141,15 @@ void APedal::Tick(float DeltaTime)
 
 	if (HasAuthority() == true)
 	{
+		//애니메이션 인스턴스
+		UAnimInstance* AnimInstance = MoonBaboon->GetMesh()->GetAnimInstance();
 
+		//null과 노티파이 존재확인
+		if (AnimInstance && !AnimInstance->ActiveAnimNotifyEventReference.IsEmpty())
+		{
+			float CurTime = AnimInstance->ActiveAnimNotifyEventReference[0].GetCurrentAnimationTime();
+			CurAnimFrame = CurTime / (2.5f / 75.f);
+		}
 	}
 
 }

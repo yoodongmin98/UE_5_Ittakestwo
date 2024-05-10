@@ -52,6 +52,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	class AEnemyMoonBaboon* MoonBaboon = nullptr;
 
+	float CurAnimFrame = 0.f;
 	void SetupFsm();
 
 
