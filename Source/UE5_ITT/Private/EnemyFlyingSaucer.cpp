@@ -554,7 +554,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				// FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -1031,6 +1031,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			Multicast_ChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
+			
+			// 코디메이 애니메이션 변경
+			PlayerCody->CutScenceStart();
+			// 메이 애니메이션 변경 추가 예정
 		},
 
 		[this](float DT)
