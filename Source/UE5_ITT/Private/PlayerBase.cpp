@@ -130,15 +130,7 @@ void APlayerBase::Tick(float DeltaTime)
 		IsDGravity = false;
 	}
 	//플레이어 생존여부 확인
-	//PlayerDeathCheck();
-	if (0 >= PlayerHP)
-	{
-		IsPlayerDeath = true;
-	}
-	if (true == IsPlayerDeath)
-	{
-		UE_LOG(LogTemp, Display, TEXT("death %d"), PlayerHP);
-	}
+	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
@@ -541,7 +533,7 @@ void APlayerBase::InteractNoneInput_Implementation()
 
 void APlayerBase::PlayerDeathCheck()
 {
-	if (IsPlayerDeath == false && 0 <= PlayerHP)
+	if (IsPlayerDeath == false && 0 >= PlayerHP)
 	{
 		IsPlayerDeath = true;
 	}
