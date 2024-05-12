@@ -532,6 +532,162 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
+void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
+{
+	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
+	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
+	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
+}
+
+void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
+{
+	LaserLerpRatio += DeltaTime * LaserLerpRate;
+	if (1.0f <= LaserLerpRatio)
+	{
+		SavePreviousTargetLocation();
+		LaserLerpRatio -= 1.0f;
+		if (0.1f <= LaserLerpRatio)
+		{
+			LaserLerpRatio = 0.0f;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::SavePreviousTargetLocation()
+{
+	// 여기서 현재 타겟이 누구냐에 따라서 세팅될 수 있도록.
+	if (nullptr != LaserTargetActor)
+	{
+		FVector CurrentTargetLocation = LaserTargetActor->GetActorLocation();
+
+		// 이전 타겟 위치가 유효하다면 
+		if (true == bPrevTargetLocationValid)
+		{
+			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
+			PrevTargetLocation = PrevTargetLocationBuffer;
+			bPrevTargetLocationValid = false;
+		}
+
+		else
+		{
+			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
+			PrevTargetLocation = CurrentTargetLocation;
+		}
+
+		// 타겟위치를 세팅
+		PrevTargetLocationBuffer = CurrentTargetLocation;
+		bPrevTargetLocationValid = true;
+	}
+}
+
+void AEnemyFlyingSaucer::SetupLaserTargetActor()
+{
+	switch (PatternDestroyCount)
+	{
+	case 0:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
+			{
+				LaserTargetActor = Actor;
+			}
+		}
+
+		break;
+	case 1:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
+			{
+				LaserTargetActor = Actor;
+			}
+		}
+		break;
+	case 2:
+		for (AActor* Actor : PlayerActors)
+		{
+			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
+			{
+				LaserTargetActor = Actor;
+			}
+		}
+		break;
+	}
+}
+
+void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
+	{
+		// 로켓으로 cast 
+		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
+		// State 확인 
+		int32 RocketStateToInt = HomingRocket->GetCurrentState();
+		// 플레이어 장착 state 라면 로켓을 
+		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Boss Rocket Hit True"));
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
+	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
+}
+
+void AEnemyFlyingSaucer::SetupOverlapEvent()
+{
+	if (nullptr != SkeletalMeshComp)
+	{
+		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
+		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
+	}
+}
+
+void AEnemyFlyingSaucer::SetupPlayerActorsCodyAndMay()
+{
+	// 현재 월드의 액터를 받아오고 
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), PlayerActors);
+	if (0 == PlayerActors.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Actors Size : 0"));
+		return;
+	}
+
+	// 0번이 코디면 그대로 세팅, 코디가 아니라면 반대로 세팅. 
+	if (true == PlayerActors[0]->ActorHasTag("Cody"))
+	{
+		PlayerCody = Cast<ACody>(PlayerActors[0]);
+		PlayerMay = Cast<AMay>(PlayerActors[1]);
+	}
+	else
+	{
+		PlayerCody = Cast<ACody>(PlayerActors[1]);
+		PlayerMay = Cast<AMay>(PlayerActors[0]);
+	}
+}
+
+int32 AEnemyFlyingSaucer::GetFloorCurrentState()
+{
+	if (nullptr == FloorObject)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Floor Object is nullptr"));
+	}
+
+	return FloorObject->GetCurrentPhase();
+}
+
+
+
+
+
+///////////////////////////////////FSM//////////////////////////////////////
+
+
+
+
 void AEnemyFlyingSaucer::SetupFsmComponent()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComponent"));
@@ -1467,149 +1623,3 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 
 
-void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
-{
-	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
-	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
-	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
-}
-
-void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
-{
-	LaserLerpRatio += DeltaTime * LaserLerpRate;
-	if (1.0f <= LaserLerpRatio)
-	{
-		SavePreviousTargetLocation();
-		LaserLerpRatio -= 1.0f;
-		if (0.1f <= LaserLerpRatio)
-		{
-			LaserLerpRatio = 0.0f;
-		}
-	}
-}
-
-void AEnemyFlyingSaucer::SavePreviousTargetLocation()
-{
-	// 여기서 현재 타겟이 누구냐에 따라서 세팅될 수 있도록.
-	if (nullptr != LaserTargetActor)
-	{
-		FVector CurrentTargetLocation = LaserTargetActor->GetActorLocation();
-
-		// 이전 타겟 위치가 유효하다면 
-		if (true == bPrevTargetLocationValid)
-		{
-			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
-			PrevTargetLocation = PrevTargetLocationBuffer;
-			bPrevTargetLocationValid = false;
-		}
-
-		else
-		{
-			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
-			PrevTargetLocation = CurrentTargetLocation;
-		}
-
-		// 타겟위치를 세팅
-		PrevTargetLocationBuffer = CurrentTargetLocation;
-		bPrevTargetLocationValid = true;
-	}
-}
-
-void AEnemyFlyingSaucer::SetupLaserTargetActor()
-{
-	switch (PatternDestroyCount)
-	{
-	case 0:
-		for (AActor* Actor : PlayerActors)
-		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
-		}
-	
-		break;
-	case 1:
-		for (AActor* Actor : PlayerActors)
-		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
-			{
-				LaserTargetActor = Actor;
-			}
-		}
-		break;
-	case 2:
-		for (AActor* Actor : PlayerActors)
-		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
-		}
-		break;
-	}
-}
-
-void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
-	{
-		// 로켓으로 cast 
-		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
-		// State 확인 
-		int32 RocketStateToInt = HomingRocket->GetCurrentState();
-		// 플레이어 장착 state 라면 로켓을 
-		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Boss Rocket Hit True"));
-		}
-	}
-}
-
-void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
-	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
-}
-
-void AEnemyFlyingSaucer::SetupOverlapEvent()
-{
-	if (nullptr != SkeletalMeshComp)
-	{
-		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
-		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
-	}
-}
-
-void AEnemyFlyingSaucer::SetupPlayerActorsCodyAndMay()
-{
-	// 현재 월드의 액터를 받아오고 
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), PlayerActors);
-	if (0 == PlayerActors.Num())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Actors Size : 0"));
-		return;
-	}
-
-	// 0번이 코디면 그대로 세팅, 코디가 아니라면 반대로 세팅. 
-	if (true == PlayerActors[0]->ActorHasTag("Cody"))
-	{
-		PlayerCody = Cast<ACody>(PlayerActors[0]);
-		PlayerMay = Cast<AMay>(PlayerActors[1]);
-	}
-	else
-	{
-		PlayerCody = Cast<ACody>(PlayerActors[1]);
-		PlayerMay = Cast<AMay>(PlayerActors[0]);
-	}
-}
-
-int32 AEnemyFlyingSaucer::GetFloorCurrentState()
-{
-	if (nullptr == FloorObject)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Floor Object is nullptr"));
-	}
-
-	return FloorObject->GetCurrentPhase();
-}
