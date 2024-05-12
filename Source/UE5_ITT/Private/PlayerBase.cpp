@@ -533,7 +533,7 @@ void APlayerBase::InteractNoneInput_Implementation()
 
 void APlayerBase::PlayerDeathCheck()
 {
-	if (0 <= PlayerHP)
+	if (IsPlayerDeath == false && 0 >= PlayerHP)
 	{
 		IsPlayerDeath = true;
 	}
