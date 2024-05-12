@@ -18,12 +18,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// 보스 전투관련 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
 
@@ -37,16 +33,16 @@ public:
 	float ArcingProjectileMaxFireTime = 3.0f;
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_CreateEnergyChargeEffect();
+	void MulticastCreateEnergyChargeEffect();
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_CreateGroundPoundEffect();
+	void MulticastCreateGroundPoundEffect();
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_SetFocusTarget();
+	void MulticastSetFocusTarget();
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_AttachToMoonBaboonActorAndFloor();
+	void MulticastAttachMoonBaboonActorWithFloor();
 
 	// 레이저 추적 로직 관련 변수
 	UPROPERTY(BlueprintReadWrite, Replicated)
@@ -96,7 +92,6 @@ public:
 	TArray<class AActor*> PlayerActors;
 
 	// Get, Set
-	// 체력(임시) 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentHp(float HpValue) { CurrentHp = HpValue; }
 
@@ -202,24 +197,24 @@ private:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void SetupOverlapEvent();
+	void SetupPlayerActorsCodyAndMay();
 
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
+	void MulticastChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_ChangeAnimationMoonBaboon(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
+	void MulticastChangeAnimationMoonBaboon(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_CheckCodyKeyPressedAndChangeState(const bool bIsInput);
+	void MulticastCheckCodyKeyPressedAndChangeState(const bool bIsInput);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
+	void MulticastSetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
 
 	int32 GetFloorCurrentState();
 	void DrawDebugMesh();
 
-	// 클라이언트 접속까지의 대기시간, 추후 수정할수도 
 	UPROPERTY(EditDefaultsOnly)
 	float ServerDelayTime = 6.0f;
 
@@ -272,7 +267,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 ArcingProjectileFireCount = 0;
 
-	// 보스가 생성하는 액터 
+
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class AEnemyMoonBaboon* EnemyMoonBaboon = nullptr;
 
@@ -347,16 +342,14 @@ private:
 	// 러프 완료를 체크할 bool 
 	bool bIsCodyHoldingLerpEnd = false;
 	
-	void SetCodyHoldingEnter_CodyLocation();
+	// 코디 홀딩시 위치보정
+	void CorrectCodyLocationAndRotation();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetFocusHoldingCody();
+	void MulticastUnPossess();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_UnPossess();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_HideLaserBaseBone();
+	void MulticastHideLaserBaseBone();
 
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
@@ -365,7 +358,6 @@ private:
 	class AMay* PlayerMay = nullptr;
 
 	bool bIsCorretLocation = false;
-	FVector RotatePivotVector = FVector(3959.88f, 60.44f, 0.0f);
 	float HomingRocketFireTime = 0.0f;
 	float HomingRocketCoolTime = 3.0f;
 
@@ -373,7 +365,7 @@ private:
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
 	class AHomingRocket* HomingRocketActor_2 = nullptr;
 
-	// 센터이동로직관련 
+	// 3페이즈 센터이동관련 
 	float MoveToCenterLerpRatio = 0.0f;
 	FVector MoveStartLocation = FVector::ZeroVector;
 
@@ -388,6 +380,7 @@ private:
 	UPROPERTY(Replicated)
 	bool bIsEject = false;
 
+	// 카메라 레일 관련 
 	class APlayerController* ViewTargetChangeController = nullptr;
 	class AActor* PrevViewTarget = nullptr;
 
@@ -404,6 +397,7 @@ private:
 	class APhaseEndCameraRail* Phase3EndCameraRail_2 = nullptr;
 
 
+	// 모든 패턴 종료시 사용될 값 
 	UPROPERTY(EditAnywhere)
 	bool bIsAllPhaseEnd = false;
 };
