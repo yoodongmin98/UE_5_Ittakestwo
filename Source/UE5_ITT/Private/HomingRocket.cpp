@@ -113,6 +113,7 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			if (false == bIsActive)
 			{
+				Multicast_SpawnDestroyEffect();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				return;
 			}
@@ -326,7 +327,6 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 {
 	int32 CurrentState = RocketFsmComponent->GetCurrentState();
 	ERocketState CurrentStateEnum = static_cast<ERocketState>(CurrentState);
-
 	switch (CurrentStateEnum)
 	{
 	case ERocketState::PlayerChase:
@@ -394,11 +394,9 @@ void AHomingRocket::PlayerEquipBegin()
 	// 부착해제 되었던 로켓메시를 다시 부착
 	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 
-	// 로컬값 초기화
+	
 	SetActorRelativeLocation(FVector::ZeroVector);
 	RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
-
-	// 플레이어의 메시에 로켓메시 부착
 	AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
 	this->SetOwner(OverlapActor);
 
