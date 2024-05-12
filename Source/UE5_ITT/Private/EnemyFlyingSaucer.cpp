@@ -370,6 +370,7 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 			return;
 		}
 
+		// DrawDebugMesh();
 		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
 }
