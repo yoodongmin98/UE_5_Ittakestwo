@@ -1164,6 +1164,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 코디메이 애니메이션 변경
 			PlayerCody->CutScenceStart();
 			// 메이 애니메이션 변경 추가 예정
+			AMay* TestMay = Cast<AMay>(LaserTargetActor);
+			if (nullptr != TestMay)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("May CutScene Start"));
+				TestMay->CutSceneStart();
+			}
 		},
 
 		[this](float DT)
