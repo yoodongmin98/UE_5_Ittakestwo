@@ -9,12 +9,15 @@ UPlayerMarkerUI::UPlayerMarkerUI()
 {
     // Set default values or initialize as needed
     PrimaryComponentTick.bCanEverTick = true;
-    PlayerMarkerWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+    PlayerMarkerWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("UIMarker"));
     bIsOwner = true;
     DistanceThreshold = 2500.0f;
 
     WidgetDefaultLocation = FVector(0.0f, 0.0f, 180.0f);
     TargetPlayer = nullptr;
+    bIsCody = true;
+    StartViewportX = 0.0f;
+    StartViewportY = 0.0f;
 }
 void UPlayerMarkerUI::BeginPlay()
 {
@@ -28,9 +31,25 @@ void UPlayerMarkerUI::BeginPlay()
     {
         PlayerMarkerWidget->SetWidgetClass(PlayerMarkerType);
     }
+    //// Set widget space to screen
+    //PlayerMarkerWidget->SetWidgetSpace(EWidgetSpace::Screen);
+    //if(Cast<APawn>(GetOwner()) == GetWorld()->GetFirstPlayerController()->GetPawn())
+    //{
+    //    SetVisibility(true, true);
+    //}
+    //else
+    //{
+    //    SetVisibility(false, true);
+    //    bIsOwner = true;
+    //}
+
+}
+
+void UPlayerMarkerUI::SettingCustomVisible()
+{
     // Set widget space to screen
     PlayerMarkerWidget->SetWidgetSpace(EWidgetSpace::Screen);
-    if(Cast<APawn>(GetOwner()) == GetWorld()->GetFirstPlayerController()->GetPawn())
+    if (Cast<APawn>(GetOwner()) == GetWorld()->GetFirstPlayerController()->GetPawn())
     {
         SetVisibility(true, true);
     }
@@ -39,8 +58,16 @@ void UPlayerMarkerUI::BeginPlay()
         SetVisibility(false, true);
         bIsOwner = true;
     }
-
+    FindTarget();
+    APlayerController* FirstPlayer = GetWorld()->GetFirstPlayerController();
+    FirstPlayer->GetViewportSize(SizeViewportX, SizeViewportY);
+    SizeViewportX /= 2;
+    if (true == bIsCody)
+    {
+        StartViewportX = SizeViewportX;
+    }
 }
+
 
 void UPlayerMarkerUI::FindTarget()
 {
@@ -54,12 +81,39 @@ void UPlayerMarkerUI::FindTarget()
     {
         if (me != Cast<APlayerBase>(Player))
         {
-            TargetPlayer = Cast<APlayerBase>(Player);
-            return;
+            APlayerBase* NextPlayer = Cast<APlayerBase>(Player);
+            const TArray<FName>& CheckTag = NextPlayer->Tags;
+            for (const FName& V : CheckTag)
+            {
+                if (V == FName("Cody") || V == FName("May"))
+                {
+                    TargetPlayer = NextPlayer;
+                    if (V == FName("Cody"))
+                    {
+                        bIsCody = false;
+                    }
+                    else
+                    {
+                        bIsCody = true;
+                    }
+                    return;
+                }
+            }
         }
         // Player를 사용하여 플레이어 처리
     }
+
+    
 }
+
+
+//if (Controller != nullptr)
+//{
+//    const TArray<FName>& CheckTag = Tags;
+//    for (const FName& V : CheckTag)
+//    {
+//        if (V == FName("Cody") || V == FName("May"))
+//        {
 
 void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -69,7 +123,7 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
         return;
     }
 
-    if (TargetPlayer == nullptr)
+    if (!TargetPlayer)
     {
         FindTarget();
         return;
@@ -80,16 +134,17 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
     APlayerController* FirstPlayer = GetWorld()->GetFirstPlayerController();
 
     FVector2D ActorScreenPosition;
-    if (!FirstPlayer->ProjectWorldLocationToScreen(TargetPlayer->GetActorLocation(), ActorScreenPosition))
+    FVector TargetLocation = TargetPlayer->GetActorLocation();
+    if (!FirstPlayer->ProjectWorldLocationToScreen(TargetLocation, ActorScreenPosition))
     {
         return; // Failed to project actor's location to screen space
     }
 
-    int32 ViewportX, ViewportY;
-    FirstPlayer->GetViewportSize(ViewportX, ViewportY);
+    //int32 ViewportX, ViewportY;
+    //FirstPlayer->GetViewportSize(ViewportX, ViewportY);
 
-    if ((ActorScreenPosition.X >= 0 && ActorScreenPosition.X <= ViewportX &&
-        ActorScreenPosition.Y >= 0 && ActorScreenPosition.Y <= ViewportY)) // 화면 내에 존재
+    if ((ActorScreenPosition.X >= StartViewportX && ActorScreenPosition.X <= StartViewportX + SizeViewportX &&
+        ActorScreenPosition.Y >= StartViewportY && ActorScreenPosition.Y <= StartViewportY + SizeViewportY)) // 화면 내에 존재
     {
         float Distance = FVector::Distance(FirstPlayer->GetPawn()->GetActorLocation(), TargetPlayer->GetActorLocation());
 
@@ -106,22 +161,22 @@ void UPlayerMarkerUI::TickComponent(float DeltaTime, ELevelTick TickType, FActor
     else // 화면 밖에 존재
     {
         SetVisibility(true, true);
-        if (ActorScreenPosition.X < 0)
+        if (ActorScreenPosition.X < StartViewportX)
         {
-            ActorScreenPosition.X = 10.0f;
+            ActorScreenPosition.X = StartViewportX + 10.0f;
         }
-        else if (ActorScreenPosition.X > ViewportX)
+        else if (ActorScreenPosition.X > StartViewportX + SizeViewportX)
         {
-            ActorScreenPosition.X = ViewportX - 10.0f;
+            ActorScreenPosition.X = StartViewportX + SizeViewportX - 10.0f;
         }
 
-        if (ActorScreenPosition.Y < 0)
+        if (ActorScreenPosition.Y < StartViewportY)
         {
-            ActorScreenPosition.Y = 10.0f;
+            ActorScreenPosition.Y = StartViewportY + 10.0f;
         }
-        else if (ActorScreenPosition.Y > ViewportY)
+        else if (ActorScreenPosition.Y > StartViewportY + SizeViewportY)
         {
-            ActorScreenPosition.Y = ViewportY - 10.0f;
+            ActorScreenPosition.Y = StartViewportY + SizeViewportY - 10.0f;
         }
 
         FVector WorldLocation, WorldDirection;

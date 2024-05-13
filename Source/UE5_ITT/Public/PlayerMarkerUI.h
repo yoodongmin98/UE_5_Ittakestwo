@@ -24,6 +24,9 @@ public:
     virtual void BeginPlay() override;
     // Override Tick function
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+    void SettingCustomVisible();
+
 protected:
     // Reference to the player marker widget
     UPROPERTY(EditAnywhere, Category = "UI")
@@ -40,4 +43,10 @@ private:
     APlayerBase* TargetPlayer;
 
     void FindTarget();
+
+    int32 StartViewportX, StartViewportY;
+    int32 SizeViewportX, SizeViewportY;
+
+    bool bIsCody;
+
 };

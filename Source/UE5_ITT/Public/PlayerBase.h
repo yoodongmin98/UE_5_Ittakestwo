@@ -573,4 +573,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SpringArmDefaultFunction();
+
+	UFUNCTION(BlueprintCallable)
+	void SettingMarkerWidget();
 };

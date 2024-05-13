@@ -43,6 +43,12 @@ APlayerBase::APlayerBase()
 	MarkerUIWidget->SetupAttachment(RootComponent);
 }
 
+void APlayerBase::SettingMarkerWidget()
+{
+	MarkerUIWidget->SettingCustomVisible();
+}
+
+
 //void APlayerBase::GetOnlineSubsystem()
 //{
 //
