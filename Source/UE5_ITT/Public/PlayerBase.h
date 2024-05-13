@@ -312,6 +312,11 @@ public:
 	{
 		return OverlapHoming;
 	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetCodyHoldEnemyTrue()
+	{
+		CodyHoldEnemy = true;
+	}
 
 	//////////////////////////////////////////
 	UFUNCTION(BlueprintCallable)
