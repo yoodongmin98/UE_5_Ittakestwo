@@ -702,7 +702,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
 		},
@@ -920,9 +920,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				PrevViewTarget = PrevCameraActor;
 			}
 
+			// 임시주석
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
-			Phase1EndCameraRail->EnableCameraMove(0.25f);
+			/*ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
+			Phase1EndCameraRail->EnableCameraMove(0.25f);*/
 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
@@ -935,15 +936,15 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			if (true == Phase1EndCameraRail->IsMoveEnd())
-			{
-				if (nullptr != ViewTargetChangeController)
-				{
-					// 기존 카메라로 뷰타겟 변경 후 nullptr 처리 
-					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-					ViewTargetChangeController = nullptr;
-				}
-			}
+			//if (true == Phase1EndCameraRail->IsMoveEnd())
+			//{
+			//	if (nullptr != ViewTargetChangeController)
+			//	{
+			//		// 기존 카메라로 뷰타겟 변경 후 nullptr 처리 
+			//		ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+			//		ViewTargetChangeController = nullptr;
+			//	}
+			//}
 
 			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (nullptr != CurrentOverlapPlayer)
