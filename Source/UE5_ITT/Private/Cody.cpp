@@ -364,7 +364,6 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACody, CutsceneTrigger);
-
 }
 
 void ACody::TriggerTest()
@@ -377,14 +376,8 @@ void ACody::TriggerTest()
 
 void ACody::CutScenceStart()
 {
-	if (HasAuthority())
-	{
-		CustomClientCutScene();
-	}
-	else
-	{
-		CustomServerCutScene();
-	}
+	CustomClientCutScene();
+	CustomServerCutScene();
 }
 
 void ACody::CustomClientCutScene_Implementation()
