@@ -312,7 +312,21 @@ public:
 	{
 		CodyHoldEnemy = true;
 	}
-
+	UFUNCTION(BlueprintCallable)
+	inline void SetCodyHoldEnemyFalse()
+	{
+		CodyHoldEnemy = false;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetResPawnPosition(FVector _TriggerPosition)
+	{
+		ResPawnPosition = _TriggerPosition;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetResPawnPosition()
+	{
+		return ResPawnPosition;
+	}
 	//////////////////////////////////////////
 	UFUNCTION(BlueprintCallable)
 	inline void ChangeState(Cody_State _State)
@@ -420,6 +434,8 @@ public:
 	float SmallLength;
 
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
+
+	FVector ResPawnPosition = FVector::ZeroVector;
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
