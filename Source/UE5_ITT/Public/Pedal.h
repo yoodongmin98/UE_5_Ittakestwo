@@ -62,7 +62,7 @@ private:
 	float AnimMaxFrame = 75.f;
 	float Anim1FrameTime = AnimMaxTime / AnimMaxFrame;
 
-	float ServerDelayTime = 1.f;
+	float ServerDelayTime = 3.f;
 
 	UFUNCTION(NetMulticast,Reliable)
 	void Multicast_ChangeAnim(const FString& strPath, bool bLoop);
