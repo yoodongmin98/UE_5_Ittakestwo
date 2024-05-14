@@ -46,7 +46,7 @@ void AHomingRocket::BeginPlay()
 	Super::BeginPlay();
 	if (true == HasAuthority())
 	{
-		RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
+		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
 		SetupOverlapEvent();
 	}
 }
@@ -70,6 +70,7 @@ void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(AHomingRocket, FireEffectComp);
 	DOREPLIFETIME(AHomingRocket, BossActor);
 	DOREPLIFETIME(AHomingRocket, RocketDamageToBoss);
+	DOREPLIFETIME(AHomingRocket, RocketDamageToPlayer);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpRatio);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpStartRotation);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpEndRotation);
@@ -81,6 +82,7 @@ int32 AHomingRocket::GetCurrentState() const
 	if (nullptr == RocketFsmComponent)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("RocketFsmComponent is nullptr"));
+		return -1;
 	}
 
 	return RocketFsmComponent->GetCurrentState();
@@ -111,10 +113,15 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// 플레이어 충돌시 
 			if (false == bIsActive)
 			{
 				Multicast_SpawnDestroyEffect();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				if (Cody_State::PlayerDeath == OverlapActor->GetITTPlayerState())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Player Death"));
+				}
 				return;
 			}
 			
@@ -336,6 +343,10 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			if (true == bIsActive)
 			{
 				bIsActive = false;
+				APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
+				OverlapActor = PlayerBase;
+				PlayerBase->AttackPlayer(RocketDamageToPlayer);
+				UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerBase->GetPlayerHP());
 			}
 		}
 	}
@@ -407,6 +418,7 @@ void AHomingRocket::PlayerEquipBegin()
 void AHomingRocket::DestroyRocket()
 {
 	Destroy();
+	RocketFsmComponent = nullptr;
 }
 
 // Fly 활성 

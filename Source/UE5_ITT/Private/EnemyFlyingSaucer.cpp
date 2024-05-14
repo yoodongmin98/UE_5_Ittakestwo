@@ -377,49 +377,27 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	// 플레이어 데스상태라면 발사 안하는 로직 추가 필요 
-
-	// 로켓 1, 초기 한발은 생성 후 발사, 이후부터는 시간계산하여 미사일발사. 
-	if (nullptr == HomingRocketActor_1)
+	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
 	{
+		HomingRocketActor_1 = nullptr;
 		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
 		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_1->SetupTarget(TargetActor);
 		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 		HomingRocketActor_1->SetOwner(this);
+		HomingRocket1FireTime = HomingRocketCoolTime;
 	}
 
-	else if (nullptr != HomingRocketActor_1 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_1->GetCurrentState())
+	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
 	{
-		HomingRocketActor_1->DestroyRocket();
-
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
-		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_1->SetupTarget(TargetActor);
-		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
-		HomingRocketActor_1->SetOwner(this);
-	}
-
-
-	// 로켓 2
-	if (nullptr == HomingRocketActor_2)
-	{
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
-		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_2->SetupTarget(TargetActor);
-		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
-		HomingRocketActor_2->SetOwner(this);
-	}
-
-	else if (nullptr != HomingRocketActor_2 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_2->GetCurrentState())
-	{
-		HomingRocketActor_2->DestroyRocket();
+		HomingRocketActor_2 = nullptr;
 
 		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
 		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_2->SetupTarget(TargetActor);
-		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 		HomingRocketActor_2->SetOwner(this);
+		HomingRocket2FireTime = HomingRocketCoolTime;
 	}
 }
 
@@ -702,7 +680,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 				return;
 			}
 		},
@@ -1244,19 +1222,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
+			HomingRocket1FireTime -= DT;
+			HomingRocket2FireTime -= DT;
+			FireHomingRocket();
 
-			// 유도로켓 발사 
-			HomingRocketFireTime -= DT;
-			if (0.0f >= HomingRocketFireTime)
-			{
-				FireHomingRocket();
-				HomingRocketFireTime = HomingRocketCoolTime;
-			}
 		},
 
 		[this]
 		{
-			HomingRocketFireTime = 3.0f;
+			HomingRocket1FireTime = HomingRocketCoolTime;
+			HomingRocket2FireTime = HomingRocketCoolTime;
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_RocketHit,
