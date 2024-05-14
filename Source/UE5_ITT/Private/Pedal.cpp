@@ -5,6 +5,9 @@
 #include "PlayerBase.h"
 #include "FsmComponent.h"
 #include "EnemyMoonBaboon.h"
+#include "ITTGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Animation/AnimSequence.h"
 
 // Sets default values
 APedal::APedal()
@@ -28,14 +31,40 @@ APedal::APedal()
 
 void APedal::BeginPlay()
 {
-	Super::BeginPlay();
-	FsmComp->ChangeState(Fsm::SmashWait);
+	Super::BeginPlay(); 
+	if (HasAuthority() == true)
+	{
+		FsmComp->ChangeState(Fsm::ServerDelay);
+	}
 }
 
 void APedal::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
+	FsmComp->CreateState(Fsm::ServerDelay,
+		[this]
+		{
+		},
+
+		[this](float DeltaTime)
+		{
+			AITTGameModeBase* ITTGameMode = Cast<AITTGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (ITTGameMode->GetPlayerLoginCount() == 2)
+			{
+				ServerDelayTime -= DeltaTime;
+			}
+			if (ServerDelayTime=<0.f)
+			{
+				FsmComp->ChangeState(Fsm::SmashWait);
+			}
+		},
+
+		[this]
+		{
+			Multicast_ChangeAnim(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Pedal_Anim.MoonBaboon_Ufo_Mh_Pedal_Anim"), true);
+		}
+	);
 	FsmComp->CreateState(Fsm::SmashWait,
 		[this]
 		{
@@ -44,10 +73,8 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{			
-			
-			if (CurAnimFrame>=10.f)
+			if( 7.f> CurAnimFrame&& CurAnimFrame >=5.f)
 			{
-				UE_LOG(LogTemp, Display, TEXT("start"));
 				FsmComp->ChangeState(Fsm::Smash);
 			}
 		},
@@ -65,7 +92,8 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio += DeltaTime * 3.f;
+			//5프레임 지속
+			SmashRatio += DeltaTime * (1.f / (Anim1FrameTime * 5.f));
 			if (SmashRatio >= 1.f)
 			{
 				SmashRatio = 1.f;
@@ -89,7 +117,7 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			if (CurAnimFrame >= 44.f)
+			if (43.f > CurAnimFrame && CurAnimFrame >= 41.f)
 			{
 				FsmComp->ChangeState(Fsm::Release);
 			}
@@ -107,7 +135,8 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio -= DeltaTime*1.2f;
+			//18프레임 지속
+			SmashRatio -= DeltaTime * (1.f/(Anim1FrameTime*16.f));
 			if (SmashRatio <= 0.f)
 			{
 				SmashRatio = 0.f;
@@ -122,6 +151,20 @@ void APedal::SetupFsm()
 		{
 		}
 	);
+}
+
+void APedal::Multicast_ChangeAnim_Implementation(const FString& strPath, bool bLoop)
+{
+	UAnimSequence* AnimSequence = LoadObject<UAnimSequence>(nullptr, *strPath);
+	if (nullptr == AnimSequence)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AnimSequence is nullptr"));
+		return;
+	}
+
+	MoonBaboon->GetMesh()->PlayAnimation(AnimSequence, bLoop);
+
+	UE_LOG(LogTemp, Display, TEXT("TestCount 1"));
 }
 
 void APedal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -143,13 +186,12 @@ void APedal::Tick(float DeltaTime)
 		//애니메이션 인스턴스
 		UAnimInstance* AnimInstance = MoonBaboon->GetMesh()->GetAnimInstance();
 
-		//null과 노티파이 존재확인
+		//null이 아니면서 노티파이 체크(체크 안하면 클라 들어올때 터짐)
 		if (AnimInstance && !AnimInstance->ActiveAnimNotifyEventReference.IsEmpty())
 		{
 			float CurTime = AnimInstance->ActiveAnimNotifyEventReference[0].GetCurrentAnimationTime();
-			CurAnimFrame = CurTime / (2.5f / 75.f);
+			CurAnimFrame = CurTime / (AnimMaxTime / AnimMaxFrame);
 		}
 	}
-
 }
 

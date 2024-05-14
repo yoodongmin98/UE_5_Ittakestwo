@@ -68,12 +68,3 @@ void AParentShutter::SetDone()
 		ArrayCoreShutter[i]->SetDone();
 	}
 }
-
-void AParentShutter::SpawnActor_Implementation()
-{
-	for (int32 i = 0; i < ArrayCoreShutter.Num(); i++)
-	{
-	}
-}
-
-

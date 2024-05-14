@@ -22,6 +22,7 @@ public:
 public:
 	enum class Fsm
 	{
+		ServerDelay,
 		SmashWait,
 		Smash,
 		ReleaseWait,
@@ -55,8 +56,17 @@ private:
 	float CurAnimFrame = 0.f;
 	void SetupFsm();
 
+	bool bStart = false;
 
+	float AnimMaxTime = 2.5f;
+	float AnimMaxFrame = 75.f;
+	float Anim1FrameTime = AnimMaxTime / AnimMaxFrame;
 
+	float ServerDelayTime = 1.f;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void Multicast_ChangeAnim(const FString& strPath, bool bLoop);
+	
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

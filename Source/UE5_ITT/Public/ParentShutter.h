@@ -24,17 +24,11 @@ public:
 	void SetShutterOpen();
 	void SetDone();
 
-	UFUNCTION(NetMulticast,Reliable)
-	void SpawnActor();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class ACoreShutter> CoreShutterClass;
-
 	TArray<class ACoreShutter*> ArrayCoreShutter;
 
 	UPROPERTY(EditAnywhere)
