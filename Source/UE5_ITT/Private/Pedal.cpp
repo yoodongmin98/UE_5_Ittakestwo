@@ -54,7 +54,7 @@ void APedal::SetupFsm()
 			{
 				ServerDelayTime -= DeltaTime;
 			}
-			if (ServerDelayTime=<0.f)
+			if (ServerDelayTime<=0.f)
 			{
 				FsmComp->ChangeState(Fsm::SmashWait);
 			}
