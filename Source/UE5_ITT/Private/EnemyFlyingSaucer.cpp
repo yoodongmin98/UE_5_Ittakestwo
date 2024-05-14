@@ -634,16 +634,23 @@ void AEnemyFlyingSaucer::SetupPlayerActorsCodyAndMay()
 		return;
 	}
 
-	// 0번이 코디면 그대로 세팅, 코디가 아니라면 반대로 세팅. 
-	if (true == PlayerActors[0]->ActorHasTag("Cody"))
+	// 순회해서 세팅해주는 걸로 변경
+	for (AActor* Actor : PlayerActors)
 	{
-		PlayerCody = Cast<ACody>(PlayerActors[0]);
-		PlayerMay = Cast<AMay>(PlayerActors[1]);
+		if (true == Actor->ActorHasTag(TEXT("Cody")))
+		{
+			PlayerCody = Cast<ACody>(Actor);
+			break;
+		}
 	}
-	else
+
+	for (AActor* Actor : PlayerActors)
 	{
-		PlayerCody = Cast<ACody>(PlayerActors[1]);
-		PlayerMay = Cast<AMay>(PlayerActors[0]);
+		if (true == Actor->ActorHasTag(TEXT("May")))
+		{
+			PlayerMay = Cast<AMay>(Actor);
+			break;
+		}
 	}
 }
 
@@ -679,15 +686,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (true == bIsFsmStart)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
-				return;
-			}
+				ServerDelayTime -= DT;
+				if (ServerDelayTime <= 0.0f)
+				{
+					FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
-			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
-			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
-			{
-				
+					UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
+					return;
+				}
 			}
 		},
 
