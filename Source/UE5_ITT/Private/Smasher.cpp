@@ -13,22 +13,29 @@ ASmasher::ASmasher()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
-	SetRootComponent(SceneComp);
+	if (HasAuthority() == true)
+	{
+		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
+		SetRootComponent(SceneComp);
 
-	SmasherMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SmasherMesh"));
-	SmasherMesh->SetupAttachment(SceneComp);
-	SetupFsm();
+		SmasherMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SmasherMesh"));
+		SmasherMesh->SetupAttachment(SceneComp);
+		SetupFsm();
+	}
 }
 
 // Called when the game starts or when spawned
 void ASmasher::BeginPlay()
 {
 	Super::BeginPlay();
-	FsmComp->ChangeState(Fsm::SmashWait);
-	ReleasePos = SmasherMesh->GetRelativeLocation();
-	SmashPos = ReleasePos;
-	SmashPos.X -= SmasherMesh->GetRelativeScale3D().X * SmashSize;
+
+	if (HasAuthority() == true)
+	{
+		FsmComp->ChangeState(Fsm::SmashWait);
+		ReleasePos = SmasherMesh->GetRelativeLocation();
+		SmashPos = ReleasePos;
+		SmashPos.X -= SmasherMesh->GetRelativeScale3D().X * SmashSize;
+	}
 }
 
 void ASmasher::SetupFsm()
@@ -62,7 +69,7 @@ void ASmasher::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio += DeltaTime*10.f;
+			SmashRatio += DeltaTime*2.f;
 			if (SmashRatio >= 1.f)
 			{
 				SmashRatio = 1.f;
@@ -109,7 +116,7 @@ void ASmasher::SetupFsm()
 			{
 				SmashRatio = 0.f;
 				SmasherMesh->SetRelativeLocation(FMath::Lerp(ReleasePos, SmashPos, SmashRatio));
-				FsmComp->ChangeState(Fsm::SmashWait);
+				FsmComp->ChangeState(Fsm::Smash);
 				return;
 			}
 			SmasherMesh->SetRelativeLocation(FMath::Lerp(ReleasePos, SmashPos, SmashRatio));
