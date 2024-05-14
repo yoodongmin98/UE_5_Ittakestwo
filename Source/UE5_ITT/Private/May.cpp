@@ -26,6 +26,10 @@ void AMay::Tick(float DeltaTime)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
 	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+	}
 }
 
 void AMay::DashEnd()

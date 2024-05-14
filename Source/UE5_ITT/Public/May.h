@@ -18,7 +18,6 @@ UCLASS()
 class UE5_ITT_API AMay : public APlayerBase
 {
 	GENERATED_BODY()
-
 public:
 	AMay();
 	virtual void Tick(float DeltaTime) override;
@@ -46,7 +45,7 @@ public:
 
 
 
-	void SprintInput() override;
+	virtual void SprintInput() override;
 private:
 	bool MayCutSceneTrigger = false;
 };
