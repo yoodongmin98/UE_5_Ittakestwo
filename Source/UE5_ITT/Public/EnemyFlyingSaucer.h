@@ -179,6 +179,9 @@ public:
 		bIsRocketHit = true;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void SetupPlayerActorsCodyAndMay();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -199,7 +202,7 @@ private:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	void SetupOverlapEvent();
-	void SetupPlayerActorsCodyAndMay();
+	
 
 	// multicast ÇÔ¼ö 
 	UFUNCTION(NetMulticast, Reliable)
