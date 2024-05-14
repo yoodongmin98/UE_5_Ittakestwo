@@ -401,7 +401,7 @@ void AHomingRocket::PlayerEquipBegin()
 	this->SetOwner(OverlapActor);
 
 	// 플레이어함수 세팅함수 호출 
-	OverlapActor->SetLocationBool();
+	OverlapActor->PlayerToHomingRoketJumpFinished();
 }
 
 void AHomingRocket::DestroyRocket()
@@ -412,7 +412,7 @@ void AHomingRocket::DestroyRocket()
 // Fly 활성 
 void AHomingRocket::EnablePlayerFlying()
 {
-	OverlapActor->TestFunction();
+	OverlapActor->PlayerToHomingRocketJumpStart();
 }
 
 // Fly 비활성

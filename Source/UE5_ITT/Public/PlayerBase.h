@@ -288,11 +288,6 @@ public:
 		TestRotator += _RotationZ;
 	}
 	UFUNCTION(BlueprintCallable)
-	inline void SetLocationBool()
-	{
-		JumplocationSet = false;
-	}
-	UFUNCTION(BlueprintCallable)
 	inline void SetFlyFalse()
 	{
 		IsFly = false;
@@ -387,7 +382,7 @@ public:
 
 
 
-	void TestFunction();
+
 
 
 
@@ -554,6 +549,15 @@ public:
 
 
 	/////////////////////Rocket 타는 변수
+	void PlayerToHomingRocketJumpStart();
+
+	UFUNCTION(BlueprintCallable)
+	inline void PlayerToHomingRoketJumpFinished();
+	UFUNCTION(Client, Reliable)
+	inline void ClientPlayerToHomingRoketJumpFinished();
+	UFUNCTION(Server, Reliable, WithValidation)
+	inline void ServerPlayerToHomingRoketJumpFinished();
+
 	UPROPERTY(Replicated)
 	FVector CunstomEndLocation;
 	UPROPERTY(Replicated)

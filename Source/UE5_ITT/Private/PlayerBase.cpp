@@ -160,7 +160,14 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
-	
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+	}
 }
 
 // Called to bind functionality to input
@@ -602,7 +609,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 
 
-void APlayerBase::TestFunction()
+void APlayerBase::PlayerToHomingRocketJumpStart()
 {
 	IsFly = true;
 	if (HasAuthority())
@@ -623,15 +630,6 @@ void APlayerBase::CustomClientRideJump_Implementation()
 	ChangeState(Cody_State::FLYING);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
-
-	if (JumplocationSet)
-	{
-		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
-		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
-		SetActorLocation(ResultTargetLocations);
-	}
 }
 
 bool APlayerBase::CustomServerRideJump_Validate()
@@ -645,15 +643,25 @@ void APlayerBase::CustomServerRideJump_Implementation()
 	ChangeState(Cody_State::FLYING);
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+}
 
-	if (JumplocationSet)
-	{
-		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
-		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
-		SetActorLocation(ResultTargetLocations);
-	}
+void APlayerBase::PlayerToHomingRoketJumpFinished()
+{
+	ClientPlayerToHomingRoketJumpFinished();
+	ServerPlayerToHomingRoketJumpFinished();
+}
+
+void APlayerBase::ClientPlayerToHomingRoketJumpFinished_Implementation()
+{
+	JumplocationSet = false;
+}
+bool APlayerBase::ServerPlayerToHomingRoketJumpFinished_Validate()
+{
+	return true;
+}
+void APlayerBase::ServerPlayerToHomingRoketJumpFinished_Implementation()
+{
+	JumplocationSet = false;
 }
 
 void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
