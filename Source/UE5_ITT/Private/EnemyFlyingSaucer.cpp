@@ -686,18 +686,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (true == bIsFsmStart)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-				AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
+				ServerDelayTime -= DT;
+				if (ServerDelayTime <= 0.0f)
+				{
+					FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
-				UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
-				return;
-			}
-
-			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
-			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
-			{
-				
+					UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
+					return;
+				}
 			}
 		},
 

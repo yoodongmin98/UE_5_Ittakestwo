@@ -221,7 +221,7 @@ private:
 	void DrawDebugMesh();
 
 	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 6.0f;
+	float ServerDelayTime = 5.0f;
 
 	void SetupComponent();
 	void SetupFsmComponent();
