@@ -680,6 +680,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (true == bIsFsmStart)
 			{
 				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+				AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
+
 				UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
 				return;
 			}
@@ -694,7 +697,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastAttachMoonBaboonActorWithFloor();
-			// SetupPlayerActorsCodyAndMay();
+			SetupPlayerActorsCodyAndMay();
 		});
 
 	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
