@@ -45,6 +45,8 @@ public:
 	}
 
 
+
+	void SprintInput() override;
 private:
 	bool MayCutSceneTrigger = false;
 };
