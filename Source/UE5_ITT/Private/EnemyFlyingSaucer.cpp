@@ -680,7 +680,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
 				return;
 			}
 		},
