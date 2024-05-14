@@ -16,8 +16,7 @@ AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 		bReplicates = true;
 		SetReplicateMovement(true);
 
-		CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
-		CamComp->SetupAttachment(RailCameraMount);
+		//CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
 
 		SetupFsm();
 	}
@@ -48,6 +47,7 @@ void AUfoCameraRail::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Wait);
+		//CamComp->AttachToComponent(RailCameraMount, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 
