@@ -27,13 +27,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
 
-	
-	UFUNCTION(BlueprintCallable)
-	FVector GetTargetPrevLocation() const { return PrevTargetLocation; }
-
-	UFUNCTION(BlueprintCallable)
-	void AddPatternMatchCount();
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -43,12 +37,6 @@ private:
 	
 	UFUNCTION(BlueprintCallable)
 	void SetupStartBehaviorTreePhase1();
-	UFUNCTION(BlueprintCallable)
-	void SetupStartBehaviorTreePhase2();
-	UFUNCTION(BlueprintCallable)
-	void SetupStartBehaviorTreePhase3();
-	void SavePreviousTargetLocation();
-	void UpdateLerpRatioForLaserBeam(float DeltaTime);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player Character")
 	class APawn* PlayerRef1;
@@ -57,34 +45,17 @@ private:
 	class APawn* PlayerRef2;
 
 	// Behavior Tree
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
 	class UBehaviorTree* AIBehaviorTreePhase1 = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase2 = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	class UBehaviorTree* AIBehaviorTreePhase3 = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
 	class UBehaviorTree* CurrentBehaviorTree = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	UPROPERTY(EditDefaultsOnly, Category = "AI", Replicated)
 	class UBehaviorTreeComponent* CurrentBehaviorTreeComp = nullptr;
-
-
 
 	UPROPERTY(EditDefaultsOnly)
 	class AFloor* FloorObject = nullptr;
-
-	FVector PrevTargetLocation = FVector::ZeroVector;
-	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
-	bool bPrevTargetLocationValid = false;
-	float LaserLerpRatio = 0.0f;
-	float LaserLerpRate = 25.0f;
-		
-	UPROPERTY(EditAnywhere)
-	int32 PatternMatchCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsSetupPlayerRef= false;

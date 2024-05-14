@@ -22,28 +22,23 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	void EffectDestroy();
+	void SetupComponent();
 	void SetupDestroyTimerEvent();
+	void EffectDestroy();
+	void TickIncreaseScale(float DeltaTime);
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* StaticMeshComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UMaterialInstanceDynamic* DynamicMaterialInstance = nullptr;
-
-
-	UPROPERTY(EditAnywhere)
 	float MaxScale = 10.0f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	float BurstSpeed = 50.0f;
 
 	UPROPERTY(EditAnywhere)
 	bool bDestroyValue = false;
-
-
-	
 };

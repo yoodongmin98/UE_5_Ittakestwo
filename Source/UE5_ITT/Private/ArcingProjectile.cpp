@@ -2,17 +2,14 @@
 
 
 #include "ArcingProjectile.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "EnemyFlyingSaucer.h"
 #include "BurstEffect.h"
 #include "Floor.h"
-#include "EnemyFlyingSaucer.h"
-
-// test
-#include "Cody.h"
 
 // Sets default values
 AArcingProjectile::AArcingProjectile()
@@ -20,6 +17,38 @@ AArcingProjectile::AArcingProjectile()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+		SetupComponent();
+	}
+}
+
+// Called when the game starts or when spawned
+void AArcingProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (true == HasAuthority())
+	{
+		SetupOverlapEvent();
+	}
+}
+
+void AArcingProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+
+	}
+}
+
+void AArcingProjectile::SetupComponent()
+{
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SetRootComponent(SceneComp);
 
@@ -36,19 +65,18 @@ AArcingProjectile::AArcingProjectile()
 	TrailEffectComp->SetupAttachment(SceneComp);
 }
 
-// Called when the game starts or when spawned
-void AArcingProjectile::BeginPlay()
+void AArcingProjectile::SetupProjectileMovementComponent()
 {
-	Super::BeginPlay();
-
-	SetupOverlapEvent();
-
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
+	if (nullptr != ProjectileMovementComp)
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		FVector StartLocation = GetActorLocation(); // 시작 위치
+		StartLocation.Z += 500.0f;
+		float ArcValue = 0.62f; // ArcParam (0.0-1.0)
+		FVector OutVelocity = FVector::ZeroVector;
+		if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, OutVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(), ArcValue))
+		{
+			ProjectileMovementComp->Velocity = OutVelocity;
+		}
 	}
 }
 
@@ -63,14 +91,17 @@ void AArcingProjectile::SetupOverlapEvent()
 
 void AArcingProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 오버랩 대상이 바닥이 아니라면 return;
-	AFloor* OVerlapOtherActor = Cast<AFloor>(OtherActor);
-	if (nullptr == OVerlapOtherActor)
+	if (nullptr == OtherActor)
 	{
 		return;
 	}
 
-	if (OtherActor != this && bIsOverlapEvent == false)
+	if (false == OtherActor->ActorHasTag(TEXT("Floor")))
+	{
+		return;
+	}
+
+	if (false == bIsOverlapEvent)
 	{
 		FVector SettingLocation = GetActorLocation();
 		ABurstEffect* Effect = GetWorld()->SpawnActor<ABurstEffect>(BurstEffectClass, SettingLocation, FRotator::ZeroRotator);
@@ -95,30 +126,5 @@ void AArcingProjectile::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor
 {
 }
 
-void AArcingProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
-	{
-		
-	}
-}
-
-void AArcingProjectile::SetupProjectileMovementComponent()
-{
-	// 이후에 플레이어 두명되면 변경해야함 
-	if (nullptr != ProjectileMovementComp)
-	{
-		FVector StartLocation = GetActorLocation(); // 시작 위치
-		StartLocation.Z += 500.0f;
-		float ArcValue = 0.62f; // ArcParam (0.0-1.0)
-		FVector OutVelocity = FVector::ZeroVector;
-		if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, OutVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(), ArcValue))
-		{
-			ProjectileMovementComp->Velocity = OutVelocity;
-		}
-	}
-}
 

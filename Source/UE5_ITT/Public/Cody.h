@@ -4,20 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "PlayerBase.h"
+#include "EnemyFlyingSaucer.h"
 #include "Cody.generated.h"
 
 
 
 
 
-UENUM(BlueprintType)
-enum class CodySize : uint8
-{
-	NONE UMETA(DisPlayName = "NONE"),
-	BIG UMETA(DisPlayName = "BIG"),
-	NORMAL UMETA(DisPlayName = "NORMAL"),
-	SMALL UMETA(DisPlayName = "SMALL"),
-};
+
 
 UCLASS()
 class UE5_ITT_API ACody : public APlayerBase
@@ -29,16 +23,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditAnywhere)
+	AEnemyFlyingSaucer* EnemyBoss = nullptr;
+
+
 	//CodySize Enum을 변경합니다
 	void ChangeCodySizeEnum(CodySize _Enum)
 	{
-		CodySizes = _Enum;
+		NextCodySize = _Enum;
 	}
 	//Cody의 Size를 Enum으로 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline CodySize GetCodySize() const
 	{
-		return CodySizes;
+		return CurCodySize;
 	}
 	//변환하고자하는 Size의 TargetScale을 반환합니다
 	UFUNCTION(BlueprintCallable)
@@ -46,32 +44,49 @@ public:
 	{
 		return TargetScale;
 	}
-	// Cody가 달리고있는 상태인지를 반환합니다.
+
+	UFUNCTION(Client, Reliable)
+	void ChangeBigSize();
+
+	UFUNCTION(Client, Reliable)
+	void ChangeSmallSize();
+
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerBigSize();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ChangeServerSmallSize();
+
 	UFUNCTION(BlueprintCallable)
-	inline bool GetCodySprint() const
+	inline bool GetCodyHoldEnemy() const
 	{
-		return CodySprint;
+		return CodyHoldEnemy;
 	}
 
-	void ChangeBigSize();
-	void ChangeSmallSize();
+
+
+	UFUNCTION(BlueprintCallable)
+	inline bool GetCutScenceTrigger() const
+	{
+		return CutsceneTrigger;
+	}
+
+
+	
+
+
 	virtual void SprintInput() override;
-	virtual void SprintNoneInput() override;
 	virtual void DashEnd() override;
 
 
-	CodySize CodySizes = CodySize::NONE;
-	//Set Speed
-	float ScaleSpeed;
-	float CameraSpeed;
-	FVector TargetScale;
 	//Size
 	FVector BigSize;
 	FVector NormalSize;
 	FVector SmallSize;
-	FVector BigSizeCapsule;
-	FVector NormalSizeCapsule;
-	FVector SmallSizeCapsule;
+	FVector TargetScale;
+
 	//Transform
 	FTransform CodyCapsuleComponent;
 	FTransform CodyTransform;
@@ -80,5 +95,28 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 
-	bool CodySprint;
+
+
+	float CameraSpeed;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	UPROPERTY(Replicated)
+	bool CutsceneTrigger;
+	void TriggerTest();
+
+	UFUNCTION(BlueprintCallable)
+	inline void CutScenceStart();
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientCutScene();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerCutScene();
+
+	void SetCodyMoveable();
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientMoveable();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerMoveable();
 };

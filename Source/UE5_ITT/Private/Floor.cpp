@@ -12,9 +12,17 @@ AFloor::AFloor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	SetupFsm();
 
 	Tags.Add(FName("Floor"));
+
+	// 네트워크 권한을 확인하는 코드
+	if (true == HasAuthority())
+	{
+		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
+		bReplicates = true;
+		SetReplicateMovement(true);
+		SetupFsm();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -22,13 +30,22 @@ void AFloor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FsmComp->ChangeState(Fsm::Phase1_1);
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		FsmComp->ChangeState(Fsm::Phase1_1);
+
+		MainLaser->SetLaserMaxSize(6000.f);
+		ArraySubLaser.Push(SubLaser0);
+		SubLaser0->SetRotateSpeed(12.f);
+		ArraySubLaser.Push(SubLaser1);
+		SubLaser1->SetRotateSpeed(9.f);
+		ArraySubLaser.Push(SubLaser2);
+		SubLaser2->SetRotateSpeed(6.f);
+		for (size_t i = 0; i < ArraySubLaser.Num(); i++)
+		{
+			ArraySubLaser[i]->SetActorHiddenInGame(true);
+		}
 	}
 }
 
@@ -66,6 +83,7 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
+
 			if (true == Pillar1->IsDone())
 			{
 				FsmComp->ChangeState(Fsm::Phase1_1Attack);
@@ -190,13 +208,103 @@ void AFloor::SetupFsm()
 
 		[this](float DT)
 		{
-			//컷씬을 하고 컷씬이 끝나면 문닫기
-			//LeftDoor->SetActorLocation();
-			//RightDoor->SetActorLocation();
+			if (true == bPhase2)
+			{
+				FsmComp->ChangeState(Fsm::Phase2);
+			}
 		},
 
 		[this]
 		{
 		}
 	);
+
+	FsmComp->CreateState(Fsm::Phase2,
+		[this]
+		{
+			CloseDoor();
+		},
+
+		[this](float DT)
+		{
+			if (true == bPhase3)
+			{
+				FsmComp->ChangeState(Fsm::Phase3);
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Phase3,
+		[this]
+		{
+			MoveRatio = 0.f;
+			CurPos = GetActorLocation();
+			NextPos = CurPos;
+			NextPos.Z += MoveSize;
+			MainLaser->SetAttack(true);
+		},
+
+		[this](float DT)
+		{
+			MoveRatio += DT / MoveTimeHalf;
+			if (MoveRatio >= 1.f)
+			{
+				MoveRatio = 1.f;
+				FsmComp->ChangeState(Fsm::KeepPhase);
+			}
+
+			SetActorLocation(FMath::Lerp(CurPos, NextPos, MoveRatio));
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::KeepPhase,
+		[this]
+		{
+			CheckTime = SubLaserUpTime;
+		},
+
+		[this](float DT)
+		{
+			if (SubLaserIndex == ArraySubLaser.Num())
+			{
+				FsmComp->ChangeState(Fsm::End);
+				return;
+			}
+			CheckTime -= DT;
+			if (CheckTime <=0.f)
+			{
+				ArraySubLaser[SubLaserIndex]->SetActorHiddenInGame(false);
+				ArraySubLaser[SubLaserIndex]->SetAttack(true);
+				CheckTime = SubLaserUpTime;
+				++SubLaserIndex;
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+}
+
+void AFloor::CloseDoor()
+{
+	FVector TempPos = FVector::ZeroVector;
+	TempPos.Y += DoorCloseSize;
+	FTransform LeftTransform;
+	LeftTransform.SetLocation(TempPos);
+
+	FTransform RightTransform;
+	RightTransform.SetLocation(-TempPos);
+
+	LeftDoor->AddActorLocalTransform(LeftTransform);
+
+	RightDoor->AddActorLocalTransform(RightTransform);
 }

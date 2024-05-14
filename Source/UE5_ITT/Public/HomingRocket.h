@@ -19,7 +19,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION()
-	void SetupTarget(AActor* Target) 
+	void SetupTarget(AActor* const Target) 
 	{
 		if (nullptr != Target)
 		{
@@ -27,29 +27,28 @@ public:
 		}
 	}
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	int32 GetCurrentState() const;
+
+	UFUNCTION()
+	void DestroyRocket();
+
+	enum class ERocketState
+	{
+		PlayerChase,	     // 플레이어 추적 상태
+		PlayerEquipWait,     // 라이프타임 소진시 추락, 대기상태 
+		PlayerEquip,		 // 플레이어 상호작용 키 입력시 플레이어 장착
+
+		PlayerEquipCorrect,   // 플레이어 위치보정
+
+		DestroyWait,		 // 완전히 Destroy 하기 전 대기상태, 보스에서 미사일이 제거되었는지 파악하기 위한 상태 
+		Destroy,			 // 완전한 Destroy, 상태 진입시 액터 Destory 
+
+	};
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-private:
-	enum class ERocketState
-	{
-		PlayerChase,
-		PlayerEquipWait,
-		PlayerEquip,
-	};
-
-	void SetupOverlapEvent();
-
-	void SetupFsmComponent();
-
-	void InActive()
-	{
-		bIsActive = false;
-	}
-	
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -57,31 +56,47 @@ private:
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-	void DestroyRocket();
+private:
+	void SetupOverlapEvent();
+	void SetupFsmComponent();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnDestroyEffect();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_FireEffectToggleSwitch();
+	
+	void TickPlayerChaseLogic(float DeltaTime);
+	void PlayerEquipBegin();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UStaticMeshComponent* RocketMeshComp = nullptr;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
+	class UFsmComponent* RocketFsmComponent = nullptr;
+
+	UPROPERTY(Replicated)
+	class UNiagaraComponent* FireEffectComp = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketLifeTime = 30.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RocketMoveSpeed = 750.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float MaxFloorDistance = 425.0f;
+
+	bool IsMaxFloorDistance();
+
 	UPROPERTY(VisibleAnywhere)
 	class ACody* PlayerCodyRef = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	bool bIsActive = true;
-
-	// 파티클
-	UPROPERTY(EditDefaultsOnly)
-	class UNiagaraComponent* FireEffectComp = nullptr;
 	
 	// 파티클
 	UPROPERTY(EditDefaultsOnly)
@@ -91,9 +106,6 @@ private:
 	class AActor* TargetActor = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	class UFsmComponent* RocketFsmComponent = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
 	bool bIsPlayerEquip = false;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -101,15 +113,33 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class APlayerBase* OverlapActor = nullptr;
-
-	UPROPERTY(EditAnywhere)
-	float MaxFloorDistance = 425.0f;
-
-	bool IsMaxFloorDistance();
 	
-	UFUNCTION()
 	void SetRocektLifeTime(const float LifeTime) { RocketLifeTime = LifeTime; }
 	bool bIsSetLifeTime = false;
-	
 
+	UPROPERTY(EditAnywhere)
+	bool bIsBossOverlap = false;
+
+	UPROPERTY(Replicated)
+	class AEnemyFlyingSaucer* BossActor = nullptr;
+		
+	UPROPERTY(Replicated)
+	float RocketDamageToBoss = 7.5f;
+
+
+	// 플레이어 회전보정관련 
+	UPROPERTY(Replicated)
+	float PlayerEquipLerpRatio = 0.0f;
+
+	UPROPERTY(Replicated)
+	FRotator PlayerEquipLerpStartRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Replicated)
+	FRotator PlayerEquipLerpEndRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Replicated)
+	float PlayerEquipMaxLiveTime = 15.0f;
+
+	void EnablePlayerFlying();
+	void DisablePlayerFlying();
 };

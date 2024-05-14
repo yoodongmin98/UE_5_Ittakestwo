@@ -17,11 +17,34 @@ enum class MayWalkable
 UCLASS()
 class UE5_ITT_API AMay : public APlayerBase
 {
-private:
 	GENERATED_BODY()
-	AMay();
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 
+public:
+	AMay();
+	virtual void Tick(float DeltaTime) override;
 	virtual void DashEnd() override;
+	virtual void BeginPlay() override;
+
+
+	UFUNCTION(BlueprintCallable)
+	inline void CutSceneStart()
+	{
+		MayCutSceneTrigger = true;
+		CodyHoldEnemy = true;
+	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetMayMoveable()
+	{
+		CodyHoldEnemy = false;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	inline bool GetMayHoldEnemy() const
+	{
+		return CodyHoldEnemy;
+	}
+
+
+private:
+	bool MayCutSceneTrigger = false;
 };

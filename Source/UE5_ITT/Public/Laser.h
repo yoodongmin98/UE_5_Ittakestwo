@@ -10,7 +10,7 @@ UCLASS()
 class ALaser : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:	
 	// Sets default values for this actor's properties
 	ALaser();
@@ -18,6 +18,7 @@ public:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 
 public:
 	enum class Fsm
@@ -35,8 +36,34 @@ public:
 		bAttackStart = bValue;
 	}
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetLaserSize(float SizeParam);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveLaser(bool bValue);
+	UFUNCTION(NetMulticast, Reliable)
+
+	void MulticastActiveLaser(bool bValue);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetLaserSize(float SizeParam);
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pointer")
 	class UStaticMeshComponent* LaserMesh = nullptr;
+
+	/// <summary>
+	/// rotatespeed/s
+	/// </summary>
+	/// <param name="SpeedParam"></param>
+	void SetRotateSpeed(float SpeedParam)
+	{
+		RotateSpeed = SpeedParam;
+	}
+	
+	void SetLaserMaxSize(float SizeParam)
+	{
+		LaserMaxSize = SizeParam;
+	}
 
 protected:
 	// Called when the game starts or when spawned
@@ -44,16 +71,17 @@ protected:
 
 private:	
 	bool bAttackStart = false;
+	float RotateSpeed = 30.f;
 
-	bool bPhaseEnd = false;	
+	float LaserIncreaseTime = 3.f;
+	float LaserSizeRatio = 0.f;
+	float LaserMaxSize = 11000.f;
 
 	FVector DefaultPos = FVector::Zero();
 	FVector AttackPos = FVector::Zero();
 	float AttackMoveSize = 500.f;
 
 	float MovingRatio = 0.f;
-
-	float RotateTime = 15.f;
 
 	class UFsmComponent* FsmComp = nullptr;
 

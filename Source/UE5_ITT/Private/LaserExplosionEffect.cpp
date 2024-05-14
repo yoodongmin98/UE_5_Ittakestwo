@@ -10,11 +10,17 @@ ALaserExplosionEffect::ALaserExplosionEffect()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SetRootComponent(SceneComp);
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
 
-	ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ExplosionEffectComponent"));
-	ExplosionEffectComp->SetupAttachment(SceneComp);
+		SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+		SetRootComponent(SceneComp);
+
+		ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ExplosionEffectComponent"));
+		ExplosionEffectComp->SetupAttachment(SceneComp);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -22,7 +28,10 @@ void ALaserExplosionEffect::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetupDestroyTimerEvent();
+	if (true == HasAuthority())
+	{
+		SetupDestroyTimerEvent();
+	}
 }
 
 void ALaserExplosionEffect::EffectDestroy()
@@ -33,7 +42,7 @@ void ALaserExplosionEffect::EffectDestroy()
 void ALaserExplosionEffect::SetupDestroyTimerEvent()
 {
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ALaserExplosionEffect::EffectDestroy, 0.75f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ALaserExplosionEffect::EffectDestroy, DestroyDelayTime, false);
 }
 
 // Called every frame

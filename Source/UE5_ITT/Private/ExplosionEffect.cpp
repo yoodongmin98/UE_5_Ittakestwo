@@ -10,19 +10,28 @@ AExplosionEffect::AExplosionEffect()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
-	SetRootComponent(SceneComp);
-
-	ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
-	ExplosionEffectComp->SetupAttachment(SceneComp);
+	if (true == HasAuthority())
+	{
+		bReplicates = true;
+		SetReplicateMovement(true);
+		SetupComponent();
+	}
 }
 
 // Called when the game starts or when spawned
 void AExplosionEffect::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	SetupDestroyTimerEvent();
+	if (true == HasAuthority())
+	{
+		SetupDestroyTimerEvent();
+	}
+}
+
+// Called every frame
+void AExplosionEffect::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void AExplosionEffect::EffectDestroy()
@@ -33,12 +42,15 @@ void AExplosionEffect::EffectDestroy()
 void AExplosionEffect::SetupDestroyTimerEvent()
 {
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AExplosionEffect::EffectDestroy, 2.9f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AExplosionEffect::EffectDestroy, DestroyDelayTime, false);
 }
 
-// Called every frame
-void AExplosionEffect::Tick(float DeltaTime)
+void AExplosionEffect::SetupComponent()
 {
-	Super::Tick(DeltaTime);
+	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	SetRootComponent(SceneComp);
+
+	ExplosionEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
+	ExplosionEffectComp->SetupAttachment(SceneComp);
 }
 

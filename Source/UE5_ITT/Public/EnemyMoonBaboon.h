@@ -17,18 +17,17 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditDefaultsOnly)
+	void SetupComponent();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USceneComponent* SceneComp = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 };

@@ -3,7 +3,6 @@
 
 #include "BurstEffect.h"
 #include "Components/StaticMeshComponent.h"
-#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 ABurstEffect::ABurstEffect()
@@ -11,6 +10,23 @@ ABurstEffect::ABurstEffect()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SetupComponent();
+}
+
+// Called when the game starts or when spawned
+void ABurstEffect::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (true == HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+}
+
+void ABurstEffect::SetupComponent()
+{
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SetRootComponent(SceneComp);
 
@@ -18,23 +34,15 @@ ABurstEffect::ABurstEffect()
 	StaticMeshComp->SetupAttachment(SceneComp);
 }
 
-// Called when the game starts or when spawned
-void ABurstEffect::BeginPlay()
+void ABurstEffect::TickIncreaseScale(float DeltaTime)
 {
-	Super::BeginPlay();
-
-	// 네트워크 권한을 확인하는 코드
-	if (true == HasAuthority())
+	FVector NewScale = GetActorScale3D() + FVector::OneVector * 3.0f * DeltaTime;
+	GetRootComponent()->SetWorldScale3D(NewScale);
+	if (NewScale.X >= MaxScale)
 	{
-		// 서버와 클라이언트 모두에서 변경사항을 적용할 도록 하는 코드입니다.
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		SetupDestroyTimerEvent();
+		bDestroyValue = true;
 	}
-}
-
-void ABurstEffect::EffectDestroy()
-{
-	Destroy();
 }
 
 void ABurstEffect::SetupDestroyTimerEvent()
@@ -55,15 +63,11 @@ void ABurstEffect::Tick(float DeltaTime)
 		{
 			return;
 		}
-
-		FVector NewScale = GetActorScale3D() + FVector(1.0f, 1.0f, 1.0f) * DeltaTime * 3.0f;
-		GetRootComponent()->SetWorldScale3D(NewScale);
-
-		if (NewScale.X >= MaxScale)
-		{
-			SetupDestroyTimerEvent();
-			bDestroyValue = true;
-		}
+		TickIncreaseScale(DeltaTime);
 	}
 }
 
+void ABurstEffect::EffectDestroy()
+{
+	Destroy();
+}

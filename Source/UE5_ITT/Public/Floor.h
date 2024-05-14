@@ -28,6 +28,10 @@ public:
 		Phase1_2Attack,
 		Phase1_3,
 		Phase1End,
+		Phase2,
+		Phase3,
+		KeepPhase,
+		End,
 	};
 	void SetPhase(Fsm Phase);
 
@@ -44,6 +48,8 @@ private:
 	float MoveSize = 4995.f;
 	float MoveRatio = 0.f;
 	float PillarSecond = 0.f;
+	float MoveTimeHalf = 10.f;
+	float DoorCloseSize = 1100.f;
 
 	FVector CurPos = FVector::Zero();
 	FVector NextPos = FVector::Zero();
@@ -64,7 +70,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Pointer")
 	class ALaser* MainLaser = nullptr;
 
+
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser0 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser1 = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Pointer")
+	class ALaser* SubLaser2 = nullptr;
+	TArray<ALaser*> ArraySubLaser;
+	int SubLaserIndex = 0;
+
+	float SubLaserUpTime = 12.f;
+	float CheckTime = -1.f;
+
 	class UFsmComponent* FsmComp = nullptr;
 
+	bool bPhase2 = false;
+	bool bPhase3 = false;
+
 	void SetupFsm();
+	void CloseDoor();
 };

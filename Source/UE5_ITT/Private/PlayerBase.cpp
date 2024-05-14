@@ -3,8 +3,13 @@
 
 #include "PlayerBase.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "HomingRocket.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Logging/LogMacros.h"
+//#include "OnlineSubsystem.h"
+#include "Net/UnrealNetwork.h"
+#include "PlayerMarkerUI.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -12,7 +17,6 @@ APlayerBase::APlayerBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Tags.Add(FName("Player"));
-
 
 	BigLength = 2000.0f;
 	NormalLength = 1200.0f;
@@ -26,11 +30,7 @@ APlayerBase::APlayerBase()
 
 	//스프링 암
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetUsingAbsoluteRotation(true);
-	SpringArm->TargetArmLength = NormalLength;
-	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = false;
+	SpringArmDefaultFunction();
 
 	//카메라 생성
 	PlayerCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
@@ -39,12 +39,45 @@ APlayerBase::APlayerBase()
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	MarkerUIWidget = CreateDefaultSubobject<UPlayerMarkerUI>(TEXT("WidgetComponent"));
+	MarkerUIWidget->SetupAttachment(RootComponent);
 }
+
+void APlayerBase::SettingMarkerWidget()
+{
+	MarkerUIWidget->SettingCustomVisible();
+}
+
+
+//void APlayerBase::GetOnlineSubsystem()
+//{
+//
+//	// OnlineSubsystem에 Access
+//	IOnlineSubsystem* CurOnlineSubsystem = IOnlineSubsystem::Get();
+//	if (CurOnlineSubsystem)
+//	{
+//		// 온라인 세션 받아오기
+//		OnlineSeesioninterface = CurOnlineSubsystem->GetSessionInterface();
+//
+//		if (GEngine)
+//		{
+//			// OnlineSubsystem 이름 출력하기
+//			//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *CurOnlineSubsystem->GetSubsystemName().ToString()));
+//		}
+//	}
+//}
 
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CustomPlayerCapsuleComponent = GetCapsuleComponent();
+	CustomPlayerCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &APlayerBase::OnOverlapBegin);
+	CustomPlayerCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &APlayerBase::OnOverlapEnd);
+	
+
+	//GetOnlineSubsystem();
 	//입력
 	CodyController = Cast<APlayerController>(Controller);
 	if (CodyController != nullptr)
@@ -56,13 +89,16 @@ void APlayerBase::BeginPlay()
 			Subsystem->AddMappingContext(CodyMappingContext, 0);
 		}
 	}
-
+	ITTPlayerState = Cody_State::IDLE;
 	//Set
-	PlayerHP = 12; //Player기본 Hp설정
+	PlayerHP = FullHP; //Player기본 Hp설정
 	DashDuration = 0.7f; //Dash 시간
 	DefaultGroundFriction = GetCharacterMovement()->GroundFriction; //기본 지면 마찰력
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
+
+
+	IsMoveEnd = false;
 
 	bIsDashing = false;
 	bIsDashingStart = false;
@@ -70,22 +106,61 @@ void APlayerBase::BeginPlay()
 	BigCanDash = true;
 
 	CurrentAnimationEnd = false;
+	IsSprint = false;
+
+	CanSit = true;
+	SitDuration = 0.5f;
+	ChangeIdle = true;
+	TestRotator = FRotator::ZeroRotator;
+
+
+	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
+
+
+	FlyingSpeed = 600.0f;
 }
 
 // Called every frame
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//점프 횟수 확인
+	CharacterJumpCount = JumpCurrentCount;
+	//중력상태확인(Sit)
+	if (GetCharacterMovement()->GravityScale <=5.5f)
+	{
+		IsDGravity = true;
+	}
+	else
+	{
+		IsDGravity = false;
+	}
+	//플레이어 생존여부 확인
+	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
-		float CurrentTime = GetWorld()->GetTimeSeconds();
-		if (CurrentTime >= DashStartTime + DashDuration)
+		DashCurrentTime = GetWorld()->GetTimeSeconds();
+		if (DashCurrentTime >= DashStartTime + DashDuration)
 		{
 			// 대시 지속 시간이 지나면 대시 종료
 			DashEnd();
 		}
 	}
+	if (!CanSit)
+	{
+		CurrentSitTime = GetWorld()->GetTimeSeconds();
+		if (CurrentSitTime >= SitStartTime + SitDuration)
+		{
+			GetCharacterMovement()->GravityScale = 10.0f;
+			if (!GetCharacterMovement()->IsFalling())
+			{
+				SitEnd();
+			}
+		}
+	}
+
+	
 }
 
 // Called to bind functionality to input
@@ -101,8 +176,12 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::Move);
+		PlayerInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerBase::CustomMove);
 		PlayerInput->BindAction(MoveAction, ETriggerEvent::None, this, &APlayerBase::Idle);
+
+		PlayerInput->BindAction(FlyMoveAction, ETriggerEvent::Triggered, this, &APlayerBase::CustomFlyMove);
+		PlayerInput->BindAction(FlyMoveAction, ETriggerEvent::None, this, &APlayerBase::CustomFlyNoneMove);
+
 		PlayerInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::Triggered, this, &APlayerBase::DashInput);
 		PlayerInput->BindAction(DashAction, ETriggerEvent::None, this, &APlayerBase::DashNoneInput);
@@ -110,6 +189,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 		PlayerInput->BindAction(InteractAction, ETriggerEvent::None, this, &APlayerBase::InteractNoneInput);
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerBase::SprintInput);
 		PlayerInput->BindAction(SprintAction, ETriggerEvent::None, this, &APlayerBase::SprintNoneInput);
+
+		
 	}
 }
 
@@ -118,85 +199,253 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 //새로운 입력 Action
 void APlayerBase::Idle(const FInputActionInstance& _Instance)
 {
+	if (HasAuthority() == true)
+	{
+		CustomClientIdle();
+	}
+	else
+	{
+		CustomServerIdle();
+	}
+}
+
+void APlayerBase::CustomClientIdle_Implementation()
+{
+	IsSprint = false;
 	IsMoveEnd = false;
 	if (bCanDash == false)
 		ChangeState(Cody_State::IDLE);
 }
 
-void APlayerBase::Move(const FInputActionInstance& _Instance)
+bool APlayerBase::CustomServerIdle_Validate()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Move function called"));
-	IsMoveEnd = true;
+	return true;
+}
+void APlayerBase::CustomServerIdle_Implementation()
+{
+	OnRep_IsMoveEnd();
+}
 
+void APlayerBase::OnRep_IsMoveEnd()
+{
+	IsSprint = false;
+	IsMoveEnd = false;
 	if (bCanDash == false)
+		ChangeState(Cody_State::IDLE);
+}
+void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
+{
+	if (!IsFly && !CodyHoldEnemy)
 	{
-		ChangeState(Cody_State::MOVE);
-		// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
-		// 
-		// 컨트롤러의 회전 방향을 가져옴
-		FRotator ControllerRotation = Controller->GetControlRotation();
-
-		// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
-		FRotator TargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
-		SetActorRotation(TargetRotation);
-
-
-		// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
-		FVector WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
-		// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
-		FVector WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
-
-		// 캐릭터를 입력 방향으로 이동시킴
-		FVector2D MoveInput = _Instance.GetValue().Get<FVector2D>();
-		if (!MoveInput.IsNearlyZero())
+		if (bCanDash == false && ChangeIdle)
 		{
-			// 입력 방향 노말라이즈
-			MoveInput = MoveInput.GetSafeNormal();
+			ChangeState(Cody_State::MOVE);
+			// 컨트롤러의 회전 방향을 가져옴
+			ControllerRotation = Controller->GetControlRotation();
+			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+			// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+			// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
 
-			// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
-			FVector MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
-			FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
-			SetActorRotation(CodyRotation);
+			// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
+			WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+			// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산
+			WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::X);
 
+			// 캐릭터를 입력 방향으로 이동시킴
+			MoveInput = _Instance.GetValue().Get<FVector2D>();
+			if (!MoveInput.IsNearlyZero())
+			{
+				// 입력 방향 노말라이즈
+				MoveInput = MoveInput.GetSafeNormal();
 
-			// 입력 방향을 캐릭터의 로컬 XY 평면에 정사영하여 캐릭터의 이동구현
-			MoveDirection = FVector::VectorPlaneProject(MoveDirection, FVector::UpVector);
-			MoveDirection.Normalize();
+				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
+				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+				FRotator CodyRotation(0.0f, MoveDirection.Rotation().Yaw, 0.0f);
+				CustomTargetRotation = CodyRotation;
 
-			// 입력 방향에 따라 캐릭터를 이동시킴
-			AddMovementInput(MoveDirection);
+				// 입력 방향에 따라 캐릭터를 이동시킴
+				AddMovementInput(MoveDirection);
+			}
+		}
+		if (HasAuthority())
+		{
+			ChangeClientDir(CustomTargetRotation);
+		}
+		else
+		{
+			ChangeServerDir(CustomTargetRotation);
 		}
 	}
 }
 
+void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
+{
+	if (IsFly && !CodyHoldEnemy)
+	{
+		ChangeState(Cody_State::FLYING);
+		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
+		if (bCanDash == false && ChangeIdle)
+		{
+			// 컨트롤러의 회전 방향을 가져옴
+			ControllerRotation = Controller->GetControlRotation();
+			CustomTargetRotation = FRotator(0.f, ControllerRotation.Yaw, 0.f);
+			// Move를 시작할 때 카메라의 위치를 반영하여 SetRotation함(그 전까지는 자유시점)
+			// 컨트롤러의 회전 방향에서 Yaw 각도만 사용하여 캐릭터를 회전시킴
+
+			// 컨트롤러의 회전 방향을 기준으로 월드 전방 벡터를 계산
+			WorldForwardVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Y);
+			WorldRightVector = FRotationMatrix(ControllerRotation).GetScaledAxis(EAxis::Z);
+
+			// 캐릭터를 입력 방향으로 이동시킴
+			MoveInput = _Instance.GetValue().Get<FVector2D>();
+			if (!MoveInput.IsNearlyZero())
+			{
+				// 입력 방향 노말라이즈
+				MoveInput = MoveInput.GetSafeNormal();
+
+				// MoveDirection기준으로 Yaw부분만 Player Rotation에 적용
+				MoveDirection = WorldForwardVector * MoveInput.Y + WorldRightVector * MoveInput.X;
+				// 컨트롤러의 회전 방향을 기준으로 월드 오른쪽 벡터를 계산.X;
+
+					// 입력 방향에 따라 캐릭터를 이동시킴
+				if (MoveInput.X >= 0)
+					AddMovementInput(FVector(MoveDirection.X, MoveDirection.Y, MoveDirection.Z * 0.5f));
+				else
+					AddMovementInput(FVector(-MoveDirection.X, -MoveDirection.Y, MoveDirection.Z * 0.5f));
+				///////////////////////////////////////////////////////////////////////////////////////////
+			}
+			if (HasAuthority() == true)
+			{
+				ChangeClientFlyDir(CustomTargetRotation);
+			}
+			else
+			{
+				ChangeServerFlyDir(CustomTargetRotation);
+			}
+		}
+	}
+}
+
+void APlayerBase::CustomFlyNoneMove(const FInputActionInstance& _Instance)
+{
+	
+}
+
+void APlayerBase::ChangeClientDir_Implementation(FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	SetActorRotation(_Rotator);
+}
+
+bool APlayerBase::ChangeServerDir_Validate(FRotator _Rotator)
+{
+	return true;
+}
+
+void APlayerBase::ChangeServerDir_Implementation(FRotator _Rotator)
+{
+	IsMoveEnd = true;
+	SetActorRotation(_Rotator);
+}
+
+
+void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
+{
+	SetActorRotation(_Rotator);
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	FlyForwardVector = GetActorForwardVector();
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+}
+bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
+{
+	return true;
+}
+void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
+{
+	SetActorRotation(_Rotator);
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	FlyForwardVector = GetActorForwardVector();
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+}
+
+
+
 
 void APlayerBase::Look(const FInputActionInstance& _Instance)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Look function called"));
 	if (Controller != nullptr)
 	{
-		// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함 →ㅇ
-		// 2. Move가 입력중일땐 미적용-> Move가 끝난 시점에 적용되어야함(idle)
-		// 3. Move중에도 벡터는 유지되고, 보는 방향은 달라져야함 →ㅇ
-		// 4. 보는 방향 -> 피치,요 둘다 적용 →ㅇ
-		// 5. 방향벡터 -> 요만 적용 →ㅇ
+		const TArray<FName>& CheckTag = Tags;
+		for (const FName& V : CheckTag)
+		{
+			if (V == FName("Cody") || V == FName("May"))
+			{
+				// 1. 이쉐끼가 바라보는 방향이 플레이어의 전방벡터가 되어야함 →ㅇ
+				// 2. Move가 입력중일땐 미적용-> Move가 끝난 시점에 적용되어야함(idle)
+				// 3. Move중에도 벡터는 유지되고, 보는 방향은 달라져야함 →ㅇ
+				// 4. 보는 방향 -> 피치,요 둘다 적용 →ㅇ
+				// 5. 방향벡터 -> 요만 적용 →ㅇ
 
-		CameraLookVector = _Instance.GetValue().Get<FVector2D>();
+				CameraLookVector = _Instance.GetValue().Get<FVector2D>();
 
-		AddControllerYawInput(CameraLookVector.X);
-
-		// 카메라의 피치 각도 제한
-		// 90도 넘어가면 스프링암 타겟길이에 영향을 미쳐야함.
-		float CurrentPitch = GetControlRotation().Pitch;
-		float NewPitch = FMath::ClampAngle(CurrentPitch + CameraLookVector.Y, -90.0f, 0.0f); // -90도부터 0도 사이로 제한
-		FRotator NewRotation = FRotator(NewPitch, GetControlRotation().Yaw, GetControlRotation().Roll);
-		Controller->SetControlRotation(NewRotation);
+				if (IsFly)
+				{
+					AddControllerYawInput(CameraLookVector.X * 0.2f);
+					//UE_LOG(LogTemp, Warning, TEXT("Look function called"));
+					AddControllerPitchInput(-CameraLookVector.Y * 0.2f);
+				}
+				else
+				{
+					AddControllerYawInput(CameraLookVector.X * 0.7f);
+					AddControllerPitchInput(-CameraLookVector.Y * 0.7f);
+				}
+			}
+		}
 	}
 }
 
 void APlayerBase::DashInput()
 {
-	if (!bIsDashing && !bCanDash && BigCanDash)
+	IsSprint = false;
+	if (HasAuthority() && !CodyHoldEnemy)
+	{
+		CustomClientDash();
+	}
+	else
+	{
+		CustomServerDash();
+	}
+}
+
+
+void APlayerBase::CustomClientDash_Implementation()
+{
+	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
+	{
+		ChangeState(Cody_State::DASH);
+		//대쉬 시작시간을 체크
+		DashStartTime = GetWorld()->GetTimeSeconds();
+		//지면에 닿아있는지를 체크하여 실행할 함수 변경
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			GroundDash();
+		}
+		else
+		{
+			DashDuration = 0.2f;
+			JumpDash();
+		}
+		bIsDashing = true;
+		bCanDash = true;
+	}
+}
+bool APlayerBase::CustomServerDash_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerDash_Implementation()
+{
+	if (!bIsDashing && !bCanDash && BigCanDash && ChangeIdle)
 	{
 		ChangeState(Cody_State::DASH);
 		//대쉬 시작시간을 체크
@@ -226,11 +475,11 @@ void APlayerBase::GroundDash()
 	// 마찰력 없앰
 	GetCharacterMovement()->GroundFriction = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 벡터Normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance;
+	DashVelocity = DashDirection * DashDistance;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -240,11 +489,11 @@ void APlayerBase::JumpDash()
 	// 중력 없앰
 	GetCharacterMovement()->GravityScale = 0.0f;
 	// Cody의 전방벡터
-	FVector DashDirection = GetActorForwardVector();
+	DashDirection = GetActorForwardVector();
 	// 방향벡터normalize
 	DashDirection.Normalize();
 	// 거리 x 방향 계산
-	FVector DashVelocity = DashDirection * DashDistance * 0.8f;
+	DashVelocity = DashDirection * DashDistance * 0.7f;
 	// 시간에따른 속도설정
 	GetCharacterMovement()->Velocity = DashVelocity;
 }
@@ -253,31 +502,185 @@ void APlayerBase::JumpDash()
 
 void APlayerBase::Sit()
 {
-	ChangeState(Cody_State::SIT);
-	if (GetCharacterMovement()->IsFalling())
+	SitStartTime = GetWorld()->GetTimeSeconds();
+	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
 	{
-		//GetCharacterMovement()->GravityScale = 10.0f;
+		ChangeState(Cody_State::SIT);
+		IsSit = true;		
+		ChangeIdle = false;
+		//일단 중력없애
+		GetCharacterMovement()->GravityScale = 0.0f;
+		//일단 멈춰
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		CanSit = false;
 	}
-	else
-	{
-		//GetCharacterMovement()->GravityScale = DefaultGravityScale;
-	}
-	//작성중
 }
 
-void APlayerBase::InteractInput()
+
+void APlayerBase::SitEnd()
+{
+	IsSit = false;
+	CanSit = true;
+	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+}
+void APlayerBase::InteractInput_Implementation()
 {
 	IsInteract = true;
+	if (IsPlayerDeath)
+	{
+		PlayerHP += 1;
+	}
 }
-void APlayerBase::InteractNoneInput()
+void APlayerBase::InteractNoneInput_Implementation()
 {
 	IsInteract = false;
 }
 
-
-
-//////////////FSM//////////
-void APlayerBase::ChangeState(Cody_State _State)
+void APlayerBase::PlayerDeathCheck()
 {
-	ITTPlayerState = _State;
+	if (IsPlayerDeath == false && 0 >= PlayerHP)
+	{
+		IsPlayerDeath = true;
+	}
+	if (IsPlayerDeath)
+	{
+		ChangeState(Cody_State::PlayerDeath);
+		if (FullHP == PlayerHP)
+		{
+			IsPlayerDeath = false;
+			ChangeState(Cody_State::IDLE);
+		}
+	}
+}
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, ITTPlayerState);
+	DOREPLIFETIME(APlayerBase, IsMoveEnd);
+	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, IsSit);
+	DOREPLIFETIME(APlayerBase, CanSit);
+	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
+	DOREPLIFETIME(APlayerBase, IsBig);
+	DOREPLIFETIME(APlayerBase, ChangeIdle);
+	DOREPLIFETIME(APlayerBase, TestRotator);
+	DOREPLIFETIME(APlayerBase, MoveDirection);
+	DOREPLIFETIME(APlayerBase, MoveInput);
+	DOREPLIFETIME(APlayerBase, ControllerRotation);
+	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
+	DOREPLIFETIME(APlayerBase, WorldForwardVector);
+	DOREPLIFETIME(APlayerBase, WorldRightVector);
+	DOREPLIFETIME(APlayerBase, DashDirection)
+	DOREPLIFETIME(APlayerBase, DashDistance);
+	DOREPLIFETIME(APlayerBase, DashVelocity);
+	DOREPLIFETIME(APlayerBase, bIsDashing);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, DashDuration);
+	DOREPLIFETIME(APlayerBase, DashStartTime);
+	DOREPLIFETIME(APlayerBase, DashCurrentTime);
+	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
+	DOREPLIFETIME(APlayerBase, IsInteract);
+	DOREPLIFETIME(APlayerBase, IsFly);
+	DOREPLIFETIME(APlayerBase, FlyForwardVector);
+	DOREPLIFETIME(APlayerBase, FlyingSpeed);
+	DOREPLIFETIME(APlayerBase, CodyHoldEnemy);
+	DOREPLIFETIME(APlayerBase, CunstomEndLocation);
+	DOREPLIFETIME(APlayerBase, CunstomStartLocation);
+	DOREPLIFETIME(APlayerBase, JumplocationSet);
+	DOREPLIFETIME(APlayerBase, JumpLocationDeltas);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
+	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
+}
+
+
+
+
+void APlayerBase::TestFunction()
+{
+	IsFly = true;
+	if (HasAuthority())
+	{
+		CustomClientRideJump();
+	}
+	else
+	{
+		CustomServerRideJump();
+	}
+}
+
+
+void APlayerBase::CustomClientRideJump_Implementation()
+{
+	Jump();
+	JumplocationSet = true;
+	ChangeState(Cody_State::FLYING);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+	}
+}
+
+bool APlayerBase::CustomServerRideJump_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerRideJump_Implementation()
+{
+	Jump();
+	JumplocationSet = true;
+	ChangeState(Cody_State::FLYING);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+	}
+}
+
+void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag("HomingRocket"))
+	{
+		CunstomEndLocation = OtherActor->GetActorLocation();
+		CunstomStartLocation = GetActorLocation();
+	}
+}
+
+
+void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+
+}
+
+
+
+
+
+
+void APlayerBase::SpringArmDefaultFunction()
+{
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetUsingAbsoluteRotation(true);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
+	SpringArm->bDoCollisionTest = true;
 }
