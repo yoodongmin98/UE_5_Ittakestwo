@@ -72,6 +72,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float CoreExplodeDamage = 11.0f;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsFsmStart = false;
+
 	UFUNCTION(BlueprintCallable)
 	void SetDamage(const float Damage)
 	{
@@ -121,7 +124,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AMay* GetPlayerMay() const { return PlayerMay; }
-
 
 	enum class EBossState
 	{

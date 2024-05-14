@@ -677,18 +677,24 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			if (true == bIsFsmStart)
+			{
+				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+				UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
+				return;
+			}
+
 			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
 			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				return;
+				
 			}
 		},
 
 		[this]
 		{
 			MulticastAttachMoonBaboonActorWithFloor();
-			SetupPlayerActorsCodyAndMay();
+			// SetupPlayerActorsCodyAndMay();
 		});
 
 	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
