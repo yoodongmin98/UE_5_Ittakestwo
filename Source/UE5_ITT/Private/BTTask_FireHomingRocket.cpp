@@ -22,7 +22,6 @@ EBTNodeResult::Type UBTTask_FireHomingRocket::ExecuteTask(UBehaviorTreeComponent
 		return EBTNodeResult::Failed;
 	}
 	
-	Boss->FireHomingRocket();
 
 	return EBTNodeResult::Succeeded;
 }

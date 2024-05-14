@@ -3,6 +3,7 @@
 
 #include "BurstEffect.h"
 #include "Components/StaticMeshComponent.h"
+#include "PlayerBase.h"
 
 // Sets default values
 ABurstEffect::ABurstEffect()
@@ -10,7 +11,16 @@ ABurstEffect::ABurstEffect()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SetupComponent();
+	if (true == HasAuthority())
+	{
+		Tags.Add(FName("BurstEffect"));
+
+		bReplicates = true;
+		SetReplicateMovement(true);
+
+		SetupComponent();
+	}
+	
 }
 
 // Called when the game starts or when spawned
@@ -20,8 +30,32 @@ void ABurstEffect::BeginPlay()
 	
 	if (true == HasAuthority())
 	{
-		SetReplicates(true);
-		SetReplicateMovement(true);
+		StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &ABurstEffect::OnOverlapBegin);
+		StaticMeshComp->OnComponentEndOverlap.AddDynamic(this, &ABurstEffect::OnOverlapEnd);
+	}
+}
+
+void ABurstEffect::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Player")))
+		{
+			bIsPlayerOverlap = true;
+			OverlapPlayer = Cast<APlayerBase>(OtherActor);
+	 	}
+	}
+}
+
+void ABurstEffect::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Player")))
+		{
+			bIsPlayerOverlap = false;
+			OverlapPlayer = nullptr;
+		}
 	}
 }
 
@@ -63,7 +97,13 @@ void ABurstEffect::Tick(float DeltaTime)
 		{
 			return;
 		}
+
 		TickIncreaseScale(DeltaTime);
+
+		if (true == bIsPlayerOverlap)
+		{
+			OverlapPlayer->AttackPlayer(DamageToPlayer);
+		}
 	}
 }
 

@@ -358,8 +358,9 @@ private:
 	class AMay* PlayerMay = nullptr;
 
 	bool bIsCorretLocation = false;
-	float HomingRocketFireTime = 0.0f;
-	float HomingRocketCoolTime = 3.0f;
+	float HomingRocket1FireTime = 0.0f;
+	float HomingRocket2FireTime = 0.0f;
+	float HomingRocketCoolTime = 15.0f;
 
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
