@@ -417,6 +417,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
+	UPROPERTY(Replicated)
 	bool IsPlayerDeath = false;
 
 	UFUNCTION(BlueprintCallable)
@@ -435,7 +436,7 @@ public:
 
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
 
-	FVector ResPawnPosition = FVector::ZeroVector;
+	FVector ResPawnPosition = FVector(1000.0f,1000.0f,100.0f); //임시
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
@@ -464,6 +465,7 @@ public:
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 	UPROPERTY(Replicated)
 	float DashCurrentTime;
+	UPROPERTY(Replicated)
 	bool IsSprint; //달리기 여부
 
 	float SitStartTime;

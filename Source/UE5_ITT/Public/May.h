@@ -46,6 +46,10 @@ public:
 
 
 	virtual void SprintInput() override;
+	UFUNCTION(Client, Reliable)
+	void ClientSprintInput();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSprintInput();
 private:
 	bool MayCutSceneTrigger = false;
 };
