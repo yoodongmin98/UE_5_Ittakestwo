@@ -604,6 +604,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
 	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
 	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
+	DOREPLIFETIME(APlayerBase, IsSprint);
 }
 
 

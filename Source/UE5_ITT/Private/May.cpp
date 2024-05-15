@@ -49,5 +49,19 @@ void AMay::DashEnd()
 
 void AMay::SprintInput()
 {
-	IsSprint = !IsSprint;
+	ClientSprintInput();
+	ServerSprintInput();
+}
+
+void AMay::ClientSprintInput_Implementation()
+{
+	IsSprint = true;
+}
+bool AMay::ServerSprintInput_Validate()
+{
+	return true;
+}
+void AMay::ServerSprintInput_Implementation()
+{
+	IsSprint = true;
 }

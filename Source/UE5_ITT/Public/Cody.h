@@ -78,6 +78,12 @@ public:
 
 
 	virtual void SprintInput() override;
+	UFUNCTION(Client, Reliable)
+	void ClientSprintInput();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSprintInput();
+
+
 	virtual void DashEnd() override;
 
 
@@ -103,7 +109,6 @@ public:
 
 	UPROPERTY(Replicated)
 	bool CutsceneTrigger;
-	void TriggerTest();
 
 	UFUNCTION(BlueprintCallable)
 	inline void CutScenceStart();

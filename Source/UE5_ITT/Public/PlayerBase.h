@@ -464,6 +464,7 @@ public:
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 	UPROPERTY(Replicated)
 	float DashCurrentTime;
+	UPROPERTY(Replicated)
 	bool IsSprint; //달리기 여부
 
 	float SitStartTime;
