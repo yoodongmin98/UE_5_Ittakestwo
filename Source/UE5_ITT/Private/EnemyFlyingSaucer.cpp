@@ -526,12 +526,18 @@ void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 {
 	// 이전 레이저 타겟 액터가 존재할 경우 
+	// 그럼 현재 대상은 타겟이 한번 변경된 대상인 거고. 
 	if (nullptr != PrevLaserTargetActor)
 	{
+		// 이전 타겟이 데스상태가 아니라면 살아난거고. 
 		if (Cody_State::PlayerDeath != PrevLaserTargetActor->GetITTPlayerState())
 		{
+			// 타겟을 다시 이전 타겟으로 세팅해주고 초기화.
 			LaserTargetActor = PrevLaserTargetActor;
 			PrevLaserTargetActor = nullptr;
+
+			// 타겟 포커스. 
+			MulticastSetFocusTarget();
 		}
 	}
 
@@ -555,6 +561,8 @@ void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 				LaserTargetActor = PlayerCody;
 				UE_LOG(LogTemp, Warning, TEXT("Target : May"));
 			}
+
+			MulticastSetFocusTarget();
 		}
 
 		// 공격할 액터의 위치를 받아온다. 
