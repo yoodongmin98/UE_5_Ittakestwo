@@ -2,6 +2,7 @@
 
 
 #include "PlayerBase.h"
+#include "RespawnTrigger.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "HomingRocket.h"
@@ -693,4 +694,13 @@ void APlayerBase::SpringArmDefaultFunction()
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = true;
+}
+
+
+
+
+void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
+{
+	ResPawnTriggers = _Other;
+	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RespawnTrigger.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
@@ -40,6 +41,7 @@ class UE5_ITT_API APlayerBase : public ACharacter
 {
 	GENERATED_BODY()
 	UInputComponent* Input;
+	ARespawnTrigger* ResPawnTriggers = nullptr;
 public:
 	UEnhancedInputComponent* PlayerInput;
 	// Sets default values for this character's properties
@@ -318,15 +320,13 @@ public:
 		CodyHoldEnemy = false;
 	}
 	UFUNCTION(BlueprintCallable)
-	inline void SetResPawnPosition(FVector _TriggerPosition)
-	{
-		ResPawnPosition = _TriggerPosition;
-	}
-	UFUNCTION(BlueprintCallable)
 	inline FVector GetResPawnPosition()
 	{
 		return ResPawnPosition;
 	}
+	UFUNCTION(BlueprintCallable)
+	inline void SetTriggerActors(ARespawnTrigger* _Other);
+
 	//////////////////////////////////////////
 	UFUNCTION(BlueprintCallable)
 	inline void ChangeState(Cody_State _State)

@@ -19,7 +19,7 @@ public:
 
 	FVector GetRespawnPosition()
 	{
-		RespawnPivotComp->GetComponentLocation();
+		return RespawnPivotComp->GetComponentLocation();
 	}
 
 protected:

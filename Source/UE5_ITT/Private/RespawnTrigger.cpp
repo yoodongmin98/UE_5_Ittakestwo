@@ -29,7 +29,7 @@ void ARespawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 	APlayerBase* Player = Cast<APlayerBase>(OtherActor);
 	if (OtherActor!=this&& nullptr != Player)
 	{		
-		Player->SetResPawnPosition(RespawnPivotComp->GetComponentLocation());
+		Player->SetTriggerActors(this);
 	}
 }
 
