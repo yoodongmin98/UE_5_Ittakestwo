@@ -607,6 +607,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
 	DOREPLIFETIME(APlayerBase, IsSprint);
 	DOREPLIFETIME(APlayerBase, IsPlayerDeath);
+	DOREPLIFETIME(APlayerBase, PlayerHP);
 }
 
 
@@ -703,4 +704,31 @@ void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
 {
 	ResPawnTriggers = _Other;
 	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
+}
+
+
+void APlayerBase::AttackPlayer(const int att)
+{
+	if (true == HasAuthority())
+	{
+		AttackPlayerClient(att);
+	}
+	else
+	{
+		AttackPlayerServer(att);
+	}
+}
+
+bool APlayerBase::AttackPlayerServer_Validate(const int att)
+{
+	return true;
+}
+void APlayerBase::AttackPlayerServer_Implementation(const int att)
+{
+	PlayerHP -= att;
+}
+
+void APlayerBase::AttackPlayerClient_Implementation(const int att)
+{
+	PlayerHP -= att;
 }
