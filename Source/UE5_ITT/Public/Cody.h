@@ -118,6 +118,7 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerCutScene();
 
+	UFUNCTION(BlueprintCallable)
 	void SetCodyMoveable();
 
 	UFUNCTION(Client, Reliable)

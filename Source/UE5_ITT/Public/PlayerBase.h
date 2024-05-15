@@ -435,7 +435,7 @@ public:
 
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
 
-	FVector ResPawnPosition = FVector::ZeroVector;
+	FVector ResPawnPosition = FVector(1000.0f,1000.0f,100.0f); //юс╫ц
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
