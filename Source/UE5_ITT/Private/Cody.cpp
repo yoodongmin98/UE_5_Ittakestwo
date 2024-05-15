@@ -181,7 +181,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(TestAction, ETriggerEvent::Triggered, this, &ACody::TriggerTest);
 		if(true == HasAuthority())
 		{
 			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
@@ -321,7 +320,21 @@ void ACody::ChangeServerSmallSize_Implementation()
 
 void ACody::SprintInput()
 {
-	IsSprint = !IsSprint;
+	ClientSprintInput();
+	ServerSprintInput();
+}
+
+void ACody::ClientSprintInput_Implementation()
+{
+	IsSprint = true;
+}
+bool ACody::ServerSprintInput_Validate()
+{
+	return true;
+}
+void ACody::ServerSprintInput_Implementation()
+{
+	IsSprint = true;
 }
 
 
@@ -365,13 +378,6 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACody, CutsceneTrigger);
 }
-
-void ACody::TriggerTest()
-{
-	CutsceneTrigger = !CutsceneTrigger;
-}
-
-
 
 
 void ACody::CutScenceStart()
