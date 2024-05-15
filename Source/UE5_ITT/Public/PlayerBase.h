@@ -417,6 +417,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
+	UPROPERTY(Replicated)
 	bool IsPlayerDeath = false;
 
 	UFUNCTION(BlueprintCallable)
