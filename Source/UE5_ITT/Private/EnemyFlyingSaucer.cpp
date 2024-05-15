@@ -547,22 +547,28 @@ void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 		// 만약 현재 타겟액터가 데스 상태라면 
 		if (Cody_State::PlayerDeath == LaserTargetActor->GetITTPlayerState())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("PlayerDeath , Target Change"));
+			/*Cody_State CodyPlayerState = LaserTargetActor->GetITTPlayerState();
+			UE_LOG(LogTemp, Warning, TEXT("%d"), static_cast<int32>(CodyPlayerState));*/
 
 			// 이전 레이저 타겟 액터에 저장
 			PrevLaserTargetActor = LaserTargetActor;
 			if (true == LaserTargetActor->ActorHasTag(TEXT("Cody")))
 			{
 				LaserTargetActor = PlayerMay;
-				UE_LOG(LogTemp, Warning, TEXT("Target : Cody"));
+				
 			}
 			else
 			{
 				LaserTargetActor = PlayerCody;
-				UE_LOG(LogTemp, Warning, TEXT("Target : May"));
+				
 			}
 
 			MulticastSetFocusTarget();
+		}
+		else
+		{
+			Cody_State CodyPlayerState = LaserTargetActor->GetITTPlayerState();
+			
 		}
 
 		// 공격할 액터의 위치를 받아온다. 
@@ -627,8 +633,6 @@ void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 
 void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
-	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
 }
 
 void AEnemyFlyingSaucer::SetupOverlapEvent()
@@ -705,7 +709,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
@@ -721,7 +725,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// SetupPlayerActorsCodyAndMay();
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -732,7 +736,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (1 == PatternDestroyCount)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1_Destroy);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1_Destroy);
 				return;
 			}
 		},
@@ -742,7 +746,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1_Destroy,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1_Destroy,
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
@@ -755,7 +759,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
 			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_ArcingProjectile_1);
+				FsmComp->ChangeState(EBossState::Phase1_ArcingProjectile_1);
 				return;
 			}
 		},
@@ -765,7 +769,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_1,
+	FsmComp->CreateState(EBossState::Phase1_ArcingProjectile_1,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -778,7 +782,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_2);
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_2);
 				return;
 			}
 
@@ -795,7 +799,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_2,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_2,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -806,7 +810,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (2 == PatternDestroyCount)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2_Destroy);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_2_Destroy);
 				return;
 			}
 		},
@@ -817,7 +821,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_2_Destroy,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_2_Destroy,
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
@@ -830,7 +834,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
 			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_ArcingProjectile_2);
+				FsmComp->ChangeState(EBossState::Phase1_ArcingProjectile_2);
 				return;
 			}
 		},
@@ -841,7 +845,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_2,
+	FsmComp->CreateState(EBossState::Phase1_ArcingProjectile_2,
 		[this]
 		{
 
@@ -855,7 +859,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_3);
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_3);
 				return;
 			}
 
@@ -873,7 +877,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_3,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_3,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -1574,8 +1578,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-
-
 	// TEST 전용 state 
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
@@ -1625,6 +1627,3 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			
 		});
 }
-
-
-
