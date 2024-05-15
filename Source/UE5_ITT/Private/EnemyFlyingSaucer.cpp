@@ -143,8 +143,9 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
-	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocation);
-	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocationBuffer);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevLaserTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, NextLaserTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentLaserTargetLocation);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bPrevTargetLocationValid);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRatio);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
@@ -159,6 +160,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsRocketHit);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpScale);
 }
 
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
@@ -315,7 +317,6 @@ void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 			FVector EndLocation = FVector(CodyLerpEndLocation.X, CodyLerpEndLocation.Y, StartLocation.Z);
 			FVector TargetLocation = FMath::Lerp(StartLocation, EndLocation, CodyLerpRatio);
 			PlayerCody->SetActorLocation(TargetLocation);
-
 		}
 		{
 			// 회전 변경 후 return
@@ -510,7 +511,7 @@ void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
 
 void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
-	LaserLerpRatio += DeltaTime * LaserLerpRate;
+	LaserLerpRatio += DeltaTime * LaserLerpScale;
 	if (1.0f <= LaserLerpRatio)
 	{
 		SavePreviousTargetLocation();
@@ -524,28 +525,54 @@ void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 
 void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 {
+	// 이전 레이저 타겟 액터가 존재할 경우 
+	if (nullptr != PrevLaserTargetActor)
+	{
+		if (Cody_State::PlayerDeath != PrevLaserTargetActor->GetITTPlayerState())
+		{
+			LaserTargetActor = PrevLaserTargetActor;
+			PrevLaserTargetActor = nullptr;
+		}
+	}
+
 	// 여기서 현재 타겟이 누구냐에 따라서 세팅될 수 있도록.
 	if (nullptr != LaserTargetActor)
 	{
-		FVector CurrentTargetLocation = LaserTargetActor->GetActorLocation();
+		// 만약 현재 타겟액터가 데스 상태라면 
+		if (Cody_State::PlayerDeath == LaserTargetActor->GetITTPlayerState())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerDeath , Target Change"));
 
-		// 이전 타겟 위치가 유효하다면 
+			// 이전 레이저 타겟 액터에 저장
+			PrevLaserTargetActor = LaserTargetActor;
+			if (true == LaserTargetActor->ActorHasTag(TEXT("Cody")))
+			{
+				LaserTargetActor = PlayerMay;
+				UE_LOG(LogTemp, Warning, TEXT("Target : Cody"));
+			}
+			else
+			{
+				LaserTargetActor = PlayerCody;
+				UE_LOG(LogTemp, Warning, TEXT("Target : May"));
+			}
+		}
+
+		// 공격할 액터의 위치를 받아온다. 
+		// 다음으로 공격할 위치일 거고. 
+		CurrentLaserTargetLocation = LaserTargetActor->GetActorLocation();
+
+		// 이전 타겟의 위치가 유효 하다면 ( 세팅 O ) 
 		if (true == bPrevTargetLocationValid)
 		{
-			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
-			PrevTargetLocation = PrevTargetLocationBuffer;
-			bPrevTargetLocationValid = false;
+			PrevLaserTargetLocation = NextLaserTargetLocation;
+			NextLaserTargetLocation = CurrentLaserTargetLocation;
 		}
-
 		else
 		{
-			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
-			PrevTargetLocation = CurrentTargetLocation;
+			// 이전 타겟의 위치가 유효 하지않다면 ( 세팅 X )
+			NextLaserTargetLocation = CurrentLaserTargetLocation;
+			bPrevTargetLocationValid = true;
 		}
-
-		// 타겟위치를 세팅
-		PrevTargetLocationBuffer = CurrentTargetLocation;
-		bPrevTargetLocationValid = true;
 	}
 }
 

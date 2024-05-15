@@ -46,16 +46,22 @@ public:
 
 	// 레이저 추적 로직 관련 변수
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	FVector PrevTargetLocation = FVector::ZeroVector;
+	FVector PrevLaserTargetLocation = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
+	FVector NextLaserTargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector CurrentLaserTargetLocation = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bPrevTargetLocationValid = false;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRatio = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpScale = 5.0f;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRate = 25.0f;
@@ -67,7 +73,10 @@ public:
 	int32 CurrentArcingProjectileTargetIndex = 0;
 
 	UPROPERTY(VisibleDefaultsOnly)
-	class AActor* LaserTargetActor = nullptr;
+	class APlayerBase* LaserTargetActor = nullptr;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	class APlayerBase* PrevLaserTargetActor = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
 	float CoreExplodeDamage = 11.0f;
