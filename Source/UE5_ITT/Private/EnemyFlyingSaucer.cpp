@@ -403,37 +403,28 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
-	if (nullptr == FloorObject)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FloorObject nullptr"));
-	}
-
-	// 투사체 생성
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
 	Projectile->SetOwner(this);
 	
-	// 투사체와 컨트롤러모두 nullptr 이 아니라면 
 	if (nullptr != Projectile)
 	{
 		FVector TargetLocation = FVector::ZeroVector;
 		AActor* TargetActor = nullptr;
 		
-		// 번갈아가면서 타겟 지정
 		if (0 == CurrentArcingProjectileTargetIndex)
 		{
-			TargetActor = PlayerActors[0];
+			TargetActor = PlayerCody;
 			++CurrentArcingProjectileTargetIndex;
 		}
 		else
 		{
-			TargetActor = PlayerActors[1];
+			TargetActor = PlayerMay;
 			CurrentArcingProjectileTargetIndex = 0;
 		}
 
 		// 타겟 위치세팅
 		TargetLocation = TargetActor->GetActorLocation();
 		Projectile->SetupTargetLocation(TargetLocation);
-
 		Projectile->SetupProjectileMovementComponent();
 		Projectile->AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
@@ -563,31 +554,21 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 	switch (PatternDestroyCount)
 	{
 	case 0:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerMay)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerMay;
 		}
-
 		break;
 	case 1:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerCody)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerCody;
 		}
 		break;
 	case 2:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerCody)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerMay;
 		}
 		break;
 	}
