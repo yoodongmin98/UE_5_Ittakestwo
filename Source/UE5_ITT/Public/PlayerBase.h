@@ -155,10 +155,13 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	inline void AttackPlayer(const int att)
-	{
-		PlayerHP -= att;
-	}
+	void AttackPlayer(const int att);
+	
+	UFUNCTION(Client, Reliable)
+	void AttackPlayerClient(const int att);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void AttackPlayerServer(const int att);
+
 	//카메라의 Vector2D를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline FVector2D GetCameraVector() const
@@ -226,9 +229,9 @@ public:
 	}
 	//플레이어를 죽어있는 상태로 만듭니다.
 	UFUNCTION(BlueprintCallable)
-	inline void SetPlayerDeath()
+	inline void SetPlayerDeath(bool IsDeath = true)
 	{
-		IsPlayerDeath = true;
+		IsPlayerDeath = IsDeath;
 	}
 	//Sit에서 내려오는 시간이 되었는지를 반환합니다.
 	UFUNCTION(BlueprintCallable)
@@ -414,7 +417,7 @@ public:
 	//////////////////////////////////////////////
 
 	///////////////////Player/////////////////////
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
 	bool IsPlayerDeath = false;

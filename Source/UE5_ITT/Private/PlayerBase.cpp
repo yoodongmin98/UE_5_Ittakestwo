@@ -604,6 +604,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
 	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
 	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
+	DOREPLIFETIME(APlayerBase, PlayerHP);
 }
 
 
@@ -691,4 +692,31 @@ void APlayerBase::SpringArmDefaultFunction()
 	SpringArm->TargetArmLength = NormalLength;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = true;
+}
+
+
+void APlayerBase::AttackPlayer(const int att)
+{
+	if (true == HasAuthority())
+	{
+		AttackPlayerClient(att);
+	}
+	else
+	{
+		AttackPlayerServer(att);
+	}
+}
+
+bool APlayerBase::AttackPlayerServer_Validate(const int att)
+{
+	return true;
+}
+void APlayerBase::AttackPlayerServer_Implementation(const int att)
+{
+	PlayerHP -= att;
+}
+
+void APlayerBase::AttackPlayerClient_Implementation(const int att)
+{
+	PlayerHP -= att;
 }
