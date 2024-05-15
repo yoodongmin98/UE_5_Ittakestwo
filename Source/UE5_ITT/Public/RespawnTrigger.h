@@ -13,9 +13,14 @@ UCLASS()
 class UE5_ITT_API ARespawnTrigger : public ATriggerBox
 {
 	GENERATED_BODY()
-	
+
 public:
 	ARespawnTrigger();
+
+	FVector GetRespawnPosition()
+	{
+		RespawnPivotComp->GetComponentLocation();
+	}
 
 protected:
 	virtual void BeginPlay() override;
