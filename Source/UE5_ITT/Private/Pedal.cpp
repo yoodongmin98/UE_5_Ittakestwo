@@ -175,9 +175,9 @@ void APedal::Multicast_ChangeAnim_Implementation(const FString& strPath, bool bL
 
 void APedal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
-	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr)
+	if (OtherActor && (OtherActor != this) && OtherActor->ActorHasTag("Player") == true)
 	{
+		APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
 		ColPlayer = OverlapPlayer;
 	}
 }

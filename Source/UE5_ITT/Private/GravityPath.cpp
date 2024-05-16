@@ -47,11 +47,15 @@ void AGravityPath::BeginPlay()
 
 void AGravityPath::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	PlayerMay = Cast<AMay>(OtherActor);
+	if (OtherActor->ActorHasTag("May") == true)
+	{
+		PlayerMay = Cast<AMay>(OtherActor);
+	}
 }
 
 void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	PlayerMay = nullptr;
 }
 
 // Called every frame
