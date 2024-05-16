@@ -85,7 +85,7 @@ void AGroundPoundEffect::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 
 void AGroundPoundEffect::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (nullptr != OtherActor && (true == OtherActor->ActorHasTag(TEXT("Player")))
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("Player")))
 	{
 		if (true == OtherActor->HasAuthority())
 		{
