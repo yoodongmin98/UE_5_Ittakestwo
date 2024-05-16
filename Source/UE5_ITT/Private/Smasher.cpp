@@ -79,6 +79,11 @@ void ASmasher::SetupFsm()
 
 		[this](float DeltaTime)
 		{
+			if (ColPlayer != nullptr)
+			{
+				ColPlayer->AttackPlayer(12);
+			}
+			
 			SmashRatio += DeltaTime*5.f;
 			if (SmashRatio >= 1.f)
 			{
@@ -141,9 +146,17 @@ void ASmasher::SetupFsm()
 void ASmasher::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
-	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr && FsmComp->GetCurrentState() ==static_cast<int>(Fsm::Smash))
+	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr)
 	{
-		OverlapPlayer->AttackPlayer(12);
+		ColPlayer = OverlapPlayer;
+	}
+}
+
+void ASmasher::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && ColPlayer && (OtherActor == ColPlayer))
+	{
+		ColPlayer = nullptr;
 	}
 }
 

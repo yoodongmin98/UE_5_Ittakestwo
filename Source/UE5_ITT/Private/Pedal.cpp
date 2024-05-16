@@ -25,6 +25,9 @@ APedal::APedal()
 
 		SmasherMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SmasherMesh"));
 		SmasherMesh->SetupAttachment(SceneComp);
+
+		PedalCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pedal"));
+		PedalCollision->SetupAttachment(SmasherMesh);
 		SetupFsm();
 	}
 }
@@ -35,6 +38,7 @@ void APedal::BeginPlay()
 	if (HasAuthority() == true)
 	{
 		FsmComp->ChangeState(Fsm::ServerDelay);
+		PedalCollision->OnComponentBeginOverlap.AddDynamic(this, &APedal::OnOverlapBegin);
 	}
 }
 
@@ -92,6 +96,10 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
+			if (ColPlayer!=nullptr)
+			{
+				ColPlayer->AttackPlayer(12);
+			}
 			//5프레임 지속
 			SmashRatio += DeltaTime * (1.f / (Anim1FrameTime * 5.f));
 			if (SmashRatio >= 1.f)
@@ -170,7 +178,15 @@ void APedal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 	APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
 	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr)
 	{
-		//OverlapPlayer-> 즉사처리
+		ColPlayer = OverlapPlayer;
+	}
+}
+
+void APedal::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && ColPlayer&& (OtherActor == ColPlayer))
+	{
+		ColPlayer = nullptr;
 	}
 }
 
