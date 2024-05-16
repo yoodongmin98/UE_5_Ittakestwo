@@ -6,6 +6,8 @@
 #include <Components/SceneComponent.h>
 #include "FsmComponent.h"
 #include "PlayerBase.h"
+#include "ITTGameModeBase.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 ASmasher::ASmasher()
@@ -20,6 +22,9 @@ ASmasher::ASmasher()
 
 		SmasherMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SmasherMesh"));
 		SmasherMesh->SetupAttachment(SceneComp);
+
+		BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCol"));
+		BoxCollision->SetupAttachment(SmasherMesh);
 		SetupFsm();
 	}
 }
@@ -35,6 +40,7 @@ void ASmasher::BeginPlay()
 		ReleasePos = SmasherMesh->GetRelativeLocation();
 		SmashPos = ReleasePos;
 		SmashPos.X -= SmasherMesh->GetRelativeScale3D().X * SmashSize;
+		BoxCollision->OnComponentBeginOverlap.AddDynamic(this,&ASmasher::OnOverlapBegin);
 	}
 }
 
@@ -50,7 +56,11 @@ void ASmasher::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			if (FsmComp->GetStateLiveTime() > 1.f)
+			if (GetWorld()->GetAuthGameMode()->GetNumPlayers()==2)
+			{
+				ClientWaitTime += DeltaTime;
+			}
+			if (ClientWaitTime>1.f)
 			{
 				FsmComp->ChangeState(Fsm::Smash);
 			}
@@ -69,7 +79,7 @@ void ASmasher::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			SmashRatio += DeltaTime*2.f;
+			SmashRatio += DeltaTime*5.f;
 			if (SmashRatio >= 1.f)
 			{
 				SmashRatio = 1.f;
@@ -131,9 +141,9 @@ void ASmasher::SetupFsm()
 void ASmasher::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
-	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr )
+	if (OtherActor && (OtherActor != this) && OverlapPlayer != nullptr && FsmComp->GetCurrentState() ==static_cast<int>(Fsm::Smash))
 	{
-		//OverlapPlayer-> 즉사처리
+		OverlapPlayer->AttackPlayer(12);
 	}
 }
 
