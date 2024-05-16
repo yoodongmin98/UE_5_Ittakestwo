@@ -55,7 +55,7 @@ void AGroundPoundEffect::Tick(float DeltaTime)
 	{
 		if (true == bIsPlayerOverlap)
 		{
-			// OverlapPlayer->AttackPlayer(DamageToPlayer);
+			OverlapPlayer->AttackPlayer(DamageToPlayer);
 		}
 	}
 }
@@ -70,36 +70,28 @@ void AGroundPoundEffect::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 void AGroundPoundEffect::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (nullptr != OtherActor)
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("Player")))
 	{
-		if (true == OtherActor->ActorHasTag(TEXT("Player")))
+		if (true == OtherActor->HasAuthority())
 		{
-			if (true == OtherActor->HasAuthority())
-			{
-				OtherComp->GetName();
-				
-				UE_LOG(LogTemp, Display, TEXT("Otherdasdfdasadfa f"));
-				UE_LOG(LogTemp, Display, TEXT("Player Overlap true"));
-				bIsPlayerOverlap = true;
-				OverlapPlayer = Cast<APlayerBase>(OtherActor);
-			}
+			/*OtherComp->GetName();
+			UE_LOG(LogTemp, Display, TEXT("Otherdasdfdasadfa f"));
+			UE_LOG(LogTemp, Display, TEXT("Player Overlap true"));*/
+			bIsPlayerOverlap = true;
+			OverlapPlayer = Cast<APlayerBase>(OtherActor);
 		}
 	}
 }
 
 void AGroundPoundEffect::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (nullptr != OtherActor)
+	if (nullptr != OtherActor && (true == OtherActor->ActorHasTag(TEXT("Player")))
 	{
-		if (true == OtherActor->ActorHasTag(TEXT("Player")))
+		if (true == OtherActor->HasAuthority())
 		{
-			if (true == OtherActor->HasAuthority())
-			{
-				UE_LOG(LogTemp, Display, TEXT("Player Overlap false"));
-				bIsPlayerOverlap = false;
-				OverlapPlayer = nullptr;
-			}
-			
+			// UE_LOG(LogTemp, Display, TEXT("Player Overlap false"));
+			bIsPlayerOverlap = false;
+			OverlapPlayer = nullptr;
 		}
 	}
 }
