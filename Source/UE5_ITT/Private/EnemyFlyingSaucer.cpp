@@ -126,8 +126,7 @@ const int32 AEnemyFlyingSaucer::GetCurrentState()
 void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnemyMoonBaboon);
 	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CodyHoldingUIComp);
@@ -161,6 +160,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsRocketHit);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpScale);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneProgress);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneStart);
 }
 
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
@@ -381,7 +382,7 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
 	{
 		HomingRocketActor_1 = nullptr;
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerCody);
 		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_1->SetupTarget(TargetActor);
 		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
@@ -389,11 +390,11 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 		HomingRocket1FireTime = HomingRocketCoolTime;
 	}
 
-	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
+	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState())
 	{
 		HomingRocketActor_2 = nullptr;
 
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerMay);
 		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_2->SetupTarget(TargetActor);
 		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
@@ -933,8 +934,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
-			Phase1EndCameraRail->EnableCameraMove(0.25f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(PowerCoreDestroyCameraRail), 0.2f);
+			PowerCoreDestroyCameraRail->EnableCameraMove(0.25f);
 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
@@ -947,7 +948,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			if (true == Phase1EndCameraRail->IsMoveEnd())
+			if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
@@ -1318,8 +1319,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase2EndCameraRail), 0.2f);
-			Phase2EndCameraRail->EnableCameraMove(0.25f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossFallCameraRail), 0.2f);
+			BossFallCameraRail->EnableCameraMove(0.25f);
 		},
 
 		[this](float DT)
@@ -1536,8 +1537,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossEjectCameraRail), 0.2f);
+			BossEjectCameraRail->EnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
@@ -1582,32 +1583,47 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
-			
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
+			UE_LOG(LogTemp, Warning, TEXT("TestState Start"));
 
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			// 원래는 c++에서 카메라를... 적용을 시켰지만.. 블루프린트로 옮겨야되는데.
+			// bool 값을 하나 두고. 현재 컷신 동작중인지 아닌지를 체크 할거고. 
+			// 1. 컷신 시작 state start 에서 bool 값 변경
+			bIsCutSceneProgress = true;
+			// 2. true 일 때, 블루프린트의 tick 에서 얘가 true 인지, 아닌지를 체크 
+			
+			
+
+			// 위젯 끄고 카메라 적용되는거 까지 확인 완료 
+
+
+
+
+
+			// 컨트롤러 받아오고.
+			AController* PlayerController = PlayerMay->GetController();
+			if (nullptr != PlayerController)
+			{
+				// APlayerController로 캐스팅해서.
+				ViewTargetChangeController = Cast<APlayerController>(PlayerController);
+				if (nullptr != ViewTargetChangeController)
+				{
+					// 컨트롤러의 현재 뷰타겟액터 저장
+					AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
+					if (nullptr != PrevCameraActor)
+					{
+						PrevViewTarget = PrevCameraActor;
+						// 카메라 변경 후 재생비율 세팅
+						ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(PowerCoreDestroyCameraRail), 0.2f);
+						PowerCoreDestroyCameraRail->EnableCameraMove(0.55f);
+
+						UE_LOG(LogTemp, Warning, TEXT("Camera Blend ggggg"));
+					}
+				}
+			}
 		},
 
 		[this](float DT)
 		{
-
 			// 여기서 되돌리지말고 그냥 End; 
 			if (6.0f <= FsmComp->GetStateLiveTime())
 			{

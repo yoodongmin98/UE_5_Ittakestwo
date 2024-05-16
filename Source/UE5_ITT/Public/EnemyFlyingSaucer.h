@@ -191,6 +191,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetupPlayerActorsCodyAndMay();
 
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneProgress = false;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneStart = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -400,16 +406,16 @@ private:
 	class AActor* PrevViewTarget = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase1EndCameraRail = nullptr;
+	class APhaseEndCameraRail* PowerCoreDestroyCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase2EndCameraRail = nullptr;
+	class APhaseEndCameraRail* BossFallCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase3EndCameraRail_1 = nullptr;
+	class APhaseEndCameraRail* LaserDestroyCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase3EndCameraRail_2 = nullptr;
+	class APhaseEndCameraRail* BossEjectCameraRail = nullptr;
 
 
 	// 모든 패턴 종료시 사용될 값 

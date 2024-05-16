@@ -82,7 +82,7 @@ void APhaseEndCameraRail::SetupFsmState()
 		{
 			SetupActorsRef();
 
-			UE_LOG(LogTemp, Warning, TEXT("Start"));
+			UE_LOG(LogTemp, Warning, TEXT("Camera Move Start"));
 			CurrentPositionOnRail = 0;
 		},
 
