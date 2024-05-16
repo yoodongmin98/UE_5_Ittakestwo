@@ -713,7 +713,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
-					UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
+					// UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
 					return;
 				}
 			}

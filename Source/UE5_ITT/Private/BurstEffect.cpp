@@ -102,7 +102,7 @@ void ABurstEffect::Tick(float DeltaTime)
 
 		if (true == bIsPlayerOverlap)
 		{
-			OverlapPlayer->AttackPlayer(DamageToPlayer);
+			// OverlapPlayer->AttackPlayer(DamageToPlayer);
 		}
 	}
 }
