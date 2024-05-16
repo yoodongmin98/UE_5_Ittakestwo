@@ -191,6 +191,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetupPlayerActorsCodyAndMay();
 
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneProgress = false;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneStart = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
