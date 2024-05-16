@@ -381,7 +381,7 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
 	{
 		HomingRocketActor_1 = nullptr;
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerCody);
 		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_1->SetupTarget(TargetActor);
 		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
@@ -389,11 +389,11 @@ void AEnemyFlyingSaucer::FireHomingRocket()
 		HomingRocket1FireTime = HomingRocketCoolTime;
 	}
 
-	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
+	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState())
 	{
 		HomingRocketActor_2 = nullptr;
 
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
+		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerMay);
 		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
 		HomingRocketActor_2->SetupTarget(TargetActor);
 		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
@@ -933,8 +933,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
-			Phase1EndCameraRail->EnableCameraMove(0.25f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(PowerCoreDestroyCameraRail), 0.2f);
+			PowerCoreDestroyCameraRail->EnableCameraMove(0.25f);
 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
@@ -947,7 +947,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			if (true == Phase1EndCameraRail->IsMoveEnd())
+			if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
@@ -1318,8 +1318,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase2EndCameraRail), 0.2f);
-			Phase2EndCameraRail->EnableCameraMove(0.25f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossFallCameraRail), 0.2f);
+			BossFallCameraRail->EnableCameraMove(0.25f);
 		},
 
 		[this](float DT)
@@ -1536,8 +1536,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossEjectCameraRail), 0.2f);
+			BossEjectCameraRail->EnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
@@ -1601,8 +1601,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			}
 
 			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossEjectCameraRail), 0.2f);
+			BossEjectCameraRail->EnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
