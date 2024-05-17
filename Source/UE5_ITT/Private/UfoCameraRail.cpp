@@ -22,6 +22,11 @@ AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 	}
 }
 
+bool AUfoCameraRail::IsSupportedForNetworking() const
+{
+	return true;
+}
+
 bool AUfoCameraRail::ShouldTickIfViewportsOnly() const
 {
 	return false;
@@ -77,7 +82,7 @@ void AUfoCameraRail::SetupFsm()
 		[this](float DT)
 		{			
 			CurrentPositionOnRail += DT*0.1;
-			MulticastMoveRailCamera(CurrentPositionOnRail);
+			//MulticastMoveRailCamera(CurrentPositionOnRail);
 		},
 
 		[this]

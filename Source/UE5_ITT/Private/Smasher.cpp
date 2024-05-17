@@ -41,6 +41,7 @@ void ASmasher::BeginPlay()
 		SmashPos = ReleasePos;
 		SmashPos.X -= SmasherMesh->GetRelativeScale3D().X * SmashSize;
 		BoxCollision->OnComponentBeginOverlap.AddDynamic(this,&ASmasher::OnOverlapBegin);
+		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &ASmasher::OnOverlapEnd);
 	}
 }
 

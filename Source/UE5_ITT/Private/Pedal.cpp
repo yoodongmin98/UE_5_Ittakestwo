@@ -39,6 +39,7 @@ void APedal::BeginPlay()
 	{
 		FsmComp->ChangeState(Fsm::ServerDelay);
 		PedalCollision->OnComponentBeginOverlap.AddDynamic(this, &APedal::OnOverlapBegin);
+		PedalCollision->OnComponentEndOverlap.AddDynamic(this, &APedal::OnOverlapEnd);
 	}
 }
 
@@ -184,7 +185,7 @@ void APedal::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 
 void APedal::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor && ColPlayer&& (OtherActor == ColPlayer))
+	if (OtherActor && ColPlayer&& OtherActor==ColPlayer)
 	{
 		ColPlayer = nullptr;
 	}
