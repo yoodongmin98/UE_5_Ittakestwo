@@ -705,7 +705,7 @@ void AEnemyFlyingSaucer::EnableCutSceneCameraBlend(APlayerBase* BlendTargetActor
 			{
 				// 카메라 변경 후 재생비율 세팅
 				ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(CameraRail), BlendTime);
-				CameraRail->EnableCameraMove(BlendRatio);
+				CameraRail->MulticastEnableCameraMove(BlendRatio);
 
 				UE_LOG(LogTemp, Warning, TEXT("Camera Blend Start"));
 			}
@@ -757,7 +757,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::TestState);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -1347,7 +1347,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 카메라 변경 후 재생비율 세팅
 			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossFallCameraRail), 0.2f);
-			BossFallCameraRail->EnableCameraMove(0.25f);
+			BossFallCameraRail->MulticastEnableCameraMove(0.25f);
 		},
 
 		[this](float DT)
@@ -1565,7 +1565,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 카메라 변경 후 재생비율 세팅
 			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossEjectCameraRail), 0.2f);
-			BossEjectCameraRail->EnableCameraMove(0.55f);
+			BossEjectCameraRail->MulticastEnableCameraMove(0.55f);
 		},
 
 		[this](float DT)
@@ -1610,7 +1610,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			EnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)

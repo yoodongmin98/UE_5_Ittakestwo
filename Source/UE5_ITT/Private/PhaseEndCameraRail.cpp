@@ -8,7 +8,7 @@
 #include "Components/SplineComponent.h"
 #include "PlayerBase.h"
 #include "EnemyFlyingSaucer.h"
-
+#include "Net/UnrealNetwork.h"
 
 APhaseEndCameraRail::APhaseEndCameraRail(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -37,8 +37,31 @@ void APhaseEndCameraRail::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
+
+void APhaseEndCameraRail::MulticastTickCameraMove_Implementation(float DeltaTime)
+{
+	if (true == bIsMoveCheck)
+	{
+		EndTime -= DeltaTime;
+		if (0.0f >= EndTime)
+		{
+			bIsMoveEnd = true;
+			return;
+		}
+	}
+
+	if (false == bIsMoveCheck)
+	{
+		if (1.0f <= CurrentPositionOnRail)
+		{
+			bIsMoveCheck = true;
+		}
+	}
+	CurrentPositionOnRail += DeltaTime * CameraMoveRatio;
+	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
+}
 	
-void APhaseEndCameraRail::EnableCameraMove(const float MoveRatio /*= 0.25f*/)
+void APhaseEndCameraRail::MulticastEnableCameraMove_Implementation(const float MoveRatio /*= 0.25f*/)
 {
 	if (0.0f >= MoveRatio)
 	{
@@ -47,7 +70,7 @@ void APhaseEndCameraRail::EnableCameraMove(const float MoveRatio /*= 0.25f*/)
 	}
 
 	CameraMoveRatio = MoveRatio;
-	FsmComp->ChangeState(Fsm::Move);
+	bIsMoveStart = true;
 }
 
 void APhaseEndCameraRail::BeginPlay()
@@ -60,6 +83,15 @@ void APhaseEndCameraRail::BeginPlay()
 	}
 }
 
+void APhaseEndCameraRail::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APhaseEndCameraRail, CamComp);
+	DOREPLIFETIME(APhaseEndCameraRail, CameraMoveRatio);
+}
+
+
 void APhaseEndCameraRail::SetupFsmState()
 {
 	FsmComp->CreateState(Fsm::Wait,
@@ -70,6 +102,11 @@ void APhaseEndCameraRail::SetupFsmState()
 
 		[this](float DT)
 		{
+			if (true == bIsMoveStart)
+			{
+				FsmComp->ChangeState(Fsm::Move);
+				return;
+			}
 		},
 
 		[this]
@@ -83,30 +120,12 @@ void APhaseEndCameraRail::SetupFsmState()
 			SetupActorsRef();
 
 			UE_LOG(LogTemp, Warning, TEXT("Camera Move Start"));
-			CurrentPositionOnRail = 0;
+			CurrentPositionOnRail = 0.0f;
 		},
 
 		[this](float DT)
 		{
-			if (true == bIsMoveCheck)
-			{
-				EndTime -= DT;
-				if (0.0f >= EndTime)
-				{
-					bIsMoveEnd = true;
-					return;
-				}
-			}
-
-			if (false == bIsMoveCheck)
-			{
-				if (1.0f <= CurrentPositionOnRail)
-				{
-					bIsMoveCheck = true;
-				}
-			}
-			CurrentPositionOnRail += DT * CameraMoveRatio;
-			CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
+			MulticastTickCameraMove(DT);
 		},
 
 		[this]
@@ -129,28 +148,6 @@ void APhaseEndCameraRail::SetupFsmState()
 
 void APhaseEndCameraRail::SetupActorsRef()
 {
-	//// 플레이어 액터 받아오고, 각각의 포인터에 저장
-	//TArray<AActor*> PlayerActors;
-	//UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), PlayerActors);
-
-	//if (2 > PlayerActors.Num())
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Players nullptr"));
-	//	return;
-	//}
-
-	//// 0번이 코디일경우와 아닐경우 각각 반대로 저장
-	//if (true == PlayerActors[0]->ActorHasTag("Cody"))
-	//{
-	//	PlayerCody = Cast<ACody>(PlayerActors[0]);
-	//	PlayerMay = Cast<AMay>(PlayerActors[1]);
-	//}
-	//else
-	//{
-	//	PlayerCody = Cast<ACody>(PlayerActors[1]);
-	//	PlayerMay = Cast<AMay>(PlayerActors[0]);
-	//}
-
 	AActor* BossPtr = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
 	if (nullptr != BossPtr)
 	{
