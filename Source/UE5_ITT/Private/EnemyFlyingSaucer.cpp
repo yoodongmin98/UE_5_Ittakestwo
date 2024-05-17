@@ -757,7 +757,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -947,6 +947,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_BreakThePattern,
 		[this]
 		{
+			SetDamage(CoreExplodeDamage);
+
 			// 추락애니메이션 재생
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
@@ -1196,6 +1198,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 코디메이 애니메이션 변경
 			PlayerCody->CutScenceStart();
 			PlayerMay->CutSceneStart();
+
+			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.15f);
 		},
 
 		[this](float DT)
@@ -1221,6 +1225,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsCorretLocation = false;
 			OverlapCheckActor->Destroy();
+
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	
@@ -1520,7 +1526,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
 			
-			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.55f);
+			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)
@@ -1558,7 +1564,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			EnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
+			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
