@@ -160,7 +160,7 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsRocketHit);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpScale);
-	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneProgress);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneEnd);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneStart);
 }
 
@@ -685,7 +685,54 @@ int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 	return FloorObject->GetCurrentPhase();
 }
 
+void AEnemyFlyingSaucer::EnableCutSceneCameraBlend(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
+{
+	if (nullptr == BlendTargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CameraBlend TargetActor is nullptr"));
+		return;
+	}
 
+	AController* PlayerController = BlendTargetActor->GetController();
+	if (nullptr != PlayerController)
+	{
+		ViewTargetChangeController = Cast<APlayerController>(PlayerController);
+		if (nullptr != ViewTargetChangeController)
+		{
+			// 컨트롤러의 현재 뷰타겟액터 저장
+			PrevViewTarget = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevViewTarget)
+			{
+				// 카메라 변경 후 재생비율 세팅
+				ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(CameraRail), BlendTime);
+				CameraRail->EnableCameraMove(BlendRatio);
+
+				UE_LOG(LogTemp, Warning, TEXT("Camera Blend Start"));
+			}
+		}
+	}
+
+	bIsCutSceneStart = true;
+}
+
+void AEnemyFlyingSaucer::DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime)
+{
+	if (nullptr == PrevViewTargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PrevViewTargetActor is nullptr"));
+		return;
+	}
+
+	if (nullptr == ViewTargetChangeController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ViewTargetChangeController is nullptr"));
+		return;
+	}
+
+	ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTargetActor, BlendTime);
+	ViewTargetChangeController = nullptr;
+	bIsCutSceneStart = false;
+}
 
 
 
@@ -710,11 +757,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
-
-					// UE_LOG(LogTemp, Warning, TEXT("Fsm Start"));
 					return;
 				}
 			}
@@ -723,7 +768,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastAttachMoonBaboonActorWithFloor();
-			// SetupPlayerActorsCodyAndMay();
 		});
 
 	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1,
@@ -913,30 +957,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			TimerDelegate.BindUFunction(this, TEXT("MulticastSetActivateUIComponent"), CodyHoldingUIComp, true, true);
 			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
 
+			// overlap actor spawn
 			FTimerHandle TimerHandle2;
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
+			// 카메라블렌드 
+			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(PowerCoreDestroyCameraRail), 0.2f);
-			PowerCoreDestroyCameraRail->EnableCameraMove(0.25f);
-
+			// 포커스 해제 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		},
@@ -952,11 +980,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
-					// 기존 카메라로 뷰타겟 변경 후 nullptr 처리 
-					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-					ViewTargetChangeController = nullptr;
+					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
 			}
+
 
 			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (nullptr != CurrentOverlapPlayer)
@@ -1583,59 +1610,19 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("TestState Start"));
-
-			// 원래는 c++에서 카메라를... 적용을 시켰지만.. 블루프린트로 옮겨야되는데.
-			// bool 값을 하나 두고. 현재 컷신 동작중인지 아닌지를 체크 할거고. 
-			// 1. 컷신 시작 state start 에서 bool 값 변경
-			bIsCutSceneProgress = true;
-			// 2. true 일 때, 블루프린트의 tick 에서 얘가 true 인지, 아닌지를 체크 
-			
-			
-
-			// 위젯 끄고 카메라 적용되는거 까지 확인 완료 
-
-
-
-
-
-			// 컨트롤러 받아오고.
-			AController* PlayerController = PlayerMay->GetController();
-			if (nullptr != PlayerController)
-			{
-				// APlayerController로 캐스팅해서.
-				ViewTargetChangeController = Cast<APlayerController>(PlayerController);
-				if (nullptr != ViewTargetChangeController)
-				{
-					// 컨트롤러의 현재 뷰타겟액터 저장
-					AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-					if (nullptr != PrevCameraActor)
-					{
-						PrevViewTarget = PrevCameraActor;
-						// 카메라 변경 후 재생비율 세팅
-						ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(PowerCoreDestroyCameraRail), 0.2f);
-						PowerCoreDestroyCameraRail->EnableCameraMove(0.55f);
-
-						UE_LOG(LogTemp, Warning, TEXT("Camera Blend ggggg"));
-					}
-				}
-			}
+			EnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
 		{
-			// 여기서 되돌리지말고 그냥 End; 
 			if (6.0f <= FsmComp->GetStateLiveTime())
 			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
+				if (nullptr != ViewTargetChangeController)
+				{
+					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+				}
 				return;
 			}
-
-		/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
-			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-				return;
-			}*/
 		},
 
 		[this]
@@ -1643,3 +1630,5 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			
 		});
 }
+
+

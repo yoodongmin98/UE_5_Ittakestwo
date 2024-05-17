@@ -192,7 +192,7 @@ public:
 	void SetupPlayerActorsCodyAndMay();
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	bool bIsCutSceneProgress = false;
+	bool bIsCutSceneEnd = false;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bIsCutSceneStart = false;
@@ -218,7 +218,6 @@ private:
 
 	void SetupOverlapEvent();
 	
-
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -241,6 +240,9 @@ private:
 	void SetupComponent();
 	void SetupFsmComponent();
 	
+	void EnableCutSceneCameraBlend(class APlayerBase* BlendTargetActor, class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
+	void DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime);
+
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyInput = false;
