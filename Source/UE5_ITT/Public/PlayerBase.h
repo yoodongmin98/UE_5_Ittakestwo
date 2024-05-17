@@ -329,6 +329,8 @@ public:
 	}
 	UFUNCTION(BlueprintCallable)
 	inline void SetTriggerActors(ARespawnTrigger* _Other);
+	UFUNCTION(BlueprintCallable)
+	inline void SetRespawnPosition();
 
 	//////////////////////////////////////////
 	UFUNCTION(BlueprintCallable)

@@ -703,6 +703,11 @@ void APlayerBase::SpringArmDefaultFunction()
 void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
 {
 	ResPawnTriggers = _Other;
+	
+}
+
+void APlayerBase::SetRespawnPosition()
+{
 	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
 }
 
