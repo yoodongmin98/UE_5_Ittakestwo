@@ -757,7 +757,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::TestState);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -983,7 +983,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
 			}
-
 
 			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (nullptr != CurrentOverlapPlayer)
@@ -1327,27 +1326,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 			
-			// 카메라 블렌딩 코드 
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
 
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossFallCameraRail), 0.2f);
-			BossFallCameraRail->MulticastEnableCameraMove(0.25f);
+			// 카메라블렌드 
+			EnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
@@ -1361,8 +1342,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-			ViewTargetChangeController = nullptr;
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
@@ -1546,26 +1526,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
 			
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
-
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(BossEjectCameraRail), 0.2f);
-			BossEjectCameraRail->MulticastEnableCameraMove(0.55f);
+			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.55f);
 		},
 
 		[this](float DT)
@@ -1574,21 +1535,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 되돌리지말고 그냥 End; 
 			if (6.0f <= FsmComp->GetStateLiveTime())
 			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
 				FsmComp->ChangeState(EBossState::AllPhaseEnd);
 				return;
 			}
-
-			/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
-				{
-					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-					return;
-				}*/
 		},
 
 		[this]
 		{
-			ViewTargetChangeController = nullptr;
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,
@@ -1610,7 +1564,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			EnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
@@ -1620,8 +1574,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				if (nullptr != ViewTargetChangeController)
 				{
 					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+					return;
 				}
-				return;
 			}
 		},
 

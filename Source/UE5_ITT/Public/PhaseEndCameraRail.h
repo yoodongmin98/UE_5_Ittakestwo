@@ -40,9 +40,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastMoveCamera(float CurrentPosition);
-
 	UPROPERTY(Replicated)
 	class UCameraComponent* CamComp = nullptr;
 	class UFsmComponent* FsmComp = nullptr;
