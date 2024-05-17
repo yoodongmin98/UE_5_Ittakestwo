@@ -34,8 +34,6 @@ AGravityPath::AGravityPath()
 void AGravityPath::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (true == HasAuthority())
 	{
 		ColBot->OnComponentBeginOverlap.AddDynamic(this, &AGravityPath::OnOverlapBegin);
 		ColBot->OnComponentEndOverlap.AddDynamic(this, &AGravityPath::OnOverlapEnd);
@@ -47,11 +45,15 @@ void AGravityPath::BeginPlay()
 
 void AGravityPath::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	PlayerMay = Cast<AMay>(OtherActor);
+	if (OtherActor->ActorHasTag("May") == true)
+	{
+		PlayerMay = Cast<AMay>(OtherActor);		
+	}
 }
 
 void AGravityPath::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	//PlayerMay = nullptr;
 }
 
 // Called every frame
@@ -59,15 +61,12 @@ void AGravityPath::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (true == HasAuthority())
-	{
 		if (PlayerMay != nullptr && ColTop->IsOverlappingActor(PlayerMay))
 		{
 
 			PlayerMay->GetCharacterMovement()->SetGravityDirection(-GetActorForwardVector());
 
 			PlayerMay->GetCharacterMovement()->MovementMode = MOVE_Walking;
-
 
 			//표면 노말을 UpVector로 만들어서 회전을 재계산
 			FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(), HitResult.ImpactNormal);
@@ -90,16 +89,9 @@ void AGravityPath::Tick(float DeltaTime)
 			if (IsHit&& HitResult.GetActor() == this)
 			{
 				//표면노말의 역으로 중력 방향 설정
-				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);
-
-				
-				//표면 노말을 UpVector로 만들어서 회전을 재계산
-				FVector NewForwardVector = FVector::CrossProduct(PlayerMay->GetActorRightVector(),HitResult.ImpactNormal);
-				FVector NewRightVector = FVector::CrossProduct(-HitResult.ImpactNormal, -PlayerMay->GetActorForwardVector());
-				FRotator NewRotation = FMatrix(NewForwardVector, NewRightVector, HitResult.ImpactNormal,FVector::OneVector).Rotator();			
-
+				PlayerMay->GetCharacterMovement()->SetGravityDirection(-HitResult.ImpactNormal);	
 			}
 		}
-	}
 }
+
 

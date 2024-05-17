@@ -213,9 +213,9 @@ void AEjectButton::SetupFsm()
 
 void AEjectButton::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ACody* Cody = Cast<ACody>(OtherActor);
-	if (Cody!=nullptr)
+	if (OtherActor->ActorHasTag("Cody") == true)
 	{
+		ACody* Cody = Cast<ACody>(OtherActor);
 		if (Cody->GetIsSit())
 		{
 			bPush = true;

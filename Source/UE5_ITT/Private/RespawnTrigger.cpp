@@ -21,7 +21,10 @@ ARespawnTrigger::ARespawnTrigger()
 
 void ARespawnTrigger::BeginPlay()
 {
-	GetCollisionComponent()->OnComponentBeginOverlap.AddDynamic(this, &ARespawnTrigger::OnOverlapBegin);
+	if (true == HasAuthority())
+	{
+		GetCollisionComponent()->OnComponentBeginOverlap.AddDynamic(this, &ARespawnTrigger::OnOverlapBegin);
+	}
 }
 
 void ARespawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
