@@ -757,7 +757,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -1059,8 +1059,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 여기들어왔다는건 이미 오버랩플레이어가 있다는 거고. 따로 검사 할필요 없이 키를 한번 더 눌렀다면 키입력 상태로 전환 
-			// 근데 지금 플레이어 위치고정을 안한상태니까 nullptr 검사 한번 해주고 수정할거임~~ 
 			if (nullptr == OverlapCheckActor->GetCurrentOverlapPlayer())
 			{
 				return;
@@ -1070,6 +1068,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (true == IsPressed)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle);
+				UE_LOG(LogTemp, Warning, TEXT("Cody Input"));
 				return;
 			}
 		},
@@ -1113,6 +1112,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 여기들어왔을때 메이 UI On
 			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, true, true);
+
+
+			// 임시코드 
+			/*AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);*/
 		},
 
 		[this](float DT)
@@ -1129,20 +1133,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				KeyInputTime = KeyInputAdditionalTime;
 			}
 
-			// 원래대로라면 메이 인터랙트 체크 필요. 
-			// 페이즈 넘기기용 테스트 코드 
-			if (true)
-			{
-				MulticastSetActivateUIComponent(CodyHoldingUIComp, false, true);
-				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			}
-
-			// 기존 동작 코드 
-			/*APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
+			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (OverlapPlayer != nullptr)
 			{
 				if (true == OverlapPlayer->ActorHasTag("May"))
 				{
+					UE_LOG(LogTemp, Warning, TEXT("May Overlap"));
 					PlayerMay = Cast<AMay>(OverlapPlayer);
 					bool MayInput = PlayerMay->GetIsInteract();
 					if (true == MayInput)
@@ -1151,12 +1147,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 						FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 						return;
 					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Key Input False"));
-					}
 				}
-			}*/
+			}
 			KeyInputTime -= DT;
 		},
 
@@ -1164,7 +1156,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsKeyInput = false;
 			KeyInputTime = KeyInputMaxTime;
-
+			MulticastSetActivateUIComponent(CodyHoldingUIComp, false, true);
 			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, false, true);
 			
 			PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Base"));
@@ -1199,9 +1191,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
 			
+			// 컷신 변경 후 카메라 적용
+
 			// 코디메이 애니메이션 변경
 			PlayerCody->CutScenceStart();
-			// 메이 애니메이션 변경 추가 예정
+			PlayerMay->CutSceneStart();
 		},
 
 		[this](float DT)
