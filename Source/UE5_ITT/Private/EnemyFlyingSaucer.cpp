@@ -291,16 +291,6 @@ void AEnemyFlyingSaucer::MulticastAttachMoonBaboonActorWithFloor_Implementation(
 	AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 }
 
-void AEnemyFlyingSaucer::MulticastUnPossess_Implementation()
-{
-	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-	if (nullptr != AIController)
-	{
-		AIController->UnPossess();
-	}
-}
-
-
 void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 {
 	if (true == bIsCodyHoldingLerpEnd)
@@ -1063,8 +1053,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsCodyHoldingEnter = false;
 			bIsCodyHoldingLerpEnd = false;
-
-			// MulticastUnPossess();
 		});
 
 	// 코디가 살짝 들고 있는 상태 

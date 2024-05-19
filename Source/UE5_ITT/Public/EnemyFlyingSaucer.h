@@ -169,7 +169,6 @@ public:
 
 		Phase3_Eject,
 
-
 		FireHomingRocket,
 		FireArcingProjectile,
 
@@ -377,9 +376,6 @@ private:
 
 	// 메이 컷신 동작시 위치보정
 	void CorrectMayLocationAndRoation();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUnPossess();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
