@@ -30,6 +30,8 @@
 #include "GroundPoundEffect.h"
 #include "PhaseEndCameraRail.h"
 #include "DrawDebugHelpers.h"
+#include "CoreExplosionEffect.h"
+
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -340,13 +342,17 @@ void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 	PlayerCody->SetActorLocation(TargetLocation);
 }
 
-void AEnemyFlyingSaucer::MulticastHideLaserBaseBone_Implementation()
+
+void AEnemyFlyingSaucer::MulticastHideLaserBaseBoneAndSpawnDestroyEffect_Implementation()
 {
 	// 레이저 본 렌더링 off
 	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	FVector EffectSpawnLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserBase"));
 	if (INDEX_NONE != BoneIndex)
 	{
 		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+		AActor* SpawnEffect = GetWorld()->SpawnActor<ACoreExplosionEffect>(CoreExplosionEffectClass, EffectSpawnLocation, FRotator::ZeroRotator);
+		SpawnEffect->SetActorRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	}
 }
 
@@ -375,6 +381,17 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 		// DrawDebugMesh();
 		UpdateLerpRatioForLaserBeam(DeltaTime);
 	}
+}
+
+void AEnemyFlyingSaucer::CorrectMayLocationAndRoation()
+{
+	PlayerMay->SetActorLocation(MayCorrectLocation);
+	FVector LaserGunLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserGunRing3"));
+	FVector TargetLocation = LaserGunLocation - PlayerMay->GetActorLocation();
+	TargetLocation.Z = 0.0f;
+	FRotator TargetRotation = TargetLocation.Rotation();
+
+	PlayerMay->SetActorRotation(FRotator(TargetRotation.Pitch, TargetRotation.Yaw, 0.0f));
 }
 
 void AEnemyFlyingSaucer::FireHomingRocket()
@@ -1192,14 +1209,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
-			
-			// 컷신 변경 후 카메라 적용
-
-			// 코디메이 애니메이션 변경
 			PlayerCody->CutScenceStart();
 			PlayerMay->CutSceneStart();
+			CorrectMayLocationAndRoation();
 
-			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.15f);
+			// 카메라블렌드 
+			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1207,7 +1222,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 애니메이션이 종료 되었을 때 
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
-				MulticastHideLaserBaseBone();
+				MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
 				return;
@@ -1217,7 +1232,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
-				
 			}
 		},
 
@@ -1564,24 +1578,31 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.25f);
+			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+
+			CorrectMayLocationAndRoation();
+			PlayerMay->CutSceneStart();
+
+			// 카메라블렌드 
+			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.2f);
 		},
 
 		[this](float DT)
 		{
-			if (6.0f <= FsmComp->GetStateLiveTime())
+			// 애니메이션이 종료 되었을 때 
+			if (false == SkeletalMeshComp->IsPlaying())
 			{
-				if (nullptr != ViewTargetChangeController)
-				{
-					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
-					return;
-				}
+				MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
+				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
+				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
+				return;
 			}
 		},
 
 		[this]
 		{
-			
 		});
 }
 

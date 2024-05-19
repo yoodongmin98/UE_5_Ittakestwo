@@ -283,6 +283,10 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AGroundPoundEffect> GroundPoundEffectClass = nullptr;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ACoreExplosionEffect> CoreExplosionEffectClass = nullptr;
+
+
 	// 보스 투사체 관련 
 	UFUNCTION(BlueprintCallable)
 	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
@@ -359,6 +363,9 @@ private:
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	// 이동 시켜서 고정시킬 코디 위치
 	FVector CodyLerpEndLocation = FVector(521.47f, -568.51f, 376.55f);
+	
+	// 메이 위치보정값 
+	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 104.55f);
 
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
@@ -368,11 +375,14 @@ private:
 	// 코디 홀딩시 위치보정
 	void CorrectCodyLocationAndRotation();
 
+	// 메이 컷신 동작시 위치보정
+	void CorrectMayLocationAndRoation();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastUnPossess();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastHideLaserBaseBone();
+	void MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
@@ -419,6 +429,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	class APhaseEndCameraRail* BossEjectCameraRail = nullptr;
+
 
 
 	// 모든 패턴 종료시 사용될 값 
