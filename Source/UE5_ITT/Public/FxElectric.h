@@ -23,9 +23,10 @@ public:
 
 	enum class Fsm
 	{
-		None,
+		ClientWait,
+		Delay,
+		Active,
 		Wait,
-		End,
 	};
 
 public:
@@ -44,6 +45,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bDelay = false;
+
+	float ClientWaitTime = 0.f;
 
 	void SetupFsm();
 

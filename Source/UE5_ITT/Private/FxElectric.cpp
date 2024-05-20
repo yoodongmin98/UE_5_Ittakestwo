@@ -4,7 +4,7 @@
 #include "FxElectric.h"
 #include "FsmComponent.h"
 #include "NiagaraComponent.h"
-
+#include "ITTGameModeBase.h"
 
 AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
 {
@@ -32,7 +32,7 @@ void AFxElectric::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::None);
+		FsmComp->ChangeState(Fsm::ClientWait);
 	}
 }
 
@@ -46,15 +46,65 @@ void AFxElectric::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::None,
+	FsmComp->CreateState(Fsm::ClientWait,
 		[this]
 		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+			if (GetWorld()->GetAuthGameMode()->GetNumPlayers() == 2)
+			{
+				ClientWaitTime += DeltaTime;
+			}
+			if (ClientWaitTime > 1.f)
+			{
+				FsmComp->ChangeState(Fsm::Delay);
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Delay,
+		[this]
+		{
+			NiagaraToggle();
 		},
 
 		[this](float DT)
 		{
-			
-			if (GetWorld()->GetTimeSeconds() > 3.f)
+			if (true == bDelay)
+			{
+				if (FsmComp->GetStateLiveTime()>=3.f)
+				{
+					FsmComp->ChangeState(Fsm::Active);
+				}
+			}
+			else
+			{
+				FsmComp->ChangeState(Fsm::Active);
+			}
+		},
+
+		[this]
+		{
+
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Active,
+		[this]
+		{
+			NiagaraToggle();
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime() >= 2.f)
 			{
 				FsmComp->ChangeState(Fsm::Wait);
 			}
@@ -74,32 +124,10 @@ void AFxElectric::SetupFsm()
 
 		[this](float DT)
 		{
-			if (true == bDelay)
+			if (FsmComp->GetStateLiveTime() >= 4.f)
 			{
-				if (FsmComp->GetStateLiveTime()>3.f)
-				{
-					FsmComp->ChangeState(Fsm::End);
-				}
+				FsmComp->ChangeState(Fsm::Active);
 			}
-			else
-			{
-				FsmComp->ChangeState(Fsm::End);
-			}
-		},
-
-		[this]
-		{
-
-		}
-	);
-	FsmComp->CreateState(Fsm::End,
-		[this]
-		{
-			NiagaraToggle();
-		},
-
-		[this](float DT)
-		{
 		},
 
 		[this]
