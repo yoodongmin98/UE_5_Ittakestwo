@@ -678,7 +678,7 @@ void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, clas
 {
 	if (OtherActor->ActorHasTag("HomingRocket"))
 	{
-		CunstomEndLocation = OtherActor->GetActorLocation();
+		CunstomEndLocation = OtherComp->GetComponentLocation();
 		CunstomStartLocation = GetActorLocation();
 	}
 }
