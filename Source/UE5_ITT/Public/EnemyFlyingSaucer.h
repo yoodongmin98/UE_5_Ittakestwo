@@ -211,11 +211,15 @@ private:
 	};
 
 	UFUNCTION()
+	void OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	void SetupHitEvent();
 	void SetupOverlapEvent();
 	
 	// multicast 함수 
@@ -364,6 +368,7 @@ private:
 	FVector CodyLerpEndLocation = FVector(521.47f, -568.51f, 376.55f);
 	
 	// 메이 위치보정값 
+	// 104 + 9990
 	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 104.55f);
 
 	// 러프 비율을 저장할 float
@@ -426,7 +431,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	class APhaseEndCameraRail* BossEjectCameraRail = nullptr;
 
-
+	float GroundPoundDamage = 6.0f;
 
 	// 모든 패턴 종료시 사용될 값 
 	UPROPERTY(EditAnywhere)
