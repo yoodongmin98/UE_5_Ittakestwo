@@ -406,14 +406,8 @@ void ACody::CustomServerCutScene_Implementation()
 
 void ACody::SetCodyMoveable()
 {
-	if (HasAuthority())
-	{
 		CustomClientMoveable();
-	}
-	else
-	{
 		CustomServerMoveable();
-	}
 }
 
 void ACody::CustomClientMoveable_Implementation()
