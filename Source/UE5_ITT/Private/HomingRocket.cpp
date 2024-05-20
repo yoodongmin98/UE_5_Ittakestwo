@@ -171,16 +171,15 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			
 		});
-
-	// 플레이어가 애니메이션을 동작하는 중일 때 
-	// 플레이어 회전보정
-	// 애니메이션 프레임 시간 체크해서 이제 장착 -> 스테이트 변경 장착 
+	
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
 			EnablePlayerFlying();
-			FVector TargetVector = GetActorForwardVector();
-			PlayerEquipLerpEndRotation = TargetVector.Rotation();
+
+			// 로켓이 회전해있어서 라이트벡터 사용
+			FVector TargetRightVector = RocketMeshComp->GetRightVector();
+			PlayerEquipLerpEndRotation = TargetRightVector.Rotation();
 			PlayerEquipLerpStartRotation = OverlapActor->GetActorRotation();
 		},
 

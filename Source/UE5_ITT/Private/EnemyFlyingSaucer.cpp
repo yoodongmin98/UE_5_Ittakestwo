@@ -534,6 +534,8 @@ void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 
 void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 {
+	// 둘다 죽었을 경우는 고려 안함. 
+
 	// 이전 레이저 타겟 액터가 존재할 경우 
 	// 그럼 현재 대상은 타겟이 한번 변경된 대상인 거고. 
 	if (nullptr != PrevLaserTargetActor)
