@@ -221,7 +221,7 @@ void APlayerBase::CustomClientIdle_Implementation()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false)
+	if (bCanDash == false && !IsPlayerDeath)
 		ChangeState(Cody_State::IDLE);
 }
 
@@ -238,7 +238,7 @@ void APlayerBase::OnRep_IsMoveEnd()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false)
+	if (bCanDash == false && !IsPlayerDeath)
 		ChangeState(Cody_State::IDLE);
 }
 void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
