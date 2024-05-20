@@ -168,6 +168,10 @@ void APlayerBase::Tick(float DeltaTime)
 		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
 		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
 		SetActorLocation(ResultTargetLocations);
+		if (JumpLocationDeltas >= 1.0f)
+		{
+			JumpLocationDeltas = 1.0f;
+		}
 	}
 }
 
@@ -657,7 +661,8 @@ void APlayerBase::PlayerToHomingRoketJumpFinished()
 
 void APlayerBase::ClientPlayerToHomingRoketJumpFinished_Implementation()
 {
-	JumplocationSet = false;
+	JumplocationSet = false; 
+	JumpLocationDeltas = 0.0f;
 }
 bool APlayerBase::ServerPlayerToHomingRoketJumpFinished_Validate()
 {
@@ -666,6 +671,7 @@ bool APlayerBase::ServerPlayerToHomingRoketJumpFinished_Validate()
 void APlayerBase::ServerPlayerToHomingRoketJumpFinished_Implementation()
 {
 	JumplocationSet = false;
+	JumpLocationDeltas = 0.0f;
 }
 
 void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
