@@ -606,4 +606,23 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SettingMarkerWidget();
+
+	UPROPERTY(Replicated)
+	FRotator CurControllerRot;
+
+	UFUNCTION(BlueprintCallable)
+	inline FRotator GetCurControllerRot() const
+	{
+		return CurControllerRot;
+	}
+	UPROPERTY(Replicated)
+	FVector CurControllerLoc;
+
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetCurControllerLoc() const
+	{
+		return CurControllerLoc;
+	}
+	
+	void UpdateCamTrans();
 };
