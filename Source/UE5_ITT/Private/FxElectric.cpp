@@ -166,7 +166,6 @@ void AFxElectric::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	{
 		APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
 		ColPlayer = OverlapPlayer;
-		UE_LOG(LogTemp, Display, TEXT("Begin"));
 	}
 }
 
@@ -174,7 +173,6 @@ void AFxElectric::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Othe
 {
 	if (OtherActor && ColPlayer && (OtherActor == ColPlayer))
 	{
-		UE_LOG(LogTemp, Display, TEXT("End"));
 		ColPlayer = nullptr;
 	}
 }
