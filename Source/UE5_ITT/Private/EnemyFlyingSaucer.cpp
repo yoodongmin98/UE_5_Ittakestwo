@@ -99,6 +99,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 		
 		// 오버랩이벤트 세팅
 		SetupOverlapEvent();
+		// 충돌이벤트 세팅
+		SetupHitEvent();
+		
 	}
 }
 
@@ -623,24 +626,36 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 	}
 }
 
-void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AEnemyFlyingSaucer::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("Player")))
 	{
 		// 로켓으로 cast 
-		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
-		// State 확인 
-		int32 RocketStateToInt = HomingRocket->GetCurrentState();
-		// 플레이어 장착 state 라면 로켓을 
-		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
+		APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
+		if (nullptr != PlayerBase)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Boss Rocket Hit True"));
+			int32 CurrentStateToInt = FsmComp->GetCurrentState();
+
+			// 현재 그라운드 파운딩 스테이트일 때 충돌하면. 
+			if (static_cast<int32>(EBossState::Phase3_GroundPounding) == CurrentStateToInt)
+			{
+				PlayerBase->AttackPlayer(GroundPoundDamage);
+			}
 		}
 	}
 }
 
+void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+}
+
 void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+}
+
+void AEnemyFlyingSaucer::SetupHitEvent()
+{
+	SkeletalMeshComp->OnComponentHit.AddDynamic(this, &AEnemyFlyingSaucer::OnComponentHit);
 }
 
 void AEnemyFlyingSaucer::SetupOverlapEvent()
@@ -764,7 +779,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					// groundpound test 코드 
+					FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
+					MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
+
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -1452,7 +1470,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Fwd_Anim"), 1, false);
 			MoveStartLocation = GetActorLocation();
-			GroundPoundTargetLocation = PlayerCody->GetActorLocation();
+			GroundPoundTargetLocation = PlayerMay->GetActorLocation();
 			GroundPoundTargetLocation.Z = MoveStartLocation.Z;
 
 			AController* BossController = GetController();
@@ -1462,11 +1480,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			// 포커스는 임시로 코디 설정, 
 			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
 			if (nullptr != Controller)
 			{
-				Controller->SetFocus(Cast<AActor>(PlayerCody));
+				Controller->SetFocus(Cast<AActor>(PlayerMay));
 			}
 		},
 
