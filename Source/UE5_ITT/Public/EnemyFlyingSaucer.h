@@ -369,7 +369,7 @@ private:
 	
 	// 메이 위치보정값 
 	// 104 + 9990
-	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 104.55f);
+	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 10094.55f);
 
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
