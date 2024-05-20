@@ -19,7 +19,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION()
-	void SetupTarget(AActor* const Target) 
+	void SetTarget(AActor* const Target) 
 	{
 		if (nullptr != Target)
 		{
