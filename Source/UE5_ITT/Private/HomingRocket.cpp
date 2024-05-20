@@ -118,10 +118,6 @@ void AHomingRocket::SetupFsmComponent()
 			{
 				Multicast_SpawnDestroyEffect();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
-				if (Cody_State::PlayerDeath == OverlapActor->GetITTPlayerState())
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Player Death"));
-				}
 				return;
 			}
 			
@@ -268,7 +264,6 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
 			DestroyRocket();
 		},
 
@@ -399,19 +394,28 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 void AHomingRocket::PlayerEquipBegin()
 {
+	// 기존에 활성화 했던 옵션들 비활성
 	bIsPlayerEquip = true;
 	RocketMeshComp->SetSimulatePhysics(false);
 	RocketMeshComp->SetEnableGravity(false);
-	// 부착해제 되었던 로켓메시를 다시 부착
+
+	// 로켓컴포넌트를 액터에 재부착 
 	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 
-	
+	// 기존 위치, 회전값 초기화
 	SetActorRelativeLocation(FVector::ZeroVector);
+	SetActorRelativeRotation(FRotator::ZeroRotator);
+
+	// 기존 위치값 초기화 및 회전 값 기존 설정과 동일하게 변경
 	RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+	RocketMeshComp->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	
+	// 플레이어에 부착
 	AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
+	// 오너세팅 
 	this->SetOwner(OverlapActor);
 
-	// 플레이어함수 세팅함수 호출 
+	// 플레이어의 장착완료시 함수 호출 후 종료 
 	OverlapActor->PlayerToHomingRoketJumpFinished();
 }
 
