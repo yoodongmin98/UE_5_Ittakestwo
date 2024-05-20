@@ -1087,7 +1087,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (true == IsPressed)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle);
-				UE_LOG(LogTemp, Warning, TEXT("Cody Input"));
+				// UE_LOG(LogTemp, Warning, TEXT("Cody Input"));
 				return;
 			}
 		},

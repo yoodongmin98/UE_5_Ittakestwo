@@ -341,7 +341,7 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 				APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
 				OverlapActor = PlayerBase;
 				PlayerBase->AttackPlayer(RocketDamageToPlayer);
-				UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerBase->GetPlayerHP());
+				// UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerBase->GetPlayerHP());
 			}
 		}
 	}
