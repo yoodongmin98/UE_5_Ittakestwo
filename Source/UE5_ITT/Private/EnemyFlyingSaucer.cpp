@@ -780,9 +780,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				if (ServerDelayTime <= 0.0f)
 				{
 					// groundpound test ÄÚµå 
-					FsmComp->ChangeState(EBossState::Phase3_MoveToTarget);
-					MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
-
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
