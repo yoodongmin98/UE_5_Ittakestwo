@@ -173,6 +173,7 @@ void APlayerBase::Tick(float DeltaTime)
 			JumpLocationDeltas = 1.0f;
 		}
 	}
+	UpdateCamTrans();
 }
 
 // Called to bind functionality to input
@@ -612,6 +613,8 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, IsSprint);
 	DOREPLIFETIME(APlayerBase, IsPlayerDeath);
 	DOREPLIFETIME(APlayerBase, PlayerHP);
+	DOREPLIFETIME(APlayerBase, CurControllerRot);
+	DOREPLIFETIME(APlayerBase, CurControllerLoc);
 }
 
 
@@ -742,4 +745,13 @@ void APlayerBase::AttackPlayerServer_Implementation(const int att)
 void APlayerBase::AttackPlayerClient_Implementation(const int att)
 {
 	PlayerHP -= att;
+}
+
+void APlayerBase::UpdateCamTrans()
+{
+	if (true == HasAuthority())
+	{
+		CurControllerLoc = PlayerCameraComponent->GetComponentLocation();
+		CurControllerRot = PlayerCameraComponent->GetComponentRotation();
+	}
 }
