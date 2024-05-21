@@ -335,7 +335,6 @@ private:
 	UPROPERTY(Replicated, EditAnywhere)
 	class UStaticMeshComponent* PlayerOverlapCheckComp = nullptr;
 
-
 	// 오버랩 체크 관련 
 	UFUNCTION(BlueprintCallable)
 	void SpawnOverlapCheckActor();
@@ -345,6 +344,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsCodyOverlap = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsMayOverlap = false;
 
 	// 보스 공격 생성 지점, 디버그드로우 활성화로 위치 확인 가능 
 	UPROPERTY(Replicated, EditDefaultsOnly)

@@ -658,12 +658,38 @@ void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActo
 
 void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = true;
+			UE_LOG(LogTemp, Warning, TEXT("cody overalp true"));
+		}
+
+		if (true == OtherActor->ActorHasTag(TEXT("May")))
+		{
+			bIsMayOverlap = true;
+			UE_LOG(LogTemp, Warning, TEXT("May overalp true"));
+		}
+	}
 }
 
 void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = false;
+			UE_LOG(LogTemp, Warning, TEXT("cody overlap false"));
+		}
+
+		if (true == OtherActor->ActorHasTag(TEXT("May")))
+		{
+			bIsMayOverlap = false;
+			UE_LOG(LogTemp, Warning, TEXT("may overlap false"));
+		}
+	}
 }
 
 void AEnemyFlyingSaucer::SetupHitEvent()
@@ -678,8 +704,8 @@ void AEnemyFlyingSaucer::SetupOverlapEvent()
 		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
 		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
 
-		PlayerOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CheckComponentOnOverlapBegin);
-		PlayerOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CheckComponentOnOverlapEnd);
+		PlayerOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin);
+		PlayerOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd);
 	}
 }
 
@@ -796,7 +822,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
-					
+					AIController->ClearFocus(EAIFocusPriority::Gameplay);
 					return;
 				}
 			}
@@ -818,7 +844,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (true == bIsDebugChangePhase)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
 
@@ -1020,34 +1046,24 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			/*FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
 			return;*/
 
-			if (nullptr == OverlapCheckActor)
-			{
-				return;
-			}
-
-			if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
+		
+			// 게임스테이트 카메라 반갈 온오프 함수 생기면 주석해제 
+			/*if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
-					// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
-			}
+			}*/
 
-			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-			if (nullptr != CurrentOverlapPlayer)
+			// 코디가 오버랩 상태일 때만 들어오고.
+			if (true == bIsCodyOverlap)
 			{
-				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				bool bIsInteract = PlayerCody->GetIsInteract();
+				if (true == bIsInteract)
 				{
-					PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
-					if (nullptr != PlayerCody)
-					{
-						// 코디가 커진 상태인것도 체크 
-						bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
-						if (true == bIsInteract)
-						{
-							MulticastCheckCodyKeyPressedAndChangeState(bIsInteract);
-						}
-					}
+					// chage state : CodyHolding_Enter
+					MulticastCheckCodyKeyPressedAndChangeState(bIsInteract);
 				}
 			}
 		},
@@ -1073,7 +1089,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
-			// UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
 		},
 
 		[this](float DT)
@@ -1106,16 +1121,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			if (nullptr == OverlapCheckActor->GetCurrentOverlapPlayer())
-			{
-				return;
-			}
-
 			bool IsPressed = PlayerCody->GetIsInteract();
 			if (true == IsPressed)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle);
-				// UE_LOG(LogTemp, Warning, TEXT("Cody Input"));
 				return;
 			}
 		},
@@ -1168,33 +1177,33 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// 시간내에 키가 안눌렸을 경우 우주선을 내려놓음
 			if (KeyInputTime <= 0.0f)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle_Reverse);
 				return;
 			}
 				
-			bool CodyInput = PlayerCody->GetIsInteract();
-			if (true == CodyInput)
+			// 키체크 
+			bool bCodyInputCheck = PlayerCody->GetIsInteract();
+			if (true == bCodyInputCheck)
 			{
 				KeyInputTime = KeyInputAdditionalTime;
 			}
 
-			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			return;
+			// 임시로 바로 변경되는 코드인데 주석
+			/*FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			return;*/
 
-			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-			if (OverlapPlayer != nullptr)
+			// 메이가 오버랩 상태일때만 들어옴
+			if (true == bIsMayOverlap)
 			{
-				if (true == OverlapPlayer->ActorHasTag("May"))
+				// 키입력 체크
+				bool bMayInputCheck = PlayerMay->GetIsInteract();
+				if (true == bMayInputCheck)
 				{
-					PlayerMay = Cast<AMay>(OverlapPlayer);
-					bool MayInput = PlayerMay->GetIsInteract();
-					if (true == MayInput)
-					{
-						FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-						return;
-					}
+					FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+					return;
 				}
 			}
 			KeyInputTime -= DT;
