@@ -720,14 +720,7 @@ void APlayerBase::SetRespawnPosition()
 
 void APlayerBase::AttackPlayer(const int att)
 {
-	if (true == HasAuthority())
-	{
-		AttackPlayerClient(att);
-	}
-	else
-	{
-		AttackPlayerServer(att);
-	}
+	AttackPlayerServer(att);
 }
 
 bool APlayerBase::AttackPlayerServer_Validate(const int att)
