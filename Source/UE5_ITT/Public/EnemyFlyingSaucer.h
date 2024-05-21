@@ -196,6 +196,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bIsCutSceneStart = false;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsDebugChangePhase = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

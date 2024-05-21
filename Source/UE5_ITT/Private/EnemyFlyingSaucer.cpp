@@ -777,7 +777,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					
@@ -800,6 +800,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			if (true == bIsDebugChangePhase)
+			{
+				FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+				return;
+			}
+
 			if (1 == PatternDestroyCount)
 			{
 				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1_Destroy);
@@ -994,6 +1000,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// debugcode
+			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			return;
+
 			if (nullptr == OverlapCheckActor)
 			{
 				return;
