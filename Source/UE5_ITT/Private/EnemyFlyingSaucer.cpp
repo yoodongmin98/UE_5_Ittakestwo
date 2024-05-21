@@ -777,10 +777,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
-					// AIController->ClearFocus(EAIFocusPriority::Gameplay);
+					
 					return;
 				}
 			}
@@ -985,7 +985,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
 
 			// 카메라블렌드 
-			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
 			// 포커스 해제 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
@@ -1003,7 +1003,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
-					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+					// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
 			}
 
@@ -1154,6 +1154,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				KeyInputTime = KeyInputAdditionalTime;
 			}
 
+			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			return;
+
 			APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
 			if (OverlapPlayer != nullptr)
 			{
@@ -1214,7 +1217,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			CorrectMayLocationAndRoation();
 
 			// 카메라블렌드 
-			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
+			// EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1240,13 +1243,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			bIsCorretLocation = false;
 			OverlapCheckActor->Destroy();
 
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	
 	FsmComp->CreateState(EBossState::Phase2_RotateSetting,
 		[this]
 		{
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
