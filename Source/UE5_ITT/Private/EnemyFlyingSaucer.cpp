@@ -832,7 +832,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (true == bIsDebugChangePhase)
 			{
 				// 레벨에서 디버그 키입력시 미사일발사스테이트로 변경
-				UE_LOG(LogTemp, Display, TEXT("sadfsafsaffd"));
 				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 				AIController->GetCurrentBehaviorTree()->StopTree();
 				AIController->ClearFocus(EAIFocusPriority::Gameplay);
@@ -954,8 +953,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_ArcingProjectile_2,
 		[this]
 		{
-
-
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -1173,11 +1170,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				KeyInputTime = KeyInputAdditionalTime;
 			}
-
-			// 임시로 바로 변경되는 코드인데 주석
-			/*FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			return;*/
-
+			
 			// 메이가 오버랩 상태일때만 들어옴
 			if (true == bIsMayOverlap)
 			{
@@ -1189,6 +1182,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					return;
 				}
 			}
+
 			KeyInputTime -= DT;
 		},
 
@@ -1302,11 +1296,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_Rotating,
 		[this]
 		{
-			// 만약 이전 스테이트가 미사일 히트 스테이트 였다면 애니메이션 재생 
-			if (static_cast<int32>(EBossState::Phase2_RocketHit) == FsmComp->GetCurrentState())
-			{
-				MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
-			}
+			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 		},
 
 		[this](float DT)
