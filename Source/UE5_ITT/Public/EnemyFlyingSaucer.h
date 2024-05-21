@@ -222,6 +222,12 @@ private:
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void PlayerCheckComponentOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void PlayerCheckComponentOnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	void SetupHitEvent();
 	void SetupOverlapEvent();
 	
@@ -325,6 +331,9 @@ private:
 
 	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
+
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* PlayerOverlapCheckComp = nullptr;
 
 
 	// 오버랩 체크 관련 

@@ -80,6 +80,9 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	RotatingComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
 	RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+
+	PlayerOverlapCheckComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerOverlapCheckComponent"));
+	PlayerOverlapCheckComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("PlayerOverlapCheckComponentSocket"));
 }
 
 // Called when the game starts or when spawned
@@ -653,6 +656,16 @@ void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActo
 {
 }
 
+void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	
+}
+
+void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	
+}
+
 void AEnemyFlyingSaucer::SetupHitEvent()
 {
 	SkeletalMeshComp->OnComponentHit.AddDynamic(this, &AEnemyFlyingSaucer::OnComponentHit);
@@ -664,6 +677,9 @@ void AEnemyFlyingSaucer::SetupOverlapEvent()
 	{
 		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
 		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
+
+		PlayerOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CheckComponentOnOverlapBegin);
+		PlayerOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CheckComponentOnOverlapEnd);
 	}
 }
 
@@ -777,7 +793,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					
@@ -1001,8 +1017,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this](float DT)
 		{
 			// debugcode
-			FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			return;
+			/*FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+			return;*/
 
 			if (nullptr == OverlapCheckActor)
 			{
