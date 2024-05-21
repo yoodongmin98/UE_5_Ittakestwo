@@ -27,6 +27,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	APawn* GetPlayer2Pawn() const { return PlayerRef2; }
 
+	class UBehaviorTreeComponent* GetCurrentBehaviorTree() const { return CurrentBehaviorTreeComp; }
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
 	// Called when the game starts or when spawned

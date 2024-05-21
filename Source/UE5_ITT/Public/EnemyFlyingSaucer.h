@@ -335,16 +335,6 @@ private:
 	UPROPERTY(Replicated, EditAnywhere)
 	class UStaticMeshComponent* PlayerOverlapCheckComp = nullptr;
 
-	// 오버랩 체크 관련 
-	UFUNCTION(BlueprintCallable)
-	void SpawnOverlapCheckActor();
-
-	UPROPERTY(Replicated, EditDefaultsOnly)
-	class AOverlapCheckActor* OverlapCheckActor = nullptr;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
-
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsCodyOverlap = false;
 

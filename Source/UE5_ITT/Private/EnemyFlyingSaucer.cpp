@@ -14,6 +14,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "FsmComponent.h"
 #include "InteractionUIComponent.h"
 #include "Misc/Paths.h"
@@ -23,7 +24,6 @@
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
-#include "OverlapCheckActor.h"
 #include "PlayerBase.h"
 #include "Cody.h"
 #include "May.h"
@@ -147,7 +147,6 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileSpawnPointMesh);
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimInstance);
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
-	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
 	DOREPLIFETIME(AEnemyFlyingSaucer, PrevLaserTargetLocation);
@@ -514,13 +513,6 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
-void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
-{
-	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
-	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
-	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
-}
-
 void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
 	LaserLerpRatio += DeltaTime * LaserLerpScale;
@@ -663,13 +655,11 @@ void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin(UPrimitiveComponent*
 		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
 		{
 			bIsCodyOverlap = true;
-			UE_LOG(LogTemp, Warning, TEXT("cody overalp true"));
 		}
 
 		if (true == OtherActor->ActorHasTag(TEXT("May")))
 		{
 			bIsMayOverlap = true;
-			UE_LOG(LogTemp, Warning, TEXT("May overalp true"));
 		}
 	}
 }
@@ -681,13 +671,11 @@ void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd(UPrimitiveComponent* O
 		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
 		{
 			bIsCodyOverlap = false;
-			UE_LOG(LogTemp, Warning, TEXT("cody overlap false"));
 		}
 
 		if (true == OtherActor->ActorHasTag(TEXT("May")))
 		{
 			bIsMayOverlap = false;
-			UE_LOG(LogTemp, Warning, TEXT("may overlap false"));
 		}
 	}
 }
@@ -819,10 +807,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
-					AIController->ClearFocus(EAIFocusPriority::Gameplay);
 					return;
 				}
 			}
@@ -844,6 +831,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (true == bIsDebugChangePhase)
 			{
+				// 레벨에서 디버그 키입력시 미사일발사스테이트로 변경
+				UE_LOG(LogTemp, Display, TEXT("sadfsafsaffd"));
+				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+				AIController->GetCurrentBehaviorTree()->StopTree();
+				AIController->ClearFocus(EAIFocusPriority::Gameplay);
 				FsmComp->ChangeState(EBossState::TestState);
 				return;
 			}
@@ -1028,10 +1020,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			TimerDelegate.BindUFunction(this, TEXT("MulticastSetActivateUIComponent"), CodyHoldingUIComp, true, true);
 			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
 
-			// overlap actor spawn
-			FTimerHandle TimerHandle2;
-			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
-
 			// 카메라블렌드 
 			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
@@ -1042,11 +1030,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// debugcode
-			/*FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-			return;*/
-
-		
 			// 게임스테이트 카메라 반갈 온오프 함수 생기면 주석해제 
 			/*if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
@@ -1276,7 +1259,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			bIsCorretLocation = false;
-			OverlapCheckActor->Destroy();
+
+			// 여기서 컴포넌트 디스트로이 오버랩 컴포넌트 비활성
+			PlayerOverlapCheckComp->SetVisibility(false);
 
 			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
