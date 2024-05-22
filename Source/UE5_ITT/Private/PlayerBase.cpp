@@ -226,7 +226,7 @@ void APlayerBase::CustomClientIdle_Implementation()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false && !IsPlayerDeath)
+	if (bCanDash == false && !IsPlayerDeath && !IsFly)
 		ChangeState(Cody_State::IDLE);
 }
 
