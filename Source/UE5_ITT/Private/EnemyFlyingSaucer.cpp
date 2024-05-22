@@ -32,6 +32,8 @@
 #include "DrawDebugHelpers.h"
 #include "CoreExplosionEffect.h"
 
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -83,6 +85,13 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	PlayerOverlapCheckComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerOverlapCheckComponent"));
 	PlayerOverlapCheckComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("PlayerOverlapCheckComponentSocket"));
+	
+	CodyOverlapCheckComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CodyOverlapCheckComponent"));
+	CodyOverlapCheckComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("CodyOverlapCheckComponentSocket"));
+
+	HatchOpenStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HatchOpenStaticMeshComponent"));
+	HatchOpenStaticMeshComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("Base"));
+	HatchOpenStaticMeshComp->SetVisibility(false);
 }
 
 // Called when the game starts or when spawned
@@ -104,7 +113,6 @@ void AEnemyFlyingSaucer::BeginPlay()
 		SetupOverlapEvent();
 		// 충돌이벤트 세팅
 		SetupHitEvent();
-		
 	}
 }
 
@@ -169,6 +177,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpScale);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneEnd);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneStart);
+	DOREPLIFETIME(AEnemyFlyingSaucer, HatchOpenStaticMeshComp);
+	
 }
 
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
@@ -680,6 +690,28 @@ void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd(UPrimitiveComponent* O
 	}
 }
 
+void AEnemyFlyingSaucer::CodyCheckComponentOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = true;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::CodyCheckComponentOnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = false;
+		}
+	}
+}
+
 void AEnemyFlyingSaucer::SetupHitEvent()
 {
 	SkeletalMeshComp->OnComponentHit.AddDynamic(this, &AEnemyFlyingSaucer::OnComponentHit);
@@ -694,6 +726,9 @@ void AEnemyFlyingSaucer::SetupOverlapEvent()
 
 		PlayerOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin);
 		PlayerOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd);
+
+		CodyOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CodyCheckComponentOnOverlapBegin);
+		CodyOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CodyCheckComponentOnOverlapEnd);
 	}
 }
 
@@ -723,6 +758,22 @@ void AEnemyFlyingSaucer::SetupPlayerActorsCodyAndMay()
 			PlayerMay = Cast<AMay>(Actor);
 			break;
 		}
+	}
+}
+
+void AEnemyFlyingSaucer::MulticastSwapMesh_Implementation(bool bSkeletalMeshCompVisible, bool bStaticMeshCompVisible)
+{
+	if (false == bSkeletalMeshCompVisible)
+	{
+		SkeletalMeshComp->SetVisibility(false);
+		SkeletalMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HatchOpenStaticMeshComp->SetVisibility(true);
+	}
+	else
+	{
+		SkeletalMeshComp->SetVisibility(true);
+		SkeletalMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		HatchOpenStaticMeshComp->SetVisibility(false);
 	}
 }
 
@@ -807,7 +858,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -1366,28 +1417,26 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (7.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				
 				return;
 			}
 		},
 
 		[this]
 		{
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.3f);
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
 		[this]
 		{
-			// 원숭이 타자열심히치는 애니메이션으로 변경
+			MulticastSwapMesh(false, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
 		},
 
 		[this](float DT)
 		{
-			// 조건만족시 
-			
-			// 임시,
-			if (2.0f <= FsmComp->GetStateLiveTime())
+			if (true == bIsCodyOverlap)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_Fly);
 				return;
@@ -1396,12 +1445,13 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_Fly,
 		[this]
 		{
+			MulticastSwapMesh(true, false);
+			PlayerCody->SetActorLocation(FVector(394.0f, 60103.0f, -4437.0f));
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
 		},
@@ -1603,6 +1653,25 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			HomingRocket1FireTime -= DT;
 			HomingRocket2FireTime -= DT;
 			FireHomingRocket();
+		},
+
+		[this]
+		{
+		});
+
+	// TEST 전용 state 
+	FsmComp->CreateState(EBossState::HatchTestState,
+		[this]
+		{
+			// 멀티캐스트로 메시를 스왑한다. 
+
+			// MulticastSwapMesh();
+			UE_LOG(LogTemp, Display, TEXT("tttttttttt"));
+		},
+
+		[this](float DT)
+		{
+			
 		},
 
 		[this]
