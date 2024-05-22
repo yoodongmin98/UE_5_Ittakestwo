@@ -46,17 +46,20 @@ void ACody::Tick(float DeltaTime)
 	{
 	case CodySize::BIG:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed * 2.0f);
+		ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
 		break;
 	}
 	default:
@@ -377,6 +380,8 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACody, CutsceneTrigger);
+	DOREPLIFETIME(ACody, SpringArmLength);
+	DOREPLIFETIME(ACody, CameraSpeed);
 }
 
 
@@ -406,8 +411,8 @@ void ACody::CustomServerCutScene_Implementation()
 
 void ACody::SetCodyMoveable()
 {
-		CustomClientMoveable();
-		CustomServerMoveable();
+	CustomClientMoveable();
+	CustomServerMoveable();
 }
 
 void ACody::CustomClientMoveable_Implementation()
@@ -421,4 +426,25 @@ bool ACody::CustomServerMoveable_Validate()
 void ACody::CustomServerMoveable_Implementation()
 {
 	CodyHoldEnemy = false;
+}
+
+
+
+
+
+
+void ACody::ClientCameraLengthChange_Implementation(float _Length,float _DeltaTime, float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
+}
+
+bool ACody::ServerCameraLengthChange_Validate(float _Length, float _DeltaTime, float _CameraSpeed)
+{
+	return true;
+}
+void ACody::ServerCameraLengthChange_Implementation(float _Length,float _DeltaTime,float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
 }
