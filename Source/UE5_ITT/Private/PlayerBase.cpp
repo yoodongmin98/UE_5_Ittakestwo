@@ -99,25 +99,20 @@ void APlayerBase::BeginPlay()
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
 
 	NowPlayerGravityScale = DefaultGravityScale;
+	PlayerJumpZVelocity = GetCharacterMovement()->JumpZVelocity;
+	PlayerDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
 
 	IsMoveEnd = false;
-
 	bIsDashing = false;
 	bIsDashingStart = false;
 	bCanDash = false;
 	BigCanDash = true;
-
 	CurrentAnimationEnd = false;
 	IsSprint = false;
-
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
-
-
 	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
-
-
 	FlyingSpeed = 600.0f;
 }
 
@@ -133,6 +128,7 @@ void APlayerBase::Tick(float DeltaTime)
 	GetCharacterMovement()->GravityScale = NowPlayerGravityScale;
 	//이동속도 체크
 	GetCharacterMovement()->MaxWalkSpeed = NowPlayerSpeed;
+	GetCharacterMovement()->JumpZVelocity = PlayerJumpZVelocity;
 	//플레이어 생존여부 확인
 	PlayerDeathCheck();
 
@@ -576,63 +572,6 @@ void APlayerBase::PlayerDeathCheck()
 	}
 }
 
-void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(APlayerBase, ITTPlayerState);
-	DOREPLIFETIME(APlayerBase, IsMoveEnd);
-	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
-	DOREPLIFETIME(APlayerBase, bCanDash);
-	DOREPLIFETIME(APlayerBase, bIsDashingStart);
-	DOREPLIFETIME(APlayerBase, IsSit);
-	DOREPLIFETIME(APlayerBase, CanSit);
-	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
-	DOREPLIFETIME(APlayerBase, IsBig);
-	DOREPLIFETIME(APlayerBase, ChangeIdle);
-	DOREPLIFETIME(APlayerBase, MoveDirection);
-	DOREPLIFETIME(APlayerBase, MoveInput);
-	DOREPLIFETIME(APlayerBase, ControllerRotation);
-	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
-	DOREPLIFETIME(APlayerBase, WorldForwardVector);
-	DOREPLIFETIME(APlayerBase, WorldRightVector);
-	DOREPLIFETIME(APlayerBase, DashDirection)
-	DOREPLIFETIME(APlayerBase, DashDistance);
-	DOREPLIFETIME(APlayerBase, DashVelocity);
-	DOREPLIFETIME(APlayerBase, bIsDashing);
-	DOREPLIFETIME(APlayerBase, bIsDashingStart);
-	DOREPLIFETIME(APlayerBase, bCanDash);
-	DOREPLIFETIME(APlayerBase, DashDuration);
-	DOREPLIFETIME(APlayerBase, DashStartTime);
-	DOREPLIFETIME(APlayerBase, DashCurrentTime);
-	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
-	DOREPLIFETIME(APlayerBase, IsInteract);
-	DOREPLIFETIME(APlayerBase, IsFly);
-	DOREPLIFETIME(APlayerBase, FlyForwardVector);
-	DOREPLIFETIME(APlayerBase, FlyingSpeed);
-	DOREPLIFETIME(APlayerBase, CodyHoldEnemy);
-	DOREPLIFETIME(APlayerBase, CunstomEndLocation);
-	DOREPLIFETIME(APlayerBase, CunstomStartLocation);
-	DOREPLIFETIME(APlayerBase, JumplocationSet);
-	DOREPLIFETIME(APlayerBase, JumpLocationDeltas);
-	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
-	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
-	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
-	DOREPLIFETIME(APlayerBase, IsSprint);
-	DOREPLIFETIME(APlayerBase, IsPlayerDeath);
-	DOREPLIFETIME(APlayerBase, PlayerHP);
-	DOREPLIFETIME(APlayerBase, CurControllerRot);
-	DOREPLIFETIME(APlayerBase, CurControllerLoc);
-	DOREPLIFETIME(APlayerBase, PlayerDefaultSpeed);
-	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
-	DOREPLIFETIME(APlayerBase, CurCodySize);
-	DOREPLIFETIME(APlayerBase, NextCodySize);
-	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
-}
-
-
-
-
 void APlayerBase::PlayerToHomingRocketJumpStart()
 {
 	IsFly = true;
@@ -699,16 +638,10 @@ void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, clas
 	}
 }
 
-
 void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 
 }
-
-
-
-
-
 
 void APlayerBase::SpringArmDefaultFunction()
 {
@@ -718,9 +651,6 @@ void APlayerBase::SpringArmDefaultFunction()
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 	SpringArm->bDoCollisionTest = true;
 }
-
-
-
 
 void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
 {
@@ -732,7 +662,6 @@ void APlayerBase::SetRespawnPosition()
 {
 	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
 }
-
 
 void APlayerBase::AttackPlayer(const int att)
 {
@@ -760,4 +689,69 @@ void APlayerBase::UpdateCamTrans()
 		CurControllerLoc = PlayerCameraComponent->GetComponentLocation();
 		CurControllerRot = PlayerCameraComponent->GetComponentRotation();
 	}
+}
+
+
+
+
+
+
+
+
+
+
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, ITTPlayerState);
+	DOREPLIFETIME(APlayerBase, IsMoveEnd);
+	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, IsSit);
+	DOREPLIFETIME(APlayerBase, CanSit);
+	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
+	DOREPLIFETIME(APlayerBase, IsBig);
+	DOREPLIFETIME(APlayerBase, ChangeIdle);
+	DOREPLIFETIME(APlayerBase, MoveDirection);
+	DOREPLIFETIME(APlayerBase, MoveInput);
+	DOREPLIFETIME(APlayerBase, ControllerRotation);
+	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
+	DOREPLIFETIME(APlayerBase, WorldForwardVector);
+	DOREPLIFETIME(APlayerBase, WorldRightVector);
+	DOREPLIFETIME(APlayerBase, DashDirection);
+	DOREPLIFETIME(APlayerBase, DashDistance);
+	DOREPLIFETIME(APlayerBase, DashVelocity);
+	DOREPLIFETIME(APlayerBase, bIsDashing);
+	DOREPLIFETIME(APlayerBase, bIsDashingStart);
+	DOREPLIFETIME(APlayerBase, bCanDash);
+	DOREPLIFETIME(APlayerBase, DashDuration);
+	DOREPLIFETIME(APlayerBase, DashStartTime);
+	DOREPLIFETIME(APlayerBase, DashCurrentTime);
+	DOREPLIFETIME(APlayerBase, CustomPlayerJumpCount);
+	DOREPLIFETIME(APlayerBase, IsInteract);
+	DOREPLIFETIME(APlayerBase, IsFly);
+	DOREPLIFETIME(APlayerBase, FlyForwardVector);
+	DOREPLIFETIME(APlayerBase, FlyingSpeed);
+	DOREPLIFETIME(APlayerBase, CodyHoldEnemy);
+	DOREPLIFETIME(APlayerBase, CunstomEndLocation);
+	DOREPLIFETIME(APlayerBase, CunstomStartLocation);
+	DOREPLIFETIME(APlayerBase, JumplocationSet);
+	DOREPLIFETIME(APlayerBase, JumpLocationDeltas);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
+	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
+	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
+	DOREPLIFETIME(APlayerBase, IsSprint);
+	DOREPLIFETIME(APlayerBase, IsPlayerDeath);
+	DOREPLIFETIME(APlayerBase, PlayerHP);
+	DOREPLIFETIME(APlayerBase, CurControllerRot);
+	DOREPLIFETIME(APlayerBase, CurControllerLoc);
+	DOREPLIFETIME(APlayerBase, PlayerDefaultSpeed);
+	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
+	DOREPLIFETIME(APlayerBase, CurCodySize);
+	DOREPLIFETIME(APlayerBase, NextCodySize);
+	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
+	DOREPLIFETIME(APlayerBase, PlayerJumpZVelocity);
 }

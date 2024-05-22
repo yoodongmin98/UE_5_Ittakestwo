@@ -422,6 +422,9 @@ public:
 	void PlayerDeathCheck();
 	UPROPERTY(Replicated)
 	float NowPlayerGravityScale;
+	UPROPERTY(Replicated)
+	float PlayerJumpZVelocity;
+	float PlayerDefaultJumpHeight;
 	//////////////////////////////////////////////
 
 	//////////////////Camera////////////////////

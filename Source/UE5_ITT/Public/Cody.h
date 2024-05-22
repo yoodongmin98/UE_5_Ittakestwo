@@ -104,7 +104,7 @@ public:
 	FTransform CodyLocalTransform;
 
 	float CodyDefaultSpeed;
-	float CodyDefaultJumpHeight;
+
 
 	UPROPERTY(Replicated)
 	float SpringArmLength;

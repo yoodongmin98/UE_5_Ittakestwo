@@ -12,7 +12,6 @@
 ACody::ACody()
 {
 	Tags.Add(FName("Cody"));
-
 }
 
 // Called when the game starts or when spawned
@@ -28,7 +27,7 @@ void ACody::BeginPlay()
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
 	SmallSize= FVector(0.1111111111f, 0.1111111111f, 0.1111111111f);
 	TargetScale = NormalSize;
-	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
+
 	
 	AActor* FoundBoss = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
 	EnemyBoss = Cast<AEnemyFlyingSaucer>(FoundBoss);
@@ -107,7 +106,7 @@ void ACody::Tick(float DeltaTime)
 				IsBig = false;
 				BigCanDash = true;
 				NowPlayerGravityScale = DefaultGravityScale;
-				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+				PlayerJumpZVelocity = PlayerDefaultJumpHeight;
 				DashDistance = 2500.0f;
 				GetCapsuleComponent()->SetWorldScale3D(NormalSize);
 				break;
@@ -115,7 +114,7 @@ void ACody::Tick(float DeltaTime)
 			case CodySize::SMALL:
 			{
 				NowPlayerGravityScale = DefaultGravityScale - 3.5f;
-				GetCharacterMovement()->JumpZVelocity = 200.0f;
+				PlayerJumpZVelocity = PlayerDefaultJumpHeight -1300.0f;
 				DashDistance = 600.0f;
 				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
 				break;
