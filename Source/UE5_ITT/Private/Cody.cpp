@@ -46,38 +46,20 @@ void ACody::Tick(float DeltaTime)
 	{
 	case CodySize::BIG:
 	{
-		if (HasAuthority())
-		{
-			ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
-		}
-		else
-		{
-			ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
-		}
+		ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		if (HasAuthority())
-		{
-			ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
-		}
-		else
-		{
-			ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
-		}
+		ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		if (HasAuthority())
-		{
-			ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
-		}
-		else
-		{
-			ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
-		}
+		ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
 		break;
 	}
 	default:

@@ -523,8 +523,9 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 
-
+	UPROPERTY(Replicated)
 	CodySize CurCodySize = CodySize::NONE;
+	UPROPERTY(Replicated)
 	CodySize NextCodySize = CodySize::NONE;
 
 	//CodySize

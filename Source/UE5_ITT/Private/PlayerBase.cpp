@@ -619,6 +619,8 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CurControllerLoc);
 	DOREPLIFETIME(APlayerBase, PlayerDefaultSpeed);
 	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
+	DOREPLIFETIME(APlayerBase, CurCodySize);
+	DOREPLIFETIME(APlayerBase, NextCodySize);
 }
 
 
