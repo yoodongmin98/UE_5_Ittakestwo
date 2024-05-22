@@ -398,6 +398,17 @@ void AEnemyFlyingSaucer::CorrectMayLocationAndRoation()
 	PlayerMay->SetActorRotation(FRotator(TargetRotation.Pitch, TargetRotation.Yaw, 0.0f));
 }
 
+void AEnemyFlyingSaucer::MulticastHideLaserBaseBone_Implementation()
+{
+	// 레이저 본 렌더링 off
+	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	FVector EffectSpawnLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserBase"));
+	if (INDEX_NONE != BoneIndex)
+	{
+		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+	}
+}
+
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
 	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState() && Cody_State::FLYING != PlayerCody->GetITTPlayerState())
@@ -858,7 +869,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 					return;
@@ -1451,6 +1462,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastSwapMesh(true, false);
+			MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
+
+
+
 			PlayerCody->SetActorLocation(FVector(394.0f, 60103.0f, -4437.0f));
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);

@@ -409,6 +409,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastHideLaserBaseBone();
+
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
 
