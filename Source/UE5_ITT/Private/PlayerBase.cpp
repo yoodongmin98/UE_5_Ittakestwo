@@ -372,7 +372,7 @@ void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
-	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+	//AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
 {
@@ -383,7 +383,7 @@ void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
-	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+	//AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 
 
