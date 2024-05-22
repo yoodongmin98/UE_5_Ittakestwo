@@ -418,6 +418,7 @@ public:
 	UPROPERTY(Replicated)
 	bool IsPlayerDeath = false;
 
+
 	UFUNCTION(BlueprintCallable)
 	void PlayerDeathCheck();
 	UPROPERTY(Replicated)
