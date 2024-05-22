@@ -87,6 +87,11 @@ public:
 	virtual void DashEnd() override;
 
 
+	UFUNCTION(Client, Reliable)
+	void ClientCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
+
 	//Size
 	FVector BigSize;
 	FVector NormalSize;
@@ -101,8 +106,9 @@ public:
 	float CodyDefaultSpeed;
 	float CodyDefaultJumpHeight;
 
-
-
+	UPROPERTY(Replicated)
+	float SpringArmLength;
+	UPROPERTY(Replicated)
 	float CameraSpeed;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

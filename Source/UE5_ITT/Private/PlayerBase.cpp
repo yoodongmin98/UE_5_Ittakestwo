@@ -136,6 +136,8 @@ void APlayerBase::Tick(float DeltaTime)
 	{
 		IsDGravity = false;
 	}
+	//이동속도 체크
+	GetCharacterMovement()->MaxWalkSpeed = NowPlayerSpeed;
 	//플레이어 생존여부 확인
 	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
@@ -226,7 +228,7 @@ void APlayerBase::CustomClientIdle_Implementation()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false && !IsPlayerDeath)
+	if (bCanDash == false && !IsPlayerDeath && !IsFly)
 		ChangeState(Cody_State::IDLE);
 }
 
@@ -615,6 +617,10 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, PlayerHP);
 	DOREPLIFETIME(APlayerBase, CurControllerRot);
 	DOREPLIFETIME(APlayerBase, CurControllerLoc);
+	DOREPLIFETIME(APlayerBase, PlayerDefaultSpeed);
+	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
+	DOREPLIFETIME(APlayerBase, CurCodySize);
+	DOREPLIFETIME(APlayerBase, NextCodySize);
 }
 
 

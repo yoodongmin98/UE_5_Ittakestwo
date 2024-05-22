@@ -46,17 +46,20 @@ void ACody::Tick(float DeltaTime)
 	{
 	case CodySize::BIG:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed * 2.0f);
+		ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
 		break;
 	}
 	default:
@@ -86,7 +89,7 @@ void ACody::Tick(float DeltaTime)
 				BigCanDash = false;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
-				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+				NowPlayerSpeed = PlayerDefaultSpeed;
 				FVector CurLocation = GetActorLocation();
 				CurLocation.Z += 90.f * 4.f;
 				SetActorLocation(CurLocation);
@@ -139,12 +142,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed + 500.0f;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 500.0f;
 			break;
 		}
 		default:
@@ -161,12 +164,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			NowPlayerSpeed = PlayerDefaultSpeed;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 700.0f;
 			break;
 		}
 		default:
@@ -355,7 +358,7 @@ void ACody::DashEnd()
 	}
 	case CodySize::SMALL:
 	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700;
+		NowPlayerSpeed = PlayerDefaultSpeed - 700;
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 45.0f;
 		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
 		break;
@@ -377,6 +380,8 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACody, CutsceneTrigger);
+	DOREPLIFETIME(ACody, SpringArmLength);
+	DOREPLIFETIME(ACody, CameraSpeed);
 }
 
 
@@ -406,8 +411,8 @@ void ACody::CustomServerCutScene_Implementation()
 
 void ACody::SetCodyMoveable()
 {
-		CustomClientMoveable();
-		CustomServerMoveable();
+	CustomClientMoveable();
+	CustomServerMoveable();
 }
 
 void ACody::CustomClientMoveable_Implementation()
@@ -421,4 +426,25 @@ bool ACody::CustomServerMoveable_Validate()
 void ACody::CustomServerMoveable_Implementation()
 {
 	CodyHoldEnemy = false;
+}
+
+
+
+
+
+
+void ACody::ClientCameraLengthChange_Implementation(float _Length,float _DeltaTime, float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
+}
+
+bool ACody::ServerCameraLengthChange_Validate(float _Length, float _DeltaTime, float _CameraSpeed)
+{
+	return true;
+}
+void ACody::ServerCameraLengthChange_Implementation(float _Length,float _DeltaTime,float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
 }
