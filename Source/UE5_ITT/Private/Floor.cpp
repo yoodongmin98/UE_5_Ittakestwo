@@ -292,6 +292,20 @@ void AFloor::SetupFsm()
 		{
 		}
 	);
+
+	FsmComp->CreateState(Fsm::End,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+		},
+
+		[this]
+		{
+		}
+	);
 }
 
 void AFloor::CloseDoor()
