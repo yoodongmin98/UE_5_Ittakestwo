@@ -176,10 +176,10 @@ public:
 		TestState
 	};
 
+	UFUNCTION(BlueprintCallable)
 	void EnableEject() 
 	{ 
 		bIsEject = true; 
-		bIsAllPhaseEnd = true;
 	}
 
 	void SetRocketHit()
