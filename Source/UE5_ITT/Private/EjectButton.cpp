@@ -199,10 +199,12 @@ void AEjectButton::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
+			bPressed = true;
 		},
 
 		[this](float DeltaTime)
 		{
+
 		},
 
 		[this]

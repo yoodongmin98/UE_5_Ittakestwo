@@ -24,6 +24,12 @@ public:
 		OffWait,
 		End
 	};
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsPressed()
+	{
+		return bPressed;
+	}
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -43,6 +49,7 @@ private:
 
 	bool bOnPlayer = false;
 	bool bPush = false;
+	bool bPressed = false;
 	float MoveRatio = 0.f;
 	FVector PlayerWaitPos = FVector::Zero();
 	FVector MovePos = FVector::Zero();
