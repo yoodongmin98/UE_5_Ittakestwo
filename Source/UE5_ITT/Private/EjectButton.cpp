@@ -18,7 +18,6 @@ AEjectButton::AEjectButton()
 		bReplicates = true;
 		SetReplicateMovement(true);
 		SetupFsm();
-
 		SM_BaseComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_BaseComp"));
 		SetRootComponent(SM_BaseComp);
 		SM_PushComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_PushComp"));
@@ -199,7 +198,7 @@ void AEjectButton::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
-			bPressed = true;
+			ButtonPressedEvent();
 		},
 
 		[this](float DeltaTime)
