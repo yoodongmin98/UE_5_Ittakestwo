@@ -51,8 +51,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	///////////////////State///////////////////
+	UFUNCTION(BlueprintCallable)
+	inline void ChangeState(Cody_State _State)
+	{
+		ITTPlayerState = _State;
+	}
+	///////////////////////////////////////////
+	
 	///////////////////Input///////////////////
-
 	//키가 매핑된 Context입니다
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* CodyMappingContext;
@@ -86,8 +93,14 @@ public:
 	UInputAction* TestAction;
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FlyMoveAction;
+	///////////////////////////////////////////
 
 
+
+
+
+
+	/////////////////Function/////////////////
 	//Cody의 현재 state를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline Cody_State GetITTPlayerState() const
@@ -150,12 +163,14 @@ public:
 	{
 		return PlayerHP;
 	}
+	//Player의 최대체력을 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline int32 GetPlayerFullHP() const
 	{
 		return FullHP;
 	}
 
+	//Player를 공격하는 함수입니다 인수=데미지
 	UFUNCTION(BlueprintCallable)
 	void AttackPlayer(const int att);
 	
@@ -200,6 +215,7 @@ public:
 	{
 		CurrentAnimationEnd = true;
 	}
+	//애니메이션을 끝나지 않은 상태로 변경합니다.
 	UFUNCTION(BlueprintCallable)
 	inline void SetCurrentAnimationEndF()
 	{
@@ -247,12 +263,13 @@ public:
 	{
 		return !GetMovementComponent()->IsFalling();
 	}
-	//Idle로 돌아갈 수 있는 상태인지 반환합니다(Sit)
+	//Idle로 돌아갈 수 있는 상태로 만듭니다.(Sit)
 	UFUNCTION(BlueprintCallable)
 	inline void SetChangeIdle()
 	{
 		ChangeIdle = true;
 	}
+	//Idle로 돌아갈 수 있는 상태인지를 반환합니다.(Sit)
 	UFUNCTION(BlueprintCallable)
 	inline bool GetChangeIdle() const
 	{
@@ -282,16 +299,7 @@ public:
 	{
 		return IsFly;
 	}
-	UFUNCTION(BlueprintCallable)
-	inline FRotator GetTestRotator() const
-	{
-		return TestRotator;
-	}
-	UFUNCTION(BlueprintCallable)
-	inline void SetTestRotator(FRotator _RotationZ)
-	{
-		TestRotator += _RotationZ;
-	}
+	//플레이어를 날고있지 않은 상태로 만듭니다.
 	UFUNCTION(BlueprintCallable)
 	inline void SetFlyFalse()
 	{
@@ -312,32 +320,33 @@ public:
 	{
 		return OverlapHoming;
 	}
+	//Cody가 EnemyBoss를 들고있는 상태로 만듭니다.(움직임에 관여합니다)
 	UFUNCTION(BlueprintCallable)
 	inline void SetCodyHoldEnemyTrue()
 	{
 		CodyHoldEnemy = true;
 	}
+	//Cody가 EnemyBoss를 들고있지 않은 상태로 만듭니다.
 	UFUNCTION(BlueprintCallable)
 	inline void SetCodyHoldEnemyFalse()
 	{
 		CodyHoldEnemy = false;
 	}
+	//캐릭터가 리스폰되는 위치의 Vector값을 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline FVector GetResPawnPosition()
 	{
 		return ResPawnPosition;
 	}
+	//ResPawn관련 TriggerActor와 충돌했을때 호출됩니다. 인수=충돌한TriggerActor
 	UFUNCTION(BlueprintCallable)
 	inline void SetTriggerActors(ARespawnTrigger* _Other);
+	//충돌한 TriggerActor의 Position을 받아 Respawn지역을 세팅하는 함수.
 	UFUNCTION(BlueprintCallable)
 	inline void SetRespawnPosition();
 
 	//////////////////////////////////////////
-	UFUNCTION(BlueprintCallable)
-	inline void ChangeState(Cody_State _State)
-	{
-		ITTPlayerState = _State;
-	}
+	
 	//마우스 돌아가는 스피드
 	float RotationInterpSpeed = 2.0f;
 	//상호작용
@@ -349,24 +358,11 @@ public:
 
 
 
-	///////////////////Key Bind Function///////////////////
-	void Idle(const FInputActionInstance& _Instance);
-	
+	///////////////////Movement+Replicate Function///////////////////
 	UFUNCTION(Client, Reliable)
 	void CustomClientIdle();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerIdle();
-
-	void CustomMove(const FInputActionInstance& _Instance);
-
-	void CustomFlyMove(const FInputActionInstance& _Instance);
-	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
-
-	//UFUNCTION(Client, Reliable)
-	//void CustomClientFly(const FInputActionInstance& _Instance);
-	//UFUNCTION(Server, Reliable, WithValidation)
-	//void CustomServerFly(const FInputActionInstance& _Instance);
-
 
 	UFUNCTION(Client,Reliable)
 	void ChangeClientDir(FRotator _Rotator);
@@ -378,33 +374,30 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ChangeServerFlyDir(FRotator _Rotator);
 
-	
-
-	void Look(const FInputActionInstance& _Instance);
-	void DashInput();
 	UFUNCTION(Client, Reliable)
 	void CustomClientDash();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerDash();
-	void GroundDash();
-	virtual void DashEnd() {};
-	void JumpDash();
-	void DashNoneInput();
+	
 	UFUNCTION(Server, Reliable)
 	void InteractInput();
 	UFUNCTION(Server, Reliable)
 	void InteractNoneInput();
+
+	void Idle(const FInputActionInstance& _Instance);
+	void Look(const FInputActionInstance& _Instance);
 	virtual void SprintInput() {};
 	virtual void SprintNoneInput() {};
+	void CustomMove(const FInputActionInstance& _Instance);
+	void CustomFlyMove(const FInputActionInstance& _Instance);
+	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
 	void Sit();
 	void SitEnd();
-
-
-
-
-
-
-
+	void DashInput();
+	void DashNoneInput();
+	void GroundDash();
+	virtual void DashEnd() {};
+	void JumpDash();
 	///////////////////////////////////////////////////////
 
 
@@ -440,10 +433,12 @@ public:
 	float BigLength;
 	float NormalLength;
 	float SmallLength;
-
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
-
 	FVector ResPawnPosition = FVector(1000.0f,1000.0f,100.0f); //임시
+
+	//SpringArm기본 세팅 함수입니다.
+	UFUNCTION(BlueprintCallable)
+	void SpringArmDefaultFunction();
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
@@ -512,6 +507,12 @@ public:
 	UPROPERTY(Replicated)
 	FVector FlyForwardVector;
 	
+	//Fly
+	UPROPERTY(Replicated)
+	bool IsFly = false;
+	FVector CurrentDirection;
+	UPROPERTY(Replicated)
+	float FlyingSpeed;
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////
@@ -524,7 +525,7 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-
+	///////////////////Cody//////////////////
 	UPROPERTY(Replicated)
 	CodySize CurCodySize = CodySize::NONE;
 	UPROPERTY(Replicated)
@@ -533,51 +534,38 @@ public:
 	//CodySize
 	UPROPERTY(Replicated)
 	bool IsBig;
-
-	//Fly
-	UPROPERTY(Replicated)
-	bool IsFly = false;
-	FVector CurrentDirection;
-	UPROPERTY(Replicated)
-	float FlyingSpeed;
-
-
-
-
-
-
-
-
-	UPROPERTY(Replicated)
-	FRotator TestRotator;
-
-	UPROPERTY(EditAnywhere, Category = "UI")
-	class UPlayerMarkerUI* MarkerUIWidget;
-
 	UPROPERTY(Replicated)
 	bool CodyHoldEnemy = false;
+	/////////////////////////////////////////
 
 
 
 
 
+
+
+	///////////////////Widget//////////////////
+	UPROPERTY(EditAnywhere, Category = "UI")
+	class UPlayerMarkerUI* MarkerUIWidget;
 	UCapsuleComponent* CustomPlayerCapsuleComponent;
+	UFUNCTION(BlueprintCallable)
+	void SettingMarkerWidget();
+	///////////////////////////////////////////
 
 
 
-
-
+	///////////////////Overlap//////////////////
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	////////////////////////////////////////////
 
 
 
-
-	/////////////////////Rocket 타는 변수
+	///////////////////Rocket//////////////////
 	void PlayerToHomingRocketJumpStart();
 
 	UFUNCTION(BlueprintCallable)
@@ -608,12 +596,12 @@ public:
 	void CustomServerRideJump();
 
 	bool OverlapHoming = false;
+	///////////////////////////////////////////
+	
 
-	UFUNCTION(BlueprintCallable)
-	void SpringArmDefaultFunction();
+	
 
-	UFUNCTION(BlueprintCallable)
-	void SettingMarkerWidget();
+	///////////////////??????//////////////////
 
 	UPROPERTY(Replicated)
 	FRotator CurControllerRot;
@@ -631,6 +619,6 @@ public:
 	{
 		return CurControllerLoc;
 	}
-	
 	void UpdateCamTrans();
+	///////////////////////////////////////////
 };

@@ -113,7 +113,6 @@ void APlayerBase::BeginPlay()
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
-	TestRotator = FRotator::ZeroRotator;
 
 
 	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
@@ -138,8 +137,6 @@ void APlayerBase::Tick(float DeltaTime)
 	PlayerDeathCheck();
 
 	///////////////////////////////////////////////////////////
-
-
 
 
 	if (GetCharacterMovement()->GravityScale <=5.5f)
@@ -593,7 +590,6 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
 	DOREPLIFETIME(APlayerBase, IsBig);
 	DOREPLIFETIME(APlayerBase, ChangeIdle);
-	DOREPLIFETIME(APlayerBase, TestRotator);
 	DOREPLIFETIME(APlayerBase, MoveDirection);
 	DOREPLIFETIME(APlayerBase, MoveInput);
 	DOREPLIFETIME(APlayerBase, ControllerRotation);
