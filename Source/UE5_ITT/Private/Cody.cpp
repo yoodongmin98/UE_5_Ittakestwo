@@ -46,20 +46,38 @@ void ACody::Tick(float DeltaTime)
 	{
 	case CodySize::BIG:
 	{
-		ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
-		ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		if (HasAuthority())
+		{
+			ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		}
+		else
+		{
+			ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		}
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
-		ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		if (HasAuthority())
+		{
+			ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		}
+		else
+		{
+			ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		}
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
-		ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		if (HasAuthority())
+		{
+			ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		}
+		else
+		{
+			ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		}
 		break;
 	}
 	default:
@@ -89,7 +107,7 @@ void ACody::Tick(float DeltaTime)
 				BigCanDash = false;
 				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
-				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+				NowPlayerSpeed = PlayerDefaultSpeed;
 				FVector CurLocation = GetActorLocation();
 				CurLocation.Z += 90.f * 4.f;
 				SetActorLocation(CurLocation);
@@ -142,12 +160,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed + 500.0f;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 500.0f;
 			break;
 		}
 		default:
@@ -164,12 +182,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			NowPlayerSpeed = PlayerDefaultSpeed;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 700.0f;
 			break;
 		}
 		default:
@@ -358,7 +376,7 @@ void ACody::DashEnd()
 	}
 	case CodySize::SMALL:
 	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700;
+		NowPlayerSpeed = PlayerDefaultSpeed - 700;
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 45.0f;
 		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
 		break;

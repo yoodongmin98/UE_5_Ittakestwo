@@ -448,7 +448,10 @@ public:
 	UPROPERTY(Replicated)
 	float DashDistance = 2500.0f; // 앞구르기 거리
 	bool IsDGravity;
-	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
+	UPROPERTY(Replicated)
+	float PlayerDefaultSpeed;
+	UPROPERTY(Replicated)
+	float NowPlayerSpeed;
 	UPROPERTY(Replicated=OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
 	UFUNCTION()
