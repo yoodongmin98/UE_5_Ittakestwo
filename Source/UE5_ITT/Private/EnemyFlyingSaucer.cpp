@@ -1554,7 +1554,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
 			
-			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
+			// 남은체력만큼 데미지 
+			SetDamage(GetCurrentHp());
+			// EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)
@@ -1570,7 +1572,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,
