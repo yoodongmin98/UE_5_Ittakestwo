@@ -87,7 +87,7 @@ void ACody::Tick(float DeltaTime)
 			{
 				IsBig = true;
 				BigCanDash = false;
-				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+				NowPlayerGravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
 				NowPlayerSpeed = PlayerDefaultSpeed;
 				FVector CurLocation = GetActorLocation();
@@ -106,7 +106,7 @@ void ACody::Tick(float DeltaTime)
 
 				IsBig = false;
 				BigCanDash = true;
-				GetCharacterMovement()->GravityScale = DefaultGravityScale;
+				NowPlayerGravityScale = DefaultGravityScale;
 				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
 				DashDistance = 2500.0f;
 				GetCapsuleComponent()->SetWorldScale3D(NormalSize);
@@ -114,7 +114,7 @@ void ACody::Tick(float DeltaTime)
 			}
 			case CodySize::SMALL:
 			{
-				GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+				NowPlayerGravityScale = DefaultGravityScale - 3.5f;
 				GetCharacterMovement()->JumpZVelocity = 200.0f;
 				DashDistance = 600.0f;
 				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
@@ -353,14 +353,14 @@ void ACody::DashEnd()
 	case CodySize::NORMAL:
 	{
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
-		GetCharacterMovement()->GravityScale = DefaultGravityScale;
+		NowPlayerGravityScale = DefaultGravityScale;
 		break;
 	}
 	case CodySize::SMALL:
 	{
 		NowPlayerSpeed = PlayerDefaultSpeed - 700;
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 45.0f;
-		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+		NowPlayerGravityScale = DefaultGravityScale - 3.5f;
 		break;
 	}
 	default:

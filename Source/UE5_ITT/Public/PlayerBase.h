@@ -427,6 +427,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PlayerDeathCheck();
+	UPROPERTY(Replicated)
+	float NowPlayerGravityScale;
 	//////////////////////////////////////////////
 
 	//////////////////Camera////////////////////

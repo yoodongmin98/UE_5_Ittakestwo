@@ -98,6 +98,7 @@ void APlayerBase::BeginPlay()
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
 
+	NowPlayerGravityScale = DefaultGravityScale;
 
 	IsMoveEnd = false;
 
@@ -125,9 +126,22 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	////////////////동기화를 위한 Tick Check/////////////////////
+	 
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
-	//중력상태확인(Sit)
+	//중력상태확인
+	GetCharacterMovement()->GravityScale = NowPlayerGravityScale;
+	//이동속도 체크
+	GetCharacterMovement()->MaxWalkSpeed = NowPlayerSpeed;
+	//플레이어 생존여부 확인
+	PlayerDeathCheck();
+
+	///////////////////////////////////////////////////////////
+
+
+
+
 	if (GetCharacterMovement()->GravityScale <=5.5f)
 	{
 		IsDGravity = true;
@@ -136,10 +150,6 @@ void APlayerBase::Tick(float DeltaTime)
 	{
 		IsDGravity = false;
 	}
-	//이동속도 체크
-	GetCharacterMovement()->MaxWalkSpeed = NowPlayerSpeed;
-	//플레이어 생존여부 확인
-	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
@@ -621,6 +631,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
 	DOREPLIFETIME(APlayerBase, CurCodySize);
 	DOREPLIFETIME(APlayerBase, NextCodySize);
+	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
 }
 
 
