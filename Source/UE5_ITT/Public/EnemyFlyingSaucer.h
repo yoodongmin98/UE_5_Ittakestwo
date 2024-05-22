@@ -173,7 +173,8 @@ public:
 		FireArcingProjectile,
 
 		AllPhaseEnd,
-		TestState
+		TestState,
+		HatchTestState,
 	};
 
 	UFUNCTION(BlueprintCallable)
@@ -228,6 +229,12 @@ private:
 	UFUNCTION()
 	void PlayerCheckComponentOnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void CodyCheckComponentOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void CodyCheckComponentOnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 	void SetupHitEvent();
 	void SetupOverlapEvent();
 	
@@ -243,6 +250,10 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSwapMesh(bool bSkeletalMeshCompVisible, bool bStaticMeshCompVisible);
+
 
 	int32 GetFloorCurrentState();
 	void DrawDebugMesh();
@@ -335,6 +346,12 @@ private:
 	UPROPERTY(Replicated, EditAnywhere)
 	class UStaticMeshComponent* PlayerOverlapCheckComp = nullptr;
 
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* HatchOpenStaticMeshComp = nullptr;
+
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* CodyOverlapCheckComp = nullptr;
+
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsCodyOverlap = false;
 
@@ -391,6 +408,9 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastHideLaserBaseBone();
 
 	UPROPERTY(Replicated)
 	class ACody* PlayerCody = nullptr;
