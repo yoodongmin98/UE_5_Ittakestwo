@@ -301,7 +301,6 @@ void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 	if (IsFly && !CodyHoldEnemy)
 	{
 		ChangeState(Cody_State::FLYING);
-		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
 		if (bCanDash == false && ChangeIdle)
 		{
 			// 컨트롤러의 회전 방향을 가져옴
@@ -372,7 +371,8 @@ void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
-	//AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+	GetCharacterMovement()->MaxFlySpeed = 1500.0f;
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
 {
@@ -383,7 +383,8 @@ void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
-	//AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
+	GetCharacterMovement()->MaxFlySpeed = 1500.0f;
+	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 
 
