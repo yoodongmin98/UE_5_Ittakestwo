@@ -14,6 +14,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "FsmComponent.h"
 #include "InteractionUIComponent.h"
 #include "Misc/Paths.h"
@@ -23,13 +24,16 @@
 #include "Floor.h"
 #include "EnergyChargeEffect.h"
 #include "FlyingSaucerAIController.h"
-#include "OverlapCheckActor.h"
 #include "PlayerBase.h"
 #include "Cody.h"
 #include "May.h"
 #include "GroundPoundEffect.h"
 #include "PhaseEndCameraRail.h"
 #include "DrawDebugHelpers.h"
+#include "CoreExplosionEffect.h"
+
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -78,6 +82,16 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	RotatingComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
 	RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+
+	PlayerOverlapCheckComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerOverlapCheckComponent"));
+	PlayerOverlapCheckComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("PlayerOverlapCheckComponentSocket"));
+	
+	CodyOverlapCheckComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CodyOverlapCheckComponent"));
+	CodyOverlapCheckComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("CodyOverlapCheckComponentSocket"));
+
+	HatchOpenStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HatchOpenStaticMeshComponent"));
+	HatchOpenStaticMeshComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("Base"));
+	HatchOpenStaticMeshComp->SetVisibility(false);
 }
 
 // Called when the game starts or when spawned
@@ -97,6 +111,8 @@ void AEnemyFlyingSaucer::BeginPlay()
 		
 		// 오버랩이벤트 세팅
 		SetupOverlapEvent();
+		// 충돌이벤트 세팅
+		SetupHitEvent();
 	}
 }
 
@@ -126,8 +142,7 @@ const int32 AEnemyFlyingSaucer::GetCurrentState()
 void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	// 메시 컴포넌트를 Replication하기 위한 설정 추가
+	
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnemyMoonBaboon);
 	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, CodyHoldingUIComp);
@@ -140,11 +155,11 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, ArcingProjectileSpawnPointMesh);
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimInstance);
 	DOREPLIFETIME(AEnemyFlyingSaucer, AnimSequence);
-	DOREPLIFETIME(AEnemyFlyingSaucer, OverlapCheckActor);
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnergyChargeEffect);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCodyHoldingEnter);
-	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocation);
-	DOREPLIFETIME(AEnemyFlyingSaucer, PrevTargetLocationBuffer);
+	DOREPLIFETIME(AEnemyFlyingSaucer, PrevLaserTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, NextLaserTargetLocation);
+	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentLaserTargetLocation);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bPrevTargetLocationValid);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRatio);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpRate);
@@ -159,6 +174,11 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, CurrentHp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsEject);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsRocketHit);
+	DOREPLIFETIME(AEnemyFlyingSaucer, LaserLerpScale);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneEnd);
+	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneStart);
+	DOREPLIFETIME(AEnemyFlyingSaucer, HatchOpenStaticMeshComp);
+	
 }
 
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
@@ -286,16 +306,6 @@ void AEnemyFlyingSaucer::MulticastAttachMoonBaboonActorWithFloor_Implementation(
 	AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 }
 
-void AEnemyFlyingSaucer::MulticastUnPossess_Implementation()
-{
-	AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-	if (nullptr != AIController)
-	{
-		AIController->UnPossess();
-	}
-}
-
-
 void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 {
 	if (true == bIsCodyHoldingLerpEnd)
@@ -315,7 +325,6 @@ void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 			FVector EndLocation = FVector(CodyLerpEndLocation.X, CodyLerpEndLocation.Y, StartLocation.Z);
 			FVector TargetLocation = FMath::Lerp(StartLocation, EndLocation, CodyLerpRatio);
 			PlayerCody->SetActorLocation(TargetLocation);
-
 		}
 		{
 			// 회전 변경 후 return
@@ -338,13 +347,17 @@ void AEnemyFlyingSaucer::CorrectCodyLocationAndRotation()
 	PlayerCody->SetActorLocation(TargetLocation);
 }
 
-void AEnemyFlyingSaucer::MulticastHideLaserBaseBone_Implementation()
+
+void AEnemyFlyingSaucer::MulticastHideLaserBaseBoneAndSpawnDestroyEffect_Implementation()
 {
 	// 레이저 본 렌더링 off
 	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	FVector EffectSpawnLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserBase"));
 	if (INDEX_NONE != BoneIndex)
 	{
 		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+		AActor* SpawnEffect = GetWorld()->SpawnActor<ACoreExplosionEffect>(CoreExplosionEffectClass, EffectSpawnLocation, FRotator::ZeroRotator);
+		SpawnEffect->SetActorRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	}
 }
 
@@ -355,7 +368,6 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
 		if (true == bIsAllPhaseEnd)
@@ -375,87 +387,77 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 	}
 }
 
+void AEnemyFlyingSaucer::CorrectMayLocationAndRoation()
+{
+	PlayerMay->SetActorLocation(MayCorrectLocation);
+	FVector LaserGunLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserGunRing3"));
+	FVector TargetLocation = LaserGunLocation - PlayerMay->GetActorLocation();
+	TargetLocation.Z = 0.0f;
+	FRotator TargetRotation = TargetLocation.Rotation();
+
+	PlayerMay->SetActorRotation(FRotator(TargetRotation.Pitch, TargetRotation.Yaw, 0.0f));
+}
+
+void AEnemyFlyingSaucer::MulticastHideLaserBaseBone_Implementation()
+{
+	// 레이저 본 렌더링 off
+	int32 BoneIndex = SkeletalMeshComp->GetBoneIndex(TEXT("LaserBase"));
+	FVector EffectSpawnLocation = SkeletalMeshComp->GetBoneLocation(TEXT("LaserBase"));
+	if (INDEX_NONE != BoneIndex)
+	{
+		SkeletalMeshComp->HideBone(BoneIndex, EPhysBodyOp::PBO_Term);
+	}
+}
+
 void AEnemyFlyingSaucer::FireHomingRocket()
 {
-	// 플레이어 데스상태라면 발사 안하는 로직 추가 필요 
-
-	// 로켓 1, 초기 한발은 생성 후 발사, 이후부터는 시간계산하여 미사일발사. 
-	if (nullptr == HomingRocketActor_1)
+	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState() && Cody_State::FLYING != PlayerCody->GetITTPlayerState())
 	{
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
+		/*Cody_State CodyState = PlayerCody->GetITTPlayerState();
+		UE_LOG(LogTemp, Warning, TEXT("CodyState : %d"), static_cast<int32>(CodyState));*/
 		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_1->SetupTarget(TargetActor);
+		HomingRocketActor_1->SetTarget(Cast<AActor>(PlayerCody));
 		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 		HomingRocketActor_1->SetOwner(this);
+		HomingRocket1FireTime = HomingRocketCoolTime;
 	}
 
-	else if (nullptr != HomingRocketActor_1 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_1->GetCurrentState())
+	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState() && Cody_State::FLYING != PlayerMay->GetITTPlayerState())
 	{
-		HomingRocketActor_1->DestroyRocket();
-
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[0]);
-		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_1->SetupTarget(TargetActor);
-		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
-		HomingRocketActor_1->SetOwner(this);
-	}
-
-
-	// 로켓 2
-	if (nullptr == HomingRocketActor_2)
-	{
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
+		/*Cody_State MayState = PlayerMay->GetITTPlayerState();
+		UE_LOG(LogTemp, Warning, TEXT("MayState : %d"), static_cast<int32>(MayState));*/
 		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_2->SetupTarget(TargetActor);
-		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
+		HomingRocketActor_2->SetTarget(Cast<AActor>(PlayerMay));
+		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
 		HomingRocketActor_2->SetOwner(this);
-	}
-
-	else if (nullptr != HomingRocketActor_2 && static_cast<int32>(AHomingRocket::ERocketState::DestroyWait) == HomingRocketActor_2->GetCurrentState())
-	{
-		HomingRocketActor_2->DestroyRocket();
-
-		APlayerBase* TargetActor = Cast<APlayerBase>(PlayerActors[1]);
-		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_2->SetupTarget(TargetActor);
-		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh2->GetComponentLocation());
-		HomingRocketActor_2->SetOwner(this);
+		HomingRocket2FireTime = HomingRocketCoolTime;
 	}
 }
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
-	if (nullptr == FloorObject)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FloorObject nullptr"));
-	}
-
-	// 투사체 생성
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
 	Projectile->SetOwner(this);
 	
-	// 투사체와 컨트롤러모두 nullptr 이 아니라면 
 	if (nullptr != Projectile)
 	{
 		FVector TargetLocation = FVector::ZeroVector;
 		AActor* TargetActor = nullptr;
 		
-		// 번갈아가면서 타겟 지정
 		if (0 == CurrentArcingProjectileTargetIndex)
 		{
-			TargetActor = PlayerActors[0];
+			TargetActor = PlayerCody;
 			++CurrentArcingProjectileTargetIndex;
 		}
 		else
 		{
-			TargetActor = PlayerActors[1];
+			TargetActor = PlayerMay;
 			CurrentArcingProjectileTargetIndex = 0;
 		}
 
 		// 타겟 위치세팅
 		TargetLocation = TargetActor->GetActorLocation();
 		Projectile->SetupTargetLocation(TargetLocation);
-
 		Projectile->SetupProjectileMovementComponent();
 		Projectile->AttachToActor(FloorObject, FAttachmentTransformRules::KeepWorldTransform);
 	}
@@ -532,16 +534,9 @@ void AEnemyFlyingSaucer::DrawDebugMesh()
 	);
 }
 
-void AEnemyFlyingSaucer::SpawnOverlapCheckActor()
-{
-	OverlapCheckActor = GetWorld()->SpawnActor<AOverlapCheckActor>(OverlapCheckActorClass, GetActorLocation(), GetActorRotation());
-	OverlapCheckActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("OverlapCheckActorSocket"));
-	OverlapCheckActor->SetOverlapActorNameTag(TEXT("Player"));
-}
-
 void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 {
-	LaserLerpRatio += DeltaTime * LaserLerpRate;
+	LaserLerpRatio += DeltaTime * LaserLerpScale;
 	if (1.0f <= LaserLerpRatio)
 	{
 		SavePreviousTargetLocation();
@@ -555,28 +550,70 @@ void AEnemyFlyingSaucer::UpdateLerpRatioForLaserBeam(float DeltaTime)
 
 void AEnemyFlyingSaucer::SavePreviousTargetLocation()
 {
+	// 둘다 죽었을 경우는 고려 안함. 
+
+	// 이전 레이저 타겟 액터가 존재할 경우 
+	// 그럼 현재 대상은 타겟이 한번 변경된 대상인 거고. 
+	if (nullptr != PrevLaserTargetActor)
+	{
+		// 이전 타겟이 데스상태가 아니라면 살아난거고. 
+		if (Cody_State::PlayerDeath != PrevLaserTargetActor->GetITTPlayerState())
+		{
+			// 타겟을 다시 이전 타겟으로 세팅해주고 초기화.
+			LaserTargetActor = PrevLaserTargetActor;
+			PrevLaserTargetActor = nullptr;
+
+			// 타겟 포커스. 
+			MulticastSetFocusTarget();
+		}
+	}
+
 	// 여기서 현재 타겟이 누구냐에 따라서 세팅될 수 있도록.
 	if (nullptr != LaserTargetActor)
 	{
-		FVector CurrentTargetLocation = LaserTargetActor->GetActorLocation();
-
-		// 이전 타겟 위치가 유효하다면 
-		if (true == bPrevTargetLocationValid)
+		// 만약 현재 타겟액터가 데스 상태라면 
+		if (Cody_State::PlayerDeath == LaserTargetActor->GetITTPlayerState())
 		{
-			// 타겟 위치는 저장되어있는 이전타겟위치로 지정하고 false 처리
-			PrevTargetLocation = PrevTargetLocationBuffer;
-			bPrevTargetLocationValid = false;
-		}
+			/*Cody_State CodyPlayerState = LaserTargetActor->GetITTPlayerState();
+			UE_LOG(LogTemp, Warning, TEXT("%d"), static_cast<int32>(CodyPlayerState));*/
 
+			// 이전 레이저 타겟 액터에 저장
+			PrevLaserTargetActor = LaserTargetActor;
+			if (true == LaserTargetActor->ActorHasTag(TEXT("Cody")))
+			{
+				LaserTargetActor = PlayerMay;
+				
+			}
+			else
+			{
+				LaserTargetActor = PlayerCody;
+				
+			}
+
+			MulticastSetFocusTarget();
+		}
 		else
 		{
-			// 유효하지 않다면 타겟 위치는 현재 위치로 지정
-			PrevTargetLocation = CurrentTargetLocation;
+			Cody_State CodyPlayerState = LaserTargetActor->GetITTPlayerState();
+			
 		}
 
-		// 타겟위치를 세팅
-		PrevTargetLocationBuffer = CurrentTargetLocation;
-		bPrevTargetLocationValid = true;
+		// 공격할 액터의 위치를 받아온다. 
+		// 다음으로 공격할 위치일 거고. 
+		CurrentLaserTargetLocation = LaserTargetActor->GetActorLocation();
+
+		// 이전 타겟의 위치가 유효 하다면 ( 세팅 O ) 
+		if (true == bPrevTargetLocationValid)
+		{
+			PrevLaserTargetLocation = NextLaserTargetLocation;
+			NextLaserTargetLocation = CurrentLaserTargetLocation;
+		}
+		else
+		{
+			// 이전 타겟의 위치가 유효 하지않다면 ( 세팅 X )
+			NextLaserTargetLocation = CurrentLaserTargetLocation;
+			bPrevTargetLocationValid = true;
+		}
 	}
 }
 
@@ -585,56 +622,110 @@ void AEnemyFlyingSaucer::SetupLaserTargetActor()
 	switch (PatternDestroyCount)
 	{
 	case 0:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerMay)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerMay;
 		}
-
 		break;
 	case 1:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerCody)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("Cody")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerCody;
 		}
 		break;
 	case 2:
-		for (AActor* Actor : PlayerActors)
+		if (nullptr != PlayerCody)
 		{
-			if (nullptr != Actor && Actor->ActorHasTag(TEXT("May")))
-			{
-				LaserTargetActor = Actor;
-			}
+			LaserTargetActor = PlayerMay;
 		}
 		break;
+	}
+}
+
+void AEnemyFlyingSaucer::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("Player")))
+	{
+		// 로켓으로 cast 
+		APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
+		if (nullptr != PlayerBase)
+		{
+			int32 CurrentStateToInt = FsmComp->GetCurrentState();
+
+			// 현재 그라운드 파운딩 스테이트일 때 충돌하면. 
+			if (static_cast<int32>(EBossState::Phase3_GroundPounding) == CurrentStateToInt)
+			{
+				PlayerBase->AttackPlayer(GroundPoundDamage);
+			}
+		}
 	}
 }
 
 void AEnemyFlyingSaucer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (nullptr != OtherActor && true == OtherActor->ActorHasTag(TEXT("HomingRocket")))
-	{
-		// 로켓으로 cast 
-		AHomingRocket* HomingRocket = Cast<AHomingRocket>(OtherActor);
-		// State 확인 
-		int32 RocketStateToInt = HomingRocket->GetCurrentState();
-		// 플레이어 장착 state 라면 로켓을 
-		if (static_cast<int32>(AHomingRocket::ERocketState::PlayerEquip) == RocketStateToInt)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Boss Rocket Hit True"));
-		}
-	}
 }
 
 void AEnemyFlyingSaucer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	// 일단.. 오버랩 대상이 플레이어이고.. 플라이상태면.. .. 일단들어오는지부터
-	// UE_LOG(LogTemp, Warning, TEXT("Boss Overlap Begin End Check"));
+}
+
+void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = true;
+		}
+
+		if (true == OtherActor->ActorHasTag(TEXT("May")))
+		{
+			bIsMayOverlap = true;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = false;
+		}
+
+		if (true == OtherActor->ActorHasTag(TEXT("May")))
+		{
+			bIsMayOverlap = false;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::CodyCheckComponentOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = true;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::CodyCheckComponentOnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (nullptr != OtherActor)
+	{
+		if (true == OtherActor->ActorHasTag(TEXT("Cody")))
+		{
+			bIsCodyOverlap = false;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::SetupHitEvent()
+{
+	SkeletalMeshComp->OnComponentHit.AddDynamic(this, &AEnemyFlyingSaucer::OnComponentHit);
 }
 
 void AEnemyFlyingSaucer::SetupOverlapEvent()
@@ -643,6 +734,12 @@ void AEnemyFlyingSaucer::SetupOverlapEvent()
 	{
 		SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapBegin);
 		SkeletalMeshComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::OnOverlapEnd);
+
+		PlayerOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapBegin);
+		PlayerOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::PlayerCheckComponentOnOverlapEnd);
+
+		CodyOverlapCheckComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CodyCheckComponentOnOverlapBegin);
+		CodyOverlapCheckComp->OnComponentEndOverlap.AddDynamic(this, &AEnemyFlyingSaucer::CodyCheckComponentOnOverlapEnd);
 	}
 }
 
@@ -652,20 +749,42 @@ void AEnemyFlyingSaucer::SetupPlayerActorsCodyAndMay()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), PlayerActors);
 	if (0 == PlayerActors.Num())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Actors Size : 0"));
 		return;
 	}
 
-	// 0번이 코디면 그대로 세팅, 코디가 아니라면 반대로 세팅. 
-	if (true == PlayerActors[0]->ActorHasTag("Cody"))
+	// 순회해서 세팅해주는 걸로 변경
+	for (AActor* Actor : PlayerActors)
 	{
-		PlayerCody = Cast<ACody>(PlayerActors[0]);
-		PlayerMay = Cast<AMay>(PlayerActors[1]);
+		if (true == Actor->ActorHasTag(TEXT("Cody")))
+		{
+			PlayerCody = Cast<ACody>(Actor);
+			break;
+		}
+	}
+
+	for (AActor* Actor : PlayerActors)
+	{
+		if (true == Actor->ActorHasTag(TEXT("May")))
+		{
+			PlayerMay = Cast<AMay>(Actor);
+			break;
+		}
+	}
+}
+
+void AEnemyFlyingSaucer::MulticastSwapMesh_Implementation(bool bSkeletalMeshCompVisible, bool bStaticMeshCompVisible)
+{
+	if (false == bSkeletalMeshCompVisible)
+	{
+		SkeletalMeshComp->SetVisibility(false);
+		SkeletalMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HatchOpenStaticMeshComp->SetVisibility(true);
 	}
 	else
 	{
-		PlayerCody = Cast<ACody>(PlayerActors[1]);
-		PlayerMay = Cast<AMay>(PlayerActors[0]);
+		SkeletalMeshComp->SetVisibility(true);
+		SkeletalMeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		HatchOpenStaticMeshComp->SetVisibility(false);
 	}
 }
 
@@ -674,12 +793,58 @@ int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 	if (nullptr == FloorObject)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Floor Object is nullptr"));
+		return -1;
 	}
 
 	return FloorObject->GetCurrentPhase();
 }
 
+void AEnemyFlyingSaucer::EnableCutSceneCameraBlend(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
+{
+	if (nullptr == BlendTargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CameraBlend TargetActor is nullptr"));
+		return;
+	}
 
+	AController* PlayerController = BlendTargetActor->GetController();
+	if (nullptr != PlayerController)
+	{
+		ViewTargetChangeController = Cast<APlayerController>(PlayerController);
+		if (nullptr != ViewTargetChangeController)
+		{
+			// 컨트롤러의 현재 뷰타겟액터 저장
+			PrevViewTarget = ViewTargetChangeController->GetViewTarget();
+			if (nullptr != PrevViewTarget)
+			{
+				// 카메라 변경 후 재생비율 세팅
+				ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(CameraRail), BlendTime);
+				CameraRail->MulticastEnableCameraMove(BlendRatio);
+			}
+		}
+	}
+
+	bIsCutSceneStart = true;
+}
+
+void AEnemyFlyingSaucer::DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime)
+{
+	if (nullptr == PrevViewTargetActor)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PrevViewTargetActor is nullptr"));
+		return;
+	}
+
+	if (nullptr == ViewTargetChangeController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ViewTargetChangeController is nullptr"));
+		return;
+	}
+
+	ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTargetActor, BlendTime);
+	ViewTargetChangeController = nullptr;
+	bIsCutSceneStart = false;
+}
 
 
 
@@ -699,21 +864,25 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 서버 클라 연동 지연 문제로 인해 스테이트 변경 딜레이 추가 
-			if (ServerDelayTime <= FsmComp->GetStateLiveTime())
+			if (true == bIsFsmStart)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1);
-				return;
+				ServerDelayTime -= DT;
+				if (ServerDelayTime <= 0.0f)
+				{
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
+					return;
+				}
 			}
 		},
 
 		[this]
 		{
 			MulticastAttachMoonBaboonActorWithFloor();
-			SetupPlayerActorsCodyAndMay();
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -722,9 +891,19 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			if (true == bIsDebugChangePhase)
+			{
+				// 레벨에서 디버그 키입력시 미사일발사스테이트로 변경
+				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+				AIController->GetCurrentBehaviorTree()->StopTree();
+				AIController->ClearFocus(EAIFocusPriority::Gameplay);
+				FsmComp->ChangeState(EBossState::TestState);
+				return;
+			}
+
 			if (1 == PatternDestroyCount)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_1_Destroy);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1_Destroy);
 				return;
 			}
 		},
@@ -734,7 +913,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_1_Destroy,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1_Destroy,
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
@@ -747,7 +926,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
 			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_ArcingProjectile_1);
+				FsmComp->ChangeState(EBossState::Phase1_ArcingProjectile_1);
 				return;
 			}
 		},
@@ -757,7 +936,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_1,
+	FsmComp->CreateState(EBossState::Phase1_ArcingProjectile_1,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -770,7 +949,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_2);
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_2);
 				return;
 			}
 
@@ -787,7 +966,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			ArcingProjectileFireTime = ArcingProjectileMaxFireTime;
 		});
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_2,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_2,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -798,7 +977,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			if (2 == PatternDestroyCount)
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_2_Destroy);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_2_Destroy);
 				return;
 			}
 		},
@@ -809,7 +988,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_2_Destroy,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_2_Destroy,
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
@@ -822,7 +1001,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			USkeletalMeshComponent* MoonBaboonMesh = EnemyMoonBaboon->GetMesh();
 			if (false == SkeletalMeshComp->IsPlaying() && false == MoonBaboonMesh->IsPlaying())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_ArcingProjectile_2);
+				FsmComp->ChangeState(EBossState::Phase1_ArcingProjectile_2);
 				return;
 			}
 		},
@@ -833,11 +1012,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_ArcingProjectile_2,
+	FsmComp->CreateState(EBossState::Phase1_ArcingProjectile_2,
 		[this]
 		{
-
-
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -847,7 +1024,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			int32 CurrentFloorPhaseToInt = static_cast<int32>(AFloor::Fsm::Phase1_3);
 			if (CurrentFloorPhaseToInt == GetFloorCurrentState())
 			{
-				FsmComp->ChangeState(EBossState::Phase1_Progress_LaserBeam_3);
+				FsmComp->ChangeState(EBossState::Phase1_LaserBeam_3);
 				return;
 			}
 
@@ -865,7 +1042,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-	FsmComp->CreateState(EBossState::Phase1_Progress_LaserBeam_3,
+	FsmComp->CreateState(EBossState::Phase1_LaserBeam_3,
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
@@ -890,6 +1067,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_BreakThePattern,
 		[this]
 		{
+			SetDamage(CoreExplodeDamage);
+
 			// 추락애니메이션 재생
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
@@ -900,66 +1079,33 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			TimerDelegate.BindUFunction(this, TEXT("MulticastSetActivateUIComponent"), CodyHoldingUIComp, true, true);
 			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
 
-			FTimerHandle TimerHandle2;
-			GetWorldTimerManager().SetTimer(TimerHandle2, this, &AEnemyFlyingSaucer::SpawnOverlapCheckActor, 4.5f, false);
+			// 카메라블렌드 
+			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
-
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase1EndCameraRail), 0.2f);
-			Phase1EndCameraRail->EnableCameraMove(0.25f);
-
+			// 포커스 해제 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		},
 
 		[this](float DT)
 		{
-			if (nullptr == OverlapCheckActor)
-			{
-				return;
-			}
-
-			if (true == Phase1EndCameraRail->IsMoveEnd())
+			// 게임스테이트 카메라 반갈 온오프 함수 생기면 주석해제 
+			/*if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
-					// 기존 카메라로 뷰타겟 변경 후 nullptr 처리 
-					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-					ViewTargetChangeController = nullptr;
+					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
-			}
+			}*/
 
-			APlayerBase* CurrentOverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-			if (nullptr != CurrentOverlapPlayer)
+			// 코디가 오버랩 상태일 때만 들어오고.
+			if (true == bIsCodyOverlap)
 			{
-				if (true == CurrentOverlapPlayer->ActorHasTag("Cody"))
+				bool bIsInteract = PlayerCody->GetIsInteract();
+				if (true == bIsInteract)
 				{
-					PlayerCody = Cast<ACody>(CurrentOverlapPlayer);
-					if (nullptr != PlayerCody)
-					{
-						// 코디가 커진 상태인것도 체크 
-						bool bIsInteract = CurrentOverlapPlayer->GetIsInteract();
-						if (true == bIsInteract)
-						{
-							MulticastCheckCodyKeyPressedAndChangeState(bIsInteract);
-						}
-					}
+					// chage state : CodyHolding_Enter
+					MulticastCheckCodyKeyPressedAndChangeState(bIsInteract);
 				}
 			}
 		},
@@ -985,7 +1131,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_CodyHolding_Enter_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_CodyHolding_Enter_Anim"), 1, false);
-			// UE_LOG(LogTemp, Warning, TEXT("Set Cody Lerp Timer"));
 		},
 
 		[this](float DT)
@@ -1005,8 +1150,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsCodyHoldingEnter = false;
 			bIsCodyHoldingLerpEnd = false;
-
-			// MulticastUnPossess();
 		});
 
 	// 코디가 살짝 들고 있는 상태 
@@ -1020,13 +1163,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// 여기들어왔다는건 이미 오버랩플레이어가 있다는 거고. 따로 검사 할필요 없이 키를 한번 더 눌렀다면 키입력 상태로 전환 
-			// 근데 지금 플레이어 위치고정을 안한상태니까 nullptr 검사 한번 해주고 수정할거임~~ 
-			if (nullptr == OverlapCheckActor->GetCurrentOverlapPlayer())
-			{
-				return;
-			}
-
 			bool IsPressed = PlayerCody->GetIsInteract();
 			if (true == IsPressed)
 			{
@@ -1074,50 +1210,41 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 여기들어왔을때 메이 UI On
 			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, true, true);
+
+
+			// 임시코드 
+			/*AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);*/
 		},
 
 		[this](float DT)
 		{
+			// 시간내에 키가 안눌렸을 경우 우주선을 내려놓음
 			if (KeyInputTime <= 0.0f)
 			{
 				FsmComp->ChangeState(EBossState::CodyHolding_ChangeOfAngle_Reverse);
 				return;
 			}
 				
-			bool CodyInput = PlayerCody->GetIsInteract();
-			if (true == CodyInput)
+			// 키체크 
+			bool bCodyInputCheck = PlayerCody->GetIsInteract();
+			if (true == bCodyInputCheck)
 			{
 				KeyInputTime = KeyInputAdditionalTime;
 			}
-
-			// 원래대로라면 메이 인터랙트 체크 필요. 
-			// 페이즈 넘기기용 테스트 코드 
-			if (true)
+			
+			// 메이가 오버랩 상태일때만 들어옴
+			if (true == bIsMayOverlap)
 			{
-				MulticastSetActivateUIComponent(CodyHoldingUIComp, false, true);
-				FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+				// 키입력 체크
+				bool bMayInputCheck = PlayerMay->GetIsInteract();
+				if (true == bMayInputCheck)
+				{
+					FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
+					return;
+				}
 			}
 
-			// 기존 동작 코드 
-			/*APlayerBase* OverlapPlayer = OverlapCheckActor->GetCurrentOverlapPlayer();
-			if (OverlapPlayer != nullptr)
-			{
-				if (true == OverlapPlayer->ActorHasTag("May"))
-				{
-					PlayerMay = Cast<AMay>(OverlapPlayer);
-					bool MayInput = PlayerMay->GetIsInteract();
-					if (true == MayInput)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Key Input True"));
-						FsmComp->ChangeState(EBossState::Phase1_ChangePhase_2);
-						return;
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Key Input False"));
-					}
-				}
-			}*/
 			KeyInputTime -= DT;
 		},
 
@@ -1125,7 +1252,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsKeyInput = false;
 			KeyInputTime = KeyInputMaxTime;
-
+			MulticastSetActivateUIComponent(CodyHoldingUIComp, false, true);
 			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, false, true);
 			
 			PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Base"));
@@ -1159,10 +1286,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/PlayRoom_SpaceStation_BossFight_LaserRippedOff_FlyingSaucer_Anim"), 1, false);
-			
-			// 코디메이 애니메이션 변경
 			PlayerCody->CutScenceStart();
-			// 메이 애니메이션 변경 추가 예정
+			PlayerMay->CutSceneStart();
+			CorrectMayLocationAndRoation();
+
+			// 카메라블렌드 
+			// EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1170,7 +1299,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 애니메이션이 종료 되었을 때 
 			if (false == SkeletalMeshComp->IsPlaying())
 			{
-				MulticastHideLaserBaseBone();
+				MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 				FsmComp->ChangeState(EBossState::Phase2_RotateSetting);
 				PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Root"));
 				return;
@@ -1180,20 +1309,26 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				SetActorLocation(PrevAnimBoneLocation);
 				bIsCorretLocation = true;
-				
 			}
 		},
 
 		[this]
 		{
 			bIsCorretLocation = false;
-			OverlapCheckActor->Destroy();
+
+			// 여기서 컴포넌트 디스트로이 오버랩 컴포넌트 비활성
+			PlayerOverlapCheckComp->SetVisibility(false);
+
+			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	
 	FsmComp->CreateState(EBossState::Phase2_RotateSetting,
 		[this]
 		{
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -1223,11 +1358,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_Rotating,
 		[this]
 		{
-			// 만약 이전 스테이트가 미사일 히트 스테이트 였다면 애니메이션 재생 
-			if (static_cast<int32>(EBossState::Phase2_RocketHit) == FsmComp->GetCurrentState())
-			{
-				MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
-			}
+			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 		},
 
 		[this](float DT)
@@ -1244,19 +1375,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
+			HomingRocket1FireTime -= DT;
+			HomingRocket2FireTime -= DT;
+			FireHomingRocket();
 
-			// 유도로켓 발사 
-			HomingRocketFireTime -= DT;
-			if (0.0f >= HomingRocketFireTime)
-			{
-				FireHomingRocket();
-				HomingRocketFireTime = HomingRocketCoolTime;
-			}
 		},
 
 		[this]
 		{
-			HomingRocketFireTime = 3.0f;
+			HomingRocket1FireTime = HomingRocketCoolTime;
+			HomingRocket2FireTime = HomingRocketCoolTime;
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_RocketHit,
@@ -1290,27 +1418,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 			
-			// 카메라 블렌딩 코드 
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
 
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase2EndCameraRail), 0.2f);
-			Phase2EndCameraRail->EnableCameraMove(0.25f);
+			// 카메라블렌드 
+			EnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
@@ -1318,29 +1428,26 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (7.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
+				
 				return;
 			}
 		},
 
 		[this]
 		{
-			ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-			ViewTargetChangeController = nullptr;
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.3f);
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
 		[this]
 		{
-			// 원숭이 타자열심히치는 애니메이션으로 변경
+			MulticastSwapMesh(false, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_KnockDownMh_Anim"), 1, true);
 		},
 
 		[this](float DT)
 		{
-			// 조건만족시 
-			
-			// 임시,
-			if (2.0f <= FsmComp->GetStateLiveTime())
+			if (true == bIsCodyOverlap)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_Fly);
 				return;
@@ -1349,12 +1456,17 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_Fly,
 		[this]
 		{
+			MulticastSwapMesh(true, false);
+			MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
+
+
+
+			PlayerCody->SetActorLocation(FVector(394.0f, 60103.0f, -4437.0f));
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
 		},
@@ -1425,7 +1537,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Phase3_MoveToTarget Start"));
 		});
 
 	FsmComp->CreateState(EBossState::Phase3_MoveToTarget,
@@ -1433,7 +1544,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Fwd_Anim"), 1, false);
 			MoveStartLocation = GetActorLocation();
-			GroundPoundTargetLocation = PlayerCody->GetActorLocation();
+			GroundPoundTargetLocation = PlayerMay->GetActorLocation();
 			GroundPoundTargetLocation.Z = MoveStartLocation.Z;
 
 			AController* BossController = GetController();
@@ -1443,11 +1554,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			// 포커스는 임시로 코디 설정, 
 			AFlyingSaucerAIController* Controller = Cast<AFlyingSaucerAIController>(GetController());
 			if (nullptr != Controller)
 			{
-				Controller->SetFocus(Cast<AActor>(PlayerCody));
+				Controller->SetFocus(Cast<AActor>(PlayerMay));
 			}
 		},
 
@@ -1509,26 +1619,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim.MoonBaboon_Ufo_Programming_Anim"), 1, false);
 			
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
-
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			// 남은체력만큼 데미지 
+			SetDamage(GetCurrentHp());
+			// EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)
@@ -1537,21 +1630,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 되돌리지말고 그냥 End; 
 			if (6.0f <= FsmComp->GetStateLiveTime())
 			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
 				FsmComp->ChangeState(EBossState::AllPhaseEnd);
 				return;
 			}
-
-			/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
-				{
-					ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-					return;
-				}*/
 		},
 
 		[this]
 		{
-			ViewTargetChangeController = nullptr;
+			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,
@@ -1569,57 +1655,43 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 
-
-
 	// TEST 전용 state 
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_Eject_FlyingSaucer_Anim"), 1, false);
-			// 임시로 0번 플레이어 카메라만 블렌드 처리 
-			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-			if (nullptr == PlayerController)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-				return;
-			}
-			
-			// 플레이어 컨트롤러 세팅 
-			ViewTargetChangeController = PlayerController;
-			// 플레이어 컨트롤러의 이전 카메라 액터 저장
-			AActor* PrevCameraActor = ViewTargetChangeController->GetViewTarget();
-			if (nullptr != PrevCameraActor)
-			{
-				PrevViewTarget = PrevCameraActor;
-			}
-
-			// 카메라 변경 후 재생비율 세팅
-			ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(Phase3EndCameraRail_1), 0.2f);
-			Phase3EndCameraRail_1->EnableCameraMove(0.55f);
+			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		},
 
 		[this](float DT)
 		{
-
-			// 여기서 되돌리지말고 그냥 End; 
-			if (6.0f <= FsmComp->GetStateLiveTime())
-			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-				return;
-			}
-
-		/*	if (true == Phase3EndCameraRail_1->IsMoveEnd())
-			{
-				ViewTargetChangeController->SetViewTargetWithBlend(PrevViewTarget, 0.2f);
-				return;
-			}*/
+			HomingRocket1FireTime -= DT;
+			HomingRocket2FireTime -= DT;
+			FireHomingRocket();
 		},
 
 		[this]
 		{
+		});
+
+	// TEST 전용 state 
+	FsmComp->CreateState(EBossState::HatchTestState,
+		[this]
+		{
+			// 멀티캐스트로 메시를 스왑한다. 
+
+			// MulticastSwapMesh();
+			UE_LOG(LogTemp, Display, TEXT("tttttttttt"));
+		},
+
+		[this](float DT)
+		{
 			
+		},
+
+		[this]
+		{
 		});
 }
-
 
 

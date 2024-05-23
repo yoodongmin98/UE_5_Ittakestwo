@@ -17,10 +17,14 @@ AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 		SetReplicateMovement(true);
 
 		CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
-		CamComp->SetupAttachment(RailCameraMount);
 
 		SetupFsm();
 	}
+}
+
+bool AUfoCameraRail::IsSupportedForNetworking() const
+{
+	return true;
 }
 
 bool AUfoCameraRail::ShouldTickIfViewportsOnly() const
@@ -48,6 +52,7 @@ void AUfoCameraRail::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Wait);
+		CamComp->AttachToComponent(RailCameraMount, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 
@@ -77,7 +82,7 @@ void AUfoCameraRail::SetupFsm()
 		[this](float DT)
 		{			
 			CurrentPositionOnRail += DT*0.1;
-			MulticastMoveRailCamera(CurrentPositionOnRail);
+			//MulticastMoveRailCamera(CurrentPositionOnRail);
 		},
 
 		[this]

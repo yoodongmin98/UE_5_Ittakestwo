@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RespawnTrigger.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
@@ -40,6 +41,7 @@ class UE5_ITT_API APlayerBase : public ACharacter
 {
 	GENERATED_BODY()
 	UInputComponent* Input;
+	ARespawnTrigger* ResPawnTriggers = nullptr;
 public:
 	UEnhancedInputComponent* PlayerInput;
 	// Sets default values for this character's properties
@@ -49,8 +51,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	///////////////////State///////////////////
+	UFUNCTION(BlueprintCallable)
+	inline void ChangeState(Cody_State _State)
+	{
+		ITTPlayerState = _State;
+	}
+	///////////////////////////////////////////
+	
 	///////////////////Input///////////////////
-
 	//키가 매핑된 Context입니다
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* CodyMappingContext;
@@ -84,8 +93,14 @@ public:
 	UInputAction* TestAction;
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* FlyMoveAction;
+	///////////////////////////////////////////
 
 
+
+
+
+
+	/////////////////Function/////////////////
 	//Cody의 현재 state를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline Cody_State GetITTPlayerState() const
@@ -148,17 +163,22 @@ public:
 	{
 		return PlayerHP;
 	}
+	//Player의 최대체력을 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline int32 GetPlayerFullHP() const
 	{
 		return FullHP;
 	}
 
+	//Player를 공격하는 함수입니다 인수=데미지
 	UFUNCTION(BlueprintCallable)
-	inline void AttackPlayer(const int att)
-	{
-		PlayerHP -= att;
-	}
+	void AttackPlayer(const int att);
+	
+	UFUNCTION(Client, Reliable)
+	void AttackPlayerClient(const int att);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void AttackPlayerServer(const int att);
+
 	//카메라의 Vector2D를 반환합니다.
 	UFUNCTION(BlueprintCallable)
 	inline FVector2D GetCameraVector() const
@@ -195,6 +215,7 @@ public:
 	{
 		CurrentAnimationEnd = true;
 	}
+	//애니메이션을 끝나지 않은 상태로 변경합니다.
 	UFUNCTION(BlueprintCallable)
 	inline void SetCurrentAnimationEndF()
 	{
@@ -226,9 +247,9 @@ public:
 	}
 	//플레이어를 죽어있는 상태로 만듭니다.
 	UFUNCTION(BlueprintCallable)
-	inline void SetPlayerDeath()
+	inline void SetPlayerDeath(bool IsDeath = true)
 	{
-		IsPlayerDeath = true;
+		IsPlayerDeath = IsDeath;
 	}
 	//Sit에서 내려오는 시간이 되었는지를 반환합니다.
 	UFUNCTION(BlueprintCallable)
@@ -242,12 +263,13 @@ public:
 	{
 		return !GetMovementComponent()->IsFalling();
 	}
-	//Idle로 돌아갈 수 있는 상태인지 반환합니다(Sit)
+	//Idle로 돌아갈 수 있는 상태로 만듭니다.(Sit)
 	UFUNCTION(BlueprintCallable)
 	inline void SetChangeIdle()
 	{
 		ChangeIdle = true;
 	}
+	//Idle로 돌아갈 수 있는 상태인지를 반환합니다.(Sit)
 	UFUNCTION(BlueprintCallable)
 	inline bool GetChangeIdle() const
 	{
@@ -277,21 +299,7 @@ public:
 	{
 		return IsFly;
 	}
-	UFUNCTION(BlueprintCallable)
-	inline FRotator GetTestRotator() const
-	{
-		return TestRotator;
-	}
-	UFUNCTION(BlueprintCallable)
-	inline void SetTestRotator(FRotator _RotationZ)
-	{
-		TestRotator += _RotationZ;
-	}
-	UFUNCTION(BlueprintCallable)
-	inline void SetLocationBool()
-	{
-		JumplocationSet = false;
-	}
+	//플레이어를 날고있지 않은 상태로 만듭니다.
 	UFUNCTION(BlueprintCallable)
 	inline void SetFlyFalse()
 	{
@@ -312,18 +320,33 @@ public:
 	{
 		return OverlapHoming;
 	}
+	//Cody가 EnemyBoss를 들고있는 상태로 만듭니다.(움직임에 관여합니다)
 	UFUNCTION(BlueprintCallable)
 	inline void SetCodyHoldEnemyTrue()
 	{
 		CodyHoldEnemy = true;
 	}
+	//Cody가 EnemyBoss를 들고있지 않은 상태로 만듭니다.
+	UFUNCTION(BlueprintCallable)
+	inline void SetCodyHoldEnemyFalse()
+	{
+		CodyHoldEnemy = false;
+	}
+	//캐릭터가 리스폰되는 위치의 Vector값을 반환합니다.
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetResPawnPosition()
+	{
+		return ResPawnPosition;
+	}
+	//ResPawn관련 TriggerActor와 충돌했을때 호출됩니다. 인수=충돌한TriggerActor
+	UFUNCTION(BlueprintCallable)
+	inline void SetTriggerActors(ARespawnTrigger* _Other);
+	//충돌한 TriggerActor의 Position을 받아 Respawn지역을 세팅하는 함수.
+	UFUNCTION(BlueprintCallable)
+	inline void SetRespawnPosition();
 
 	//////////////////////////////////////////
-	UFUNCTION(BlueprintCallable)
-	inline void ChangeState(Cody_State _State)
-	{
-		ITTPlayerState = _State;
-	}
+	
 	//마우스 돌아가는 스피드
 	float RotationInterpSpeed = 2.0f;
 	//상호작용
@@ -335,24 +358,11 @@ public:
 
 
 
-	///////////////////Key Bind Function///////////////////
-	void Idle(const FInputActionInstance& _Instance);
-	
+	///////////////////Movement+Replicate Function///////////////////
 	UFUNCTION(Client, Reliable)
 	void CustomClientIdle();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerIdle();
-
-	void CustomMove(const FInputActionInstance& _Instance);
-
-	void CustomFlyMove(const FInputActionInstance& _Instance);
-	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
-
-	//UFUNCTION(Client, Reliable)
-	//void CustomClientFly(const FInputActionInstance& _Instance);
-	//UFUNCTION(Server, Reliable, WithValidation)
-	//void CustomServerFly(const FInputActionInstance& _Instance);
-
 
 	UFUNCTION(Client,Reliable)
 	void ChangeClientDir(FRotator _Rotator);
@@ -364,33 +374,30 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ChangeServerFlyDir(FRotator _Rotator);
 
-	
-
-	void Look(const FInputActionInstance& _Instance);
-	void DashInput();
 	UFUNCTION(Client, Reliable)
 	void CustomClientDash();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerDash();
-	void GroundDash();
-	virtual void DashEnd() {};
-	void JumpDash();
-	void DashNoneInput();
+	
 	UFUNCTION(Server, Reliable)
 	void InteractInput();
 	UFUNCTION(Server, Reliable)
 	void InteractNoneInput();
+
+	void Idle(const FInputActionInstance& _Instance);
+	void Look(const FInputActionInstance& _Instance);
 	virtual void SprintInput() {};
 	virtual void SprintNoneInput() {};
+	void CustomMove(const FInputActionInstance& _Instance);
+	void CustomFlyMove(const FInputActionInstance& _Instance);
+	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
 	void Sit();
 	void SitEnd();
-
-
-
-	void TestFunction();
-
-
-
+	void DashInput();
+	void DashNoneInput();
+	void GroundDash();
+	virtual void DashEnd() {};
+	void JumpDash();
 	///////////////////////////////////////////////////////
 
 
@@ -405,13 +412,20 @@ public:
 	//////////////////////////////////////////////
 
 	///////////////////Player/////////////////////
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player)
+	UPROPERTY(Replicated,EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
+	UPROPERTY(Replicated)
 	bool IsPlayerDeath = false;
+
 
 	UFUNCTION(BlueprintCallable)
 	void PlayerDeathCheck();
+	UPROPERTY(Replicated)
+	float NowPlayerGravityScale;
+	UPROPERTY(Replicated)
+	float PlayerJumpZVelocity;
+	float PlayerDefaultJumpHeight;
 	//////////////////////////////////////////////
 
 	//////////////////Camera////////////////////
@@ -423,15 +437,22 @@ public:
 	float BigLength;
 	float NormalLength;
 	float SmallLength;
-
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
+	FVector ResPawnPosition = FVector(1000.0f,1000.0f,100.0f); //임시
+
+	//SpringArm기본 세팅 함수입니다.
+	UFUNCTION(BlueprintCallable)
+	void SpringArmDefaultFunction();
 	//////////////////////////////////////////////
 
 	//////////////////Movement////////////////////
 	UPROPERTY(Replicated)
 	float DashDistance = 2500.0f; // 앞구르기 거리
 	bool IsDGravity;
-	float PlayerDefaultSpeed; //플레이어의 기본 속도(cody기준 Normal)
+	UPROPERTY(Replicated)
+	float PlayerDefaultSpeed;
+	UPROPERTY(Replicated)
+	float NowPlayerSpeed;
 	UPROPERTY(Replicated=OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
 	UFUNCTION()
@@ -453,6 +474,7 @@ public:
 	bool BigCanDash; //커진상태에서 대쉬가 가능한지 여부
 	UPROPERTY(Replicated)
 	float DashCurrentTime;
+	UPROPERTY(Replicated)
 	bool IsSprint; //달리기 여부
 
 	float SitStartTime;
@@ -489,6 +511,12 @@ public:
 	UPROPERTY(Replicated)
 	FVector FlyForwardVector;
 	
+	//Fly
+	UPROPERTY(Replicated)
+	bool IsFly = false;
+	FVector CurrentDirection;
+	UPROPERTY(Replicated)
+	float FlyingSpeed;
 	//////////////////////////////////////////////
 
 	///////////////////Animation//////////////////
@@ -501,59 +529,56 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-
-
+	///////////////////Cody//////////////////
+	UPROPERTY(Replicated)
 	CodySize CurCodySize = CodySize::NONE;
+	UPROPERTY(Replicated)
 	CodySize NextCodySize = CodySize::NONE;
 
 	//CodySize
 	UPROPERTY(Replicated)
 	bool IsBig;
-
-	//Fly
-	UPROPERTY(Replicated)
-	bool IsFly = false;
-	FVector CurrentDirection;
-	UPROPERTY(Replicated)
-	float FlyingSpeed;
-
-
-
-
-
-
-
-
-	UPROPERTY(Replicated)
-	FRotator TestRotator;
-
-	UPROPERTY(EditAnywhere, Category = "UI")
-	class UPlayerMarkerUI* MarkerUIWidget;
-
 	UPROPERTY(Replicated)
 	bool CodyHoldEnemy = false;
+	/////////////////////////////////////////
 
 
 
 
 
+
+
+	///////////////////Widget//////////////////
+	UPROPERTY(EditAnywhere, Category = "UI")
+	class UPlayerMarkerUI* MarkerUIWidget;
 	UCapsuleComponent* CustomPlayerCapsuleComponent;
+	UFUNCTION(BlueprintCallable)
+	void SettingMarkerWidget();
+	///////////////////////////////////////////
 
 
 
-
-
+	///////////////////Overlap//////////////////
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	////////////////////////////////////////////
 
 
 
+	///////////////////Rocket//////////////////
+	void PlayerToHomingRocketJumpStart();
 
-	/////////////////////Rocket 타는 변수
+	UFUNCTION(BlueprintCallable)
+	inline void PlayerToHomingRoketJumpFinished();
+	UFUNCTION(Client, Reliable)
+	inline void ClientPlayerToHomingRoketJumpFinished();
+	UFUNCTION(Server, Reliable, WithValidation)
+	inline void ServerPlayerToHomingRoketJumpFinished();
+
 	UPROPERTY(Replicated)
 	FVector CunstomEndLocation;
 	UPROPERTY(Replicated)
@@ -575,10 +600,29 @@ public:
 	void CustomServerRideJump();
 
 	bool OverlapHoming = false;
+	///////////////////////////////////////////
+	
+
+	
+
+	///////////////////??????//////////////////
+
+	UPROPERTY(Replicated)
+	FRotator CurControllerRot;
 
 	UFUNCTION(BlueprintCallable)
-	void SpringArmDefaultFunction();
+	inline FRotator GetCurControllerRot() const
+	{
+		return CurControllerRot;
+	}
+	UPROPERTY(Replicated)
+	FVector CurControllerLoc;
 
 	UFUNCTION(BlueprintCallable)
-	void SettingMarkerWidget();
+	inline FVector GetCurControllerLoc() const
+	{
+		return CurControllerLoc;
+	}
+	void UpdateCamTrans();
+	///////////////////////////////////////////
 };

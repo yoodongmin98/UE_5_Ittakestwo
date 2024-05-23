@@ -46,7 +46,7 @@ void AHomingRocket::BeginPlay()
 	Super::BeginPlay();
 	if (true == HasAuthority())
 	{
-		RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
+		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
 		SetupOverlapEvent();
 	}
 }
@@ -70,6 +70,7 @@ void AHomingRocket::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(AHomingRocket, FireEffectComp);
 	DOREPLIFETIME(AHomingRocket, BossActor);
 	DOREPLIFETIME(AHomingRocket, RocketDamageToBoss);
+	DOREPLIFETIME(AHomingRocket, RocketDamageToPlayer);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpRatio);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpStartRotation);
 	DOREPLIFETIME(AHomingRocket, PlayerEquipLerpEndRotation);
@@ -81,6 +82,7 @@ int32 AHomingRocket::GetCurrentState() const
 	if (nullptr == RocketFsmComponent)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("RocketFsmComponent is nullptr"));
+		return -1;
 	}
 
 	return RocketFsmComponent->GetCurrentState();
@@ -111,6 +113,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// 플레이어 충돌시 
 			if (false == bIsActive)
 			{
 				Multicast_SpawnDestroyEffect();
@@ -168,16 +171,15 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			
 		});
-
-	// 플레이어가 애니메이션을 동작하는 중일 때 
-	// 플레이어 회전보정
-	// 애니메이션 프레임 시간 체크해서 이제 장착 -> 스테이트 변경 장착 
+	
 	RocketFsmComponent->CreateState(ERocketState::PlayerEquipCorrect,
 		[this]
 		{
 			EnablePlayerFlying();
-			FVector TargetVector = GetActorForwardVector();
-			PlayerEquipLerpEndRotation = TargetVector.Rotation();
+
+			// 로켓이 회전해있어서 라이트벡터 사용
+			FVector TargetRightVector = RocketMeshComp->GetRightVector();
+			PlayerEquipLerpEndRotation = TargetRightVector.Rotation();
 			PlayerEquipLerpStartRotation = OverlapActor->GetActorRotation();
 		},
 
@@ -261,7 +263,6 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Rocket Destroy State Start"));
 			DestroyRocket();
 		},
 
@@ -336,6 +337,10 @@ void AHomingRocket::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 			if (true == bIsActive)
 			{
 				bIsActive = false;
+				APlayerBase* PlayerBase = Cast<APlayerBase>(OtherActor);
+				OverlapActor = PlayerBase;
+				PlayerBase->AttackPlayer(RocketDamageToPlayer);
+				// UE_LOG(LogTemp, Warning, TEXT("%f"), PlayerBase->GetPlayerHP());
 			}
 		}
 	}
@@ -388,31 +393,41 @@ void AHomingRocket::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 void AHomingRocket::PlayerEquipBegin()
 {
+	// 기존에 활성화 했던 옵션들 비활성
 	bIsPlayerEquip = true;
 	RocketMeshComp->SetSimulatePhysics(false);
 	RocketMeshComp->SetEnableGravity(false);
-	// 부착해제 되었던 로켓메시를 다시 부착
+
+	// 로켓컴포넌트를 액터에 재부착 
 	RocketMeshComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 
-	
+	// 기존 위치, 회전값 초기화
 	SetActorRelativeLocation(FVector::ZeroVector);
+	SetActorRelativeRotation(FRotator::ZeroRotator);
+
+	// 기존 위치값 초기화 및 회전 값 기존 설정과 동일하게 변경
 	RocketMeshComp->SetRelativeLocation(FVector::ZeroVector);
+	RocketMeshComp->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	
+	// 플레이어에 부착
 	AttachToComponent(OverlapActor->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("RocketSocket"));
+	// 오너세팅 
 	this->SetOwner(OverlapActor);
 
-	// 플레이어함수 세팅함수 호출 
-	OverlapActor->SetLocationBool();
+	// 플레이어의 장착완료시 함수 호출 후 종료 
+	OverlapActor->PlayerToHomingRoketJumpFinished();
 }
 
 void AHomingRocket::DestroyRocket()
 {
 	Destroy();
+	RocketFsmComponent = nullptr;
 }
 
 // Fly 활성 
 void AHomingRocket::EnablePlayerFlying()
 {
-	OverlapActor->TestFunction();
+	OverlapActor->PlayerToHomingRocketJumpStart();
 }
 
 // Fly 비활성

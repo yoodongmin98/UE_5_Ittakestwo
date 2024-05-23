@@ -12,7 +12,6 @@
 ACody::ACody()
 {
 	Tags.Add(FName("Cody"));
-
 }
 
 // Called when the game starts or when spawned
@@ -28,7 +27,7 @@ void ACody::BeginPlay()
 	NormalSize = FVector(1.0f, 1.0f, 1.0f);
 	SmallSize= FVector(0.1111111111f, 0.1111111111f, 0.1111111111f);
 	TargetScale = NormalSize;
-	CodyDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
+
 	
 	AActor* FoundBoss = UGameplayStatics::GetActorOfClass(GetWorld(), AEnemyFlyingSaucer::StaticClass());
 	EnemyBoss = Cast<AEnemyFlyingSaucer>(FoundBoss);
@@ -46,17 +45,20 @@ void ACody::Tick(float DeltaTime)
 	{
 	case CodySize::BIG:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, BigLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(BigLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::NORMAL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, NormalLength, DeltaTime, CameraSpeed);
+		ClientCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
+		ServerCameraLengthChange(NormalLength, DeltaTime, CameraSpeed);
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, SmallLength, DeltaTime, CameraSpeed * 2.0f);
+		ClientCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
+		ServerCameraLengthChange(SmallLength, DeltaTime, CameraSpeed * 2.0);
 		break;
 	}
 	default:
@@ -84,9 +86,9 @@ void ACody::Tick(float DeltaTime)
 			{
 				IsBig = true;
 				BigCanDash = false;
-				GetCharacterMovement()->GravityScale = DefaultGravityScale + 1.0f;
+				NowPlayerGravityScale = DefaultGravityScale + 1.0f;
 				GetCapsuleComponent()->SetWorldScale3D(BigSize);
-				GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+				NowPlayerSpeed = PlayerDefaultSpeed;
 				FVector CurLocation = GetActorLocation();
 				CurLocation.Z += 90.f * 4.f;
 				SetActorLocation(CurLocation);
@@ -103,16 +105,16 @@ void ACody::Tick(float DeltaTime)
 
 				IsBig = false;
 				BigCanDash = true;
-				GetCharacterMovement()->GravityScale = DefaultGravityScale;
-				GetCharacterMovement()->JumpZVelocity = CodyDefaultJumpHeight;
+				NowPlayerGravityScale = DefaultGravityScale;
+				PlayerJumpZVelocity = PlayerDefaultJumpHeight;
 				DashDistance = 2500.0f;
 				GetCapsuleComponent()->SetWorldScale3D(NormalSize);
 				break;
 			}
 			case CodySize::SMALL:
 			{
-				GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
-				GetCharacterMovement()->JumpZVelocity = 200.0f;
+				NowPlayerGravityScale = DefaultGravityScale - 3.5f;
+				PlayerJumpZVelocity = PlayerDefaultJumpHeight -1300.0f;
 				DashDistance = 600.0f;
 				GetCapsuleComponent()->SetWorldScale3D(SmallSize);
 				break;
@@ -139,12 +141,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed + 500.0f;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 500.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 500.0f;
 			break;
 		}
 		default:
@@ -161,12 +163,12 @@ void ACody::Tick(float DeltaTime)
 		}
 		case CodySize::NORMAL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+			NowPlayerSpeed = PlayerDefaultSpeed;
 			break;
 		}
 		case CodySize::SMALL:
 		{
-			GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700.0f;
+			NowPlayerSpeed = PlayerDefaultSpeed - 700.0f;
 			break;
 		}
 		default:
@@ -181,7 +183,6 @@ void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (PlayerInput != nullptr)
 	{
-		PlayerInput->BindAction(TestAction, ETriggerEvent::Triggered, this, &ACody::TriggerTest);
 		if(true == HasAuthority())
 		{
 			PlayerInput->BindAction(LeftMAction, ETriggerEvent::Triggered, this, &ACody::ChangeSmallSize);
@@ -321,7 +322,21 @@ void ACody::ChangeServerSmallSize_Implementation()
 
 void ACody::SprintInput()
 {
-	IsSprint = !IsSprint;
+	ClientSprintInput();
+	ServerSprintInput();
+}
+
+void ACody::ClientSprintInput_Implementation()
+{
+	IsSprint = true;
+}
+bool ACody::ServerSprintInput_Validate()
+{
+	return true;
+}
+void ACody::ServerSprintInput_Implementation()
+{
+	IsSprint = true;
 }
 
 
@@ -337,14 +352,14 @@ void ACody::DashEnd()
 	case CodySize::NORMAL:
 	{
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction;
-		GetCharacterMovement()->GravityScale = DefaultGravityScale;
+		NowPlayerGravityScale = DefaultGravityScale;
 		break;
 	}
 	case CodySize::SMALL:
 	{
-		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed - 700;
+		NowPlayerSpeed = PlayerDefaultSpeed - 700;
 		GetCharacterMovement()->GroundFriction = DefaultGroundFriction - 45.0f;
-		GetCharacterMovement()->GravityScale = DefaultGravityScale - 3.5f;
+		NowPlayerGravityScale = DefaultGravityScale - 3.5f;
 		break;
 	}
 	default:
@@ -364,14 +379,9 @@ void ACody::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACody, CutsceneTrigger);
+	DOREPLIFETIME(ACody, SpringArmLength);
+	DOREPLIFETIME(ACody, CameraSpeed);
 }
-
-void ACody::TriggerTest()
-{
-	CutsceneTrigger = !CutsceneTrigger;
-}
-
-
 
 
 void ACody::CutScenceStart()
@@ -400,14 +410,8 @@ void ACody::CustomServerCutScene_Implementation()
 
 void ACody::SetCodyMoveable()
 {
-	if (HasAuthority())
-	{
-		CustomClientMoveable();
-	}
-	else
-	{
-		CustomServerMoveable();
-	}
+	CustomClientMoveable();
+	CustomServerMoveable();
 }
 
 void ACody::CustomClientMoveable_Implementation()
@@ -421,4 +425,25 @@ bool ACody::CustomServerMoveable_Validate()
 void ACody::CustomServerMoveable_Implementation()
 {
 	CodyHoldEnemy = false;
+}
+
+
+
+
+
+
+void ACody::ClientCameraLengthChange_Implementation(float _Length,float _DeltaTime, float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
+}
+
+bool ACody::ServerCameraLengthChange_Validate(float _Length, float _DeltaTime, float _CameraSpeed)
+{
+	return true;
+}
+void ACody::ServerCameraLengthChange_Implementation(float _Length,float _DeltaTime,float _CameraSpeed)
+{
+	SpringArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, _Length, _DeltaTime, _CameraSpeed);
+	SpringArm->TargetArmLength = SpringArmLength;
 }

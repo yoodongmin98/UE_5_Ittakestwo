@@ -22,6 +22,14 @@ void AMay::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (IsSprint)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed + 500.0f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PlayerDefaultSpeed;
+	}
 }
 
 void AMay::DashEnd()
@@ -37,4 +45,23 @@ void AMay::DashEnd()
 		bCanDash = false;
 		DashDuration = 0.7f;
 	}
+}
+
+void AMay::SprintInput()
+{
+	ClientSprintInput();
+	ServerSprintInput();
+}
+
+void AMay::ClientSprintInput_Implementation()
+{
+	IsSprint = true;
+}
+bool AMay::ServerSprintInput_Validate()
+{
+	return true;
+}
+void AMay::ServerSprintInput_Implementation()
+{
+	IsSprint = true;
 }

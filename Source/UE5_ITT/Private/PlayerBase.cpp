@@ -2,6 +2,7 @@
 
 
 #include "PlayerBase.h"
+#include "RespawnTrigger.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "HomingRocket.h"
@@ -97,26 +98,21 @@ void APlayerBase::BeginPlay()
 	DefaultGravityScale = GetCharacterMovement()->GravityScale; //기본 중력 스케일
 	PlayerDefaultSpeed = GetCharacterMovement()->MaxWalkSpeed; //기본 이동속도
 
+	NowPlayerGravityScale = DefaultGravityScale;
+	PlayerJumpZVelocity = GetCharacterMovement()->JumpZVelocity;
+	PlayerDefaultJumpHeight = GetCharacterMovement()->JumpZVelocity;
 
 	IsMoveEnd = false;
-
 	bIsDashing = false;
 	bIsDashingStart = false;
 	bCanDash = false;
 	BigCanDash = true;
-
 	CurrentAnimationEnd = false;
 	IsSprint = false;
-
 	CanSit = true;
 	SitDuration = 0.5f;
 	ChangeIdle = true;
-	TestRotator = FRotator::ZeroRotator;
-
-
 	CustomPlayerJumpCount = ACharacter::JumpMaxCount;
-
-
 	FlyingSpeed = 600.0f;
 }
 
@@ -124,9 +120,21 @@ void APlayerBase::BeginPlay()
 void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	////////////////동기화를 위한 Tick Check/////////////////////
+	 
 	//점프 횟수 확인
 	CharacterJumpCount = JumpCurrentCount;
-	//중력상태확인(Sit)
+	//중력상태확인
+	GetCharacterMovement()->GravityScale = NowPlayerGravityScale;
+	//이동속도 체크
+	GetCharacterMovement()->MaxWalkSpeed = NowPlayerSpeed;
+	GetCharacterMovement()->JumpZVelocity = PlayerJumpZVelocity;
+	//플레이어 생존여부 확인
+	PlayerDeathCheck();
+
+	///////////////////////////////////////////////////////////
+
+
 	if (GetCharacterMovement()->GravityScale <=5.5f)
 	{
 		IsDGravity = true;
@@ -135,8 +143,6 @@ void APlayerBase::Tick(float DeltaTime)
 	{
 		IsDGravity = false;
 	}
-	//플레이어 생존여부 확인
-	PlayerDeathCheck();
 	//대쉬의 지속시간을 Tick에서 지속적으로 확인
 	if (bIsDashing && bCanDash)
 	{
@@ -160,7 +166,19 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
-	
+	if (JumplocationSet)
+	{
+		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
+		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
+		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
+		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
+		SetActorLocation(ResultTargetLocations);
+		if (JumpLocationDeltas >= 1.0f)
+		{
+			JumpLocationDeltas = 1.0f;
+		}
+	}
+	UpdateCamTrans();
 }
 
 // Called to bind functionality to input
@@ -213,7 +231,7 @@ void APlayerBase::CustomClientIdle_Implementation()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false)
+	if (bCanDash == false && !IsPlayerDeath && !IsFly)
 		ChangeState(Cody_State::IDLE);
 }
 
@@ -230,7 +248,7 @@ void APlayerBase::OnRep_IsMoveEnd()
 {
 	IsSprint = false;
 	IsMoveEnd = false;
-	if (bCanDash == false)
+	if (bCanDash == false && !IsPlayerDeath)
 		ChangeState(Cody_State::IDLE);
 }
 void APlayerBase::CustomMove(const FInputActionInstance& _Instance)
@@ -283,7 +301,6 @@ void APlayerBase::CustomFlyMove(const FInputActionInstance& _Instance)
 	if (IsFly && !CodyHoldEnemy)
 	{
 		ChangeState(Cody_State::FLYING);
-		GetCharacterMovement()->MaxFlySpeed = 1500.0f;
 		if (bCanDash == false && ChangeIdle)
 		{
 			// 컨트롤러의 회전 방향을 가져옴
@@ -354,6 +371,7 @@ void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
+	GetCharacterMovement()->MaxFlySpeed = 1500.0f;
 	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
@@ -365,6 +383,7 @@ void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
 	SetActorRotation(_Rotator);
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	FlyForwardVector = GetActorForwardVector();
+	GetCharacterMovement()->MaxFlySpeed = 1500.0f;
 	AddActorWorldOffset(FlyForwardVector * FlyingSpeed * (GetWorld()->DeltaRealTimeSeconds));
 }
 
@@ -554,6 +573,135 @@ void APlayerBase::PlayerDeathCheck()
 	}
 }
 
+void APlayerBase::PlayerToHomingRocketJumpStart()
+{
+	IsFly = true;
+	if (HasAuthority())
+	{
+		CustomClientRideJump();
+	}
+	else
+	{
+		CustomServerRideJump();
+	}
+}
+
+
+void APlayerBase::CustomClientRideJump_Implementation()
+{
+	Jump();
+	JumplocationSet = true;
+	ChangeState(Cody_State::FLYING);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+}
+
+bool APlayerBase::CustomServerRideJump_Validate()
+{
+	return true;
+}
+void APlayerBase::CustomServerRideJump_Implementation()
+{
+	Jump();
+	JumplocationSet = true;
+	ChangeState(Cody_State::FLYING);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
+}
+
+void APlayerBase::PlayerToHomingRoketJumpFinished()
+{
+	ClientPlayerToHomingRoketJumpFinished();
+	ServerPlayerToHomingRoketJumpFinished();
+}
+
+void APlayerBase::ClientPlayerToHomingRoketJumpFinished_Implementation()
+{
+	JumplocationSet = false; 
+	JumpLocationDeltas = 0.0f;
+}
+bool APlayerBase::ServerPlayerToHomingRoketJumpFinished_Validate()
+{
+	return true;
+}
+void APlayerBase::ServerPlayerToHomingRoketJumpFinished_Implementation()
+{
+	JumplocationSet = false;
+	JumpLocationDeltas = 0.0f;
+}
+
+void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag("HomingRocket"))
+	{
+		CunstomEndLocation = OtherComp->GetComponentLocation();
+		CunstomStartLocation = GetActorLocation();
+	}
+}
+
+void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+
+}
+
+void APlayerBase::SpringArmDefaultFunction()
+{
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetUsingAbsoluteRotation(true);
+	SpringArm->TargetArmLength = NormalLength;
+	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
+	SpringArm->bDoCollisionTest = true;
+}
+
+void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
+{
+	ResPawnTriggers = _Other;
+	
+}
+
+void APlayerBase::SetRespawnPosition()
+{
+	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
+}
+
+void APlayerBase::AttackPlayer(const int att)
+{
+	AttackPlayerServer(att);
+}
+
+bool APlayerBase::AttackPlayerServer_Validate(const int att)
+{
+	return true;
+}
+void APlayerBase::AttackPlayerServer_Implementation(const int att)
+{
+	PlayerHP -= att;
+}
+
+void APlayerBase::AttackPlayerClient_Implementation(const int att)
+{
+	PlayerHP -= att;
+}
+
+void APlayerBase::UpdateCamTrans()
+{
+	if (true == HasAuthority())
+	{
+		CurControllerLoc = PlayerCameraComponent->GetComponentLocation();
+		CurControllerRot = PlayerCameraComponent->GetComponentRotation();
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
 void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -568,14 +716,13 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CharacterJumpCount);
 	DOREPLIFETIME(APlayerBase, IsBig);
 	DOREPLIFETIME(APlayerBase, ChangeIdle);
-	DOREPLIFETIME(APlayerBase, TestRotator);
 	DOREPLIFETIME(APlayerBase, MoveDirection);
 	DOREPLIFETIME(APlayerBase, MoveInput);
 	DOREPLIFETIME(APlayerBase, ControllerRotation);
 	DOREPLIFETIME(APlayerBase, CustomTargetRotation);
 	DOREPLIFETIME(APlayerBase, WorldForwardVector);
 	DOREPLIFETIME(APlayerBase, WorldRightVector);
-	DOREPLIFETIME(APlayerBase, DashDirection)
+	DOREPLIFETIME(APlayerBase, DashDirection);
 	DOREPLIFETIME(APlayerBase, DashDistance);
 	DOREPLIFETIME(APlayerBase, DashVelocity);
 	DOREPLIFETIME(APlayerBase, bIsDashing);
@@ -597,90 +744,15 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, CustomTargetLocations);
 	DOREPLIFETIME(APlayerBase, CustomTargetLocationsY);
 	DOREPLIFETIME(APlayerBase, ResultTargetLocations);
-}
-
-
-
-
-void APlayerBase::TestFunction()
-{
-	IsFly = true;
-	if (HasAuthority())
-	{
-		CustomClientRideJump();
-	}
-	else
-	{
-		CustomServerRideJump();
-	}
-}
-
-
-void APlayerBase::CustomClientRideJump_Implementation()
-{
-	Jump();
-	JumplocationSet = true;
-	ChangeState(Cody_State::FLYING);
-	SpringArm->TargetArmLength = NormalLength;
-	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
-
-	if (JumplocationSet)
-	{
-		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
-		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
-		SetActorLocation(ResultTargetLocations);
-	}
-}
-
-bool APlayerBase::CustomServerRideJump_Validate()
-{
-	return true;
-}
-void APlayerBase::CustomServerRideJump_Implementation()
-{
-	Jump();
-	JumplocationSet = true;
-	ChangeState(Cody_State::FLYING);
-	SpringArm->TargetArmLength = NormalLength;
-	SpringArm->SetRelativeRotation(FRotator(-10.f, 0.f, 0.f));
-
-	if (JumplocationSet)
-	{
-		JumpLocationDeltas += GetWorld()->DeltaTimeSeconds;
-		CustomTargetLocations = FMath::Lerp(CunstomStartLocation.X, CunstomEndLocation.X, JumpLocationDeltas);
-		CustomTargetLocationsY = FMath::Lerp(CunstomStartLocation.Y, CunstomEndLocation.Y, JumpLocationDeltas);
-		ResultTargetLocations = FVector(CustomTargetLocations, CustomTargetLocationsY, GetActorLocation().Z);
-		SetActorLocation(ResultTargetLocations);
-	}
-}
-
-void APlayerBase::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag("HomingRocket"))
-	{
-		CunstomEndLocation = OtherActor->GetActorLocation();
-		CunstomStartLocation = GetActorLocation();
-	}
-}
-
-
-void APlayerBase::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-
-}
-
-
-
-
-
-
-void APlayerBase::SpringArmDefaultFunction()
-{
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetUsingAbsoluteRotation(true);
-	SpringArm->TargetArmLength = NormalLength;
-	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
-	SpringArm->bDoCollisionTest = true;
+	DOREPLIFETIME(APlayerBase, IsSprint);
+	DOREPLIFETIME(APlayerBase, IsPlayerDeath);
+	DOREPLIFETIME(APlayerBase, PlayerHP);
+	DOREPLIFETIME(APlayerBase, CurControllerRot);
+	DOREPLIFETIME(APlayerBase, CurControllerLoc);
+	DOREPLIFETIME(APlayerBase, PlayerDefaultSpeed);
+	DOREPLIFETIME(APlayerBase, NowPlayerSpeed);
+	DOREPLIFETIME(APlayerBase, CurCodySize);
+	DOREPLIFETIME(APlayerBase, NextCodySize);
+	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
+	DOREPLIFETIME(APlayerBase, PlayerJumpZVelocity);
 }

@@ -19,7 +19,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION()
-	void SetupTarget(AActor* const Target) 
+	void SetTarget(AActor* const Target) 
 	{
 		if (nullptr != Target)
 		{
@@ -78,7 +78,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Component")
 	class UFsmComponent* RocketFsmComponent = nullptr;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(EditDefaultsOnly, Replicated)
 	class UNiagaraComponent* FireEffectComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
@@ -126,6 +126,8 @@ private:
 	UPROPERTY(Replicated)
 	float RocketDamageToBoss = 7.5f;
 
+	UPROPERTY(Replicated)
+	float RocketDamageToPlayer = 12.0f;
 
 	// 플레이어 회전보정관련 
 	UPROPERTY(Replicated)

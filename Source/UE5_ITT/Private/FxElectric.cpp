@@ -4,7 +4,9 @@
 #include "FxElectric.h"
 #include "FsmComponent.h"
 #include "NiagaraComponent.h"
-
+#include "ITTGameModeBase.h"
+#include "Components/BoxComponent.h"
+#include "PlayerBase.h"
 
 AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
 {
@@ -17,12 +19,15 @@ AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
 		SetupFsm(); 
 		NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
 		NiagaraComp->SetupAttachment(RootComponent);
+
+		BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCol"));
+		BoxCollision->SetupAttachment(NiagaraComp);
 	}
 }
 
 void AFxElectric::NiagaraToggle_Implementation()
 {
-	NiagaraComp->ToggleActive();
+	NiagaraComp->ToggleVisibility();
 }
 
 void AFxElectric::BeginPlay()
@@ -32,7 +37,13 @@ void AFxElectric::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::None);
+		FsmComp->ChangeState(Fsm::ClientWait);
+
+		//꺼두고 시작
+		NiagaraToggle();
+
+		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AFxElectric::OnOverlapBegin);
+		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AFxElectric::OnOverlapEnd);
 	}
 }
 
@@ -46,23 +57,83 @@ void AFxElectric::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
-	FsmComp->CreateState(Fsm::None,
+	FsmComp->CreateState(Fsm::ClientWait,
+		[this]
+		{
+
+		},
+
+		[this](float DeltaTime)
+		{
+			//클라 접속 대기
+			if (GetWorld()->GetAuthGameMode()->GetNumPlayers() == 2)
+			{
+				ClientWaitTime += DeltaTime;
+			}
+			if (ClientWaitTime >= 1.f)
+			{
+				FsmComp->ChangeState(Fsm::Delay);
+				return;
+			}
+		},
+
+		[this]
+		{
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Delay,
 		[this]
 		{
 		},
 
 		[this](float DT)
 		{
-			
-			if (GetWorld()->GetTimeSeconds() > 3.f)
+			//번갈아 켜져야하니까 딜레이
+			if (true == bDelay)
 			{
-				FsmComp->ChangeState(Fsm::Wait);
+				if (FsmComp->GetStateLiveTime()>=3.f)
+				{
+					FsmComp->ChangeState(Fsm::Active);
+					return;
+				}
+			}
+			else
+			{
+				FsmComp->ChangeState(Fsm::Active);
+				return;
 			}
 		},
 
 		[this]
 		{
 
+		}
+	);
+
+	FsmComp->CreateState(Fsm::Active,
+		[this]
+		{
+			NiagaraToggle();
+		},
+
+		[this](float DT)
+		{
+			ActiveTime += DT;
+			if (ColPlayer!=nullptr)
+			{
+				ColPlayer->AttackPlayer(12);
+			}
+			if (ActiveTime >= 2.f)
+			{
+				FsmComp->ChangeState(Fsm::Wait);
+				return;
+			}
+		},
+
+		[this]
+		{
+			ActiveTime -= 2.f;
 		}
 	);
 
@@ -74,37 +145,34 @@ void AFxElectric::SetupFsm()
 
 		[this](float DT)
 		{
-			if (true == bDelay)
+			ActiveTime += DT;
+			if (ActiveTime >= 4.f)
 			{
-				if (FsmComp->GetStateLiveTime()>3.f)
-				{
-					FsmComp->ChangeState(Fsm::End);
-				}
-			}
-			else
-			{
-				FsmComp->ChangeState(Fsm::End);
+				FsmComp->ChangeState(Fsm::Active);
+				return;
 			}
 		},
 
 		[this]
 		{
-
+			ActiveTime -= 4.f;
 		}
 	);
-	FsmComp->CreateState(Fsm::End,
-		[this]
-		{
-			NiagaraToggle();
-		},
+}
 
-		[this](float DT)
-		{
-		},
+void AFxElectric::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this) && OtherActor->ActorHasTag("Player") == true)
+	{
+		APlayerBase* OverlapPlayer = Cast<APlayerBase>(OtherActor);
+		ColPlayer = OverlapPlayer;
+	}
+}
 
-		[this]
-		{
-
-		}
-	);
+void AFxElectric::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && ColPlayer && (OtherActor == ColPlayer))
+	{
+		ColPlayer = nullptr;
+	}
 }

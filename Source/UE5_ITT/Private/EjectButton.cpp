@@ -18,7 +18,6 @@ AEjectButton::AEjectButton()
 		bReplicates = true;
 		SetReplicateMovement(true);
 		SetupFsm();
-
 		SM_BaseComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_BaseComp"));
 		SetRootComponent(SM_BaseComp);
 		SM_PushComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_PushComp"));
@@ -199,11 +198,12 @@ void AEjectButton::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
+			ButtonPressedEvent();
 		},
 
 		[this](float DeltaTime)
 		{
-			UE_LOG(LogTemp, Display, TEXT("End"));
+
 		},
 
 		[this]
@@ -214,10 +214,9 @@ void AEjectButton::SetupFsm()
 
 void AEjectButton::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Display, TEXT("OverlapBegin"));
-	ACody* Cody = Cast<ACody>(OtherActor);
-	if (Cody!=nullptr)
+	if (OtherActor->ActorHasTag("Cody") == true)
 	{
+		ACody* Cody = Cast<ACody>(OtherActor);
 		if (Cody->GetIsSit())
 		{
 			bPush = true;

@@ -86,7 +86,10 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::LaserOn,
 		[this]
 		{
+			LaserSizeRatio = 0.f;
 			MulticastActiveLaser(true);
+			MulticastSetLaserSize(1.f);
+
 		},
 
 		[this](float DT)

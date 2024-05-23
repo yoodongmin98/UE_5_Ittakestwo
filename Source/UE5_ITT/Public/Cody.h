@@ -78,8 +78,19 @@ public:
 
 
 	virtual void SprintInput() override;
+	UFUNCTION(Client, Reliable)
+	void ClientSprintInput();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSprintInput();
+
+
 	virtual void DashEnd() override;
 
+
+	UFUNCTION(Client, Reliable)
+	void ClientCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
 
 	//Size
 	FVector BigSize;
@@ -93,17 +104,17 @@ public:
 	FTransform CodyLocalTransform;
 
 	float CodyDefaultSpeed;
-	float CodyDefaultJumpHeight;
 
 
-
+	UPROPERTY(Replicated)
+	float SpringArmLength;
+	UPROPERTY(Replicated)
 	float CameraSpeed;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UPROPERTY(Replicated)
 	bool CutsceneTrigger;
-	void TriggerTest();
 
 	UFUNCTION(BlueprintCallable)
 	inline void CutScenceStart();
@@ -113,6 +124,7 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CustomServerCutScene();
 
+	UFUNCTION(BlueprintCallable)
 	void SetCodyMoveable();
 
 	UFUNCTION(Client, Reliable)

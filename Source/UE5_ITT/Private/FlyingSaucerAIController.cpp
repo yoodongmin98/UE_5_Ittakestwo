@@ -70,10 +70,7 @@ void AFlyingSaucerAIController::SetupPlayerRefAndBehaviorTreePhase1()
 		int32 LoginCount = CurrentGameMode->GetPlayerLoginCount();
 		if (2 == LoginCount)
 		{
-			TArray<AActor*> Players = CurrentGameMode->GetLoginPlayerControllers();
 			SetupStartBehaviorTreePhase1();
-
-			// ¿Ï·á 
 			bIsSetupPlayerRef = true;
 		}
 	}

@@ -18,7 +18,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 
 	UFUNCTION(BlueprintCallable)
 	void FireHomingRocket();
@@ -46,16 +46,22 @@ public:
 
 	// 레이저 추적 로직 관련 변수
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	FVector PrevTargetLocation = FVector::ZeroVector;
+	FVector PrevLaserTargetLocation = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	FVector PrevTargetLocationBuffer = FVector::ZeroVector;
+	FVector NextLaserTargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	FVector CurrentLaserTargetLocation = FVector::ZeroVector;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	bool bPrevTargetLocationValid = false;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRatio = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	float LaserLerpScale = 5.0f;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRate = 25.0f;
@@ -67,10 +73,16 @@ public:
 	int32 CurrentArcingProjectileTargetIndex = 0;
 
 	UPROPERTY(VisibleDefaultsOnly)
-	class AActor* LaserTargetActor = nullptr;
+	class APlayerBase* LaserTargetActor = nullptr;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	class APlayerBase* PrevLaserTargetActor = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
 	float CoreExplodeDamage = 11.0f;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsFsmStart = false;
 
 	UFUNCTION(BlueprintCallable)
 	void SetDamage(const float Damage)
@@ -122,19 +134,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AMay* GetPlayerMay() const { return PlayerMay; }
 
-
 	enum class EBossState
 	{
 		None,
 
 		Intro,
-		Phase1_Progress_LaserBeam_1,
-		Phase1_Progress_LaserBeam_1_Destroy,
-		Phase1_Progress_ArcingProjectile_1,
-		Phase1_Progress_LaserBeam_2,
-		Phase1_Progress_LaserBeam_2_Destroy,
-		Phase1_Progress_ArcingProjectile_2,
-		Phase1_Progress_LaserBeam_3,
+		Phase1_LaserBeam_1,
+		Phase1_LaserBeam_1_Destroy,
+		Phase1_ArcingProjectile_1,
+		Phase1_LaserBeam_2,
+		Phase1_LaserBeam_2_Destroy,
+		Phase1_ArcingProjectile_2,
+		Phase1_LaserBeam_3,
 		Phase1_BreakThePattern,
 
 		CodyHolding_Enter,
@@ -158,18 +169,18 @@ public:
 
 		Phase3_Eject,
 
-
 		FireHomingRocket,
 		FireArcingProjectile,
 
 		AllPhaseEnd,
-		TestState
+		TestState,
+		HatchTestState,
 	};
 
+	UFUNCTION(BlueprintCallable)
 	void EnableEject() 
 	{ 
 		bIsEject = true; 
-		bIsAllPhaseEnd = true;
 	}
 
 	void SetRocketHit()
@@ -177,10 +188,23 @@ public:
 		bIsRocketHit = true;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	void SetupPlayerActorsCodyAndMay();
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneEnd = false;
+
+	UPROPERTY(BlueprintReadWrite, Replicated)
+	bool bIsCutSceneStart = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsDebugChangePhase = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
 	// 보스애니메이션 변경시 사용하는 애니메이션 리소스 정보 애니메이션 시퀀스 or 애니메이션 블루프린트 
 	enum class EAnimationAssetType : uint8
@@ -191,14 +215,29 @@ private:
 	};
 
 	UFUNCTION()
+	void OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void SetupOverlapEvent();
-	void SetupPlayerActorsCodyAndMay();
+	UFUNCTION()
+	void PlayerCheckComponentOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void PlayerCheckComponentOnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void CodyCheckComponentOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void CodyCheckComponentOnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetupHitEvent();
+	void SetupOverlapEvent();
+	
 	// multicast 함수 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastChangeAnimationFlyingSaucer(const FString& AnimPath, const uint8 AnimType, bool AnimLoop);
@@ -212,15 +251,22 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSetActivateUIComponent(UInteractionUIComponent* UIComponent, bool ParentUIActivate, bool ChildUIActivate);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSwapMesh(bool bSkeletalMeshCompVisible, bool bStaticMeshCompVisible);
+
+
 	int32 GetFloorCurrentState();
 	void DrawDebugMesh();
 
 	UPROPERTY(EditDefaultsOnly)
-	float ServerDelayTime = 6.0f;
+	float ServerDelayTime = 5.0f;
 
 	void SetupComponent();
 	void SetupFsmComponent();
 	
+	void EnableCutSceneCameraBlend(class APlayerBase* BlendTargetActor, class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
+	void DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime);
+
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyInput = false;
@@ -260,6 +306,10 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AGroundPoundEffect> GroundPoundEffectClass = nullptr;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ACoreExplosionEffect> CoreExplosionEffectClass = nullptr;
+
+
 	// 보스 투사체 관련 
 	UFUNCTION(BlueprintCallable)
 	void ResetArcingProjectileFireCount() { ArcingProjectileFireCount = 0; }
@@ -293,16 +343,20 @@ private:
 	UPROPERTY(Replicated, EditAnywhere)
 	class USkeletalMeshComponent* SkeletalMeshComp = nullptr;
 
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* PlayerOverlapCheckComp = nullptr;
 
-	// 오버랩 체크 관련 
-	UFUNCTION(BlueprintCallable)
-	void SpawnOverlapCheckActor();
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* HatchOpenStaticMeshComp = nullptr;
 
-	UPROPERTY(Replicated, EditDefaultsOnly)
-	class AOverlapCheckActor* OverlapCheckActor = nullptr;
+	UPROPERTY(Replicated, EditAnywhere)
+	class UStaticMeshComponent* CodyOverlapCheckComp = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AOverlapCheckActor> OverlapCheckActorClass = nullptr;
+	bool bIsCodyOverlap = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsMayOverlap = false;
 
 	// 보스 공격 생성 지점, 디버그드로우 활성화로 위치 확인 가능 
 	UPROPERTY(Replicated, EditDefaultsOnly)
@@ -336,6 +390,10 @@ private:
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	// 이동 시켜서 고정시킬 코디 위치
 	FVector CodyLerpEndLocation = FVector(521.47f, -568.51f, 376.55f);
+	
+	// 메이 위치보정값 
+	// 104 + 9990
+	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 10094.55f);
 
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
@@ -345,8 +403,11 @@ private:
 	// 코디 홀딩시 위치보정
 	void CorrectCodyLocationAndRotation();
 
+	// 메이 컷신 동작시 위치보정
+	void CorrectMayLocationAndRoation();
+
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastUnPossess();
+	void MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastHideLaserBaseBone();
@@ -358,8 +419,9 @@ private:
 	class AMay* PlayerMay = nullptr;
 
 	bool bIsCorretLocation = false;
-	float HomingRocketFireTime = 0.0f;
-	float HomingRocketCoolTime = 3.0f;
+	float HomingRocket1FireTime = 0.0f;
+	float HomingRocket2FireTime = 0.0f;
+	float HomingRocketCoolTime = 15.0f;
 
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
@@ -385,17 +447,18 @@ private:
 	class AActor* PrevViewTarget = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase1EndCameraRail = nullptr;
+	class APhaseEndCameraRail* PowerCoreDestroyCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase2EndCameraRail = nullptr;
+	class APhaseEndCameraRail* BossFallCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase3EndCameraRail_1 = nullptr;
+	class APhaseEndCameraRail* LaserDestroyCameraRail = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	class APhaseEndCameraRail* Phase3EndCameraRail_2 = nullptr;
+	class APhaseEndCameraRail* BossEjectCameraRail = nullptr;
 
+	float GroundPoundDamage = 6.0f;
 
 	// 모든 패턴 종료시 사용될 값 
 	UPROPERTY(EditAnywhere)

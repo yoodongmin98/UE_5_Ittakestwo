@@ -25,6 +25,10 @@ void UFsmComponent::BeginPlay()
 void UFsmComponent::FsmTick(float DT)
 {	
 	StateLiveTime += DT;
+	if (CurState == -1)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s %s"), *GetOwner()->GetName(), TEXT("Fsm Index Error"));
+	}
 	if (true == MapState[CurState].Update.IsBound())
 	{
 		MapState[CurState].Update.Execute(DT);
