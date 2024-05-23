@@ -376,6 +376,7 @@ void APlayerBase::ChangeClientFlyDir_Implementation(FRotator _Rotator)
 }
 bool APlayerBase::ChangeServerFlyDir_Validate(FRotator _Rotator)
 {
+
 	return true;
 }
 void APlayerBase::ChangeServerFlyDir_Implementation(FRotator _Rotator)
