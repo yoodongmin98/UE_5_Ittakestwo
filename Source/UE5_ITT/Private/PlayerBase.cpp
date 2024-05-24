@@ -153,18 +153,6 @@ void APlayerBase::Tick(float DeltaTime)
 			DashEnd();
 		}
 	}
-	if (!CanSit)
-	{
-		CurrentSitTime = GetWorld()->GetTimeSeconds();
-		if (CurrentSitTime >= SitStartTime + SitDuration)
-		{
-			GetCharacterMovement()->GravityScale = 10.0f;
-			if (!GetCharacterMovement()->IsFalling())
-			{
-				SitEnd();
-			}
-		}
-	}
 
 	if (JumplocationSet)
 	{
@@ -188,7 +176,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	Input = PlayerInputComponent;
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction(TEXT("Player_Sit"), EInputEvent::IE_Pressed, this, &APlayerBase::Sit);
+	
 
 
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
@@ -520,30 +508,6 @@ void APlayerBase::JumpDash()
 
 
 
-void APlayerBase::Sit()
-{
-	SitStartTime = GetWorld()->GetTimeSeconds();
-	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
-	{
-		ChangeState(Cody_State::SIT);
-		IsSit = true;		
-		ChangeIdle = false;
-		//ÀÏ´Ü Áß·Â¾ø¾Ö
-		GetCharacterMovement()->GravityScale = 0.0f;
-		//ÀÏ´Ü ¸ØÃç
-		GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
-		CanSit = false;
-	}
-}
-
-
-void APlayerBase::SitEnd()
-{
-	IsSit = false;
-	CanSit = true;
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
-}
 void APlayerBase::InteractInput_Implementation()
 {
 	IsInteract = true;
@@ -706,7 +670,7 @@ void APlayerBase::UpdateCamTrans()
 void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
+	
 	DOREPLIFETIME(APlayerBase, ITTPlayerState);
 	DOREPLIFETIME(APlayerBase, IsMoveEnd);
 	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
@@ -756,4 +720,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, NextCodySize);
 	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
 	DOREPLIFETIME(APlayerBase, PlayerJumpZVelocity);
+	DOREPLIFETIME(APlayerBase, CurrentSitTime);
+	DOREPLIFETIME(APlayerBase, SitStartTime);
+	DOREPLIFETIME(APlayerBase, SitDuration);
 }
