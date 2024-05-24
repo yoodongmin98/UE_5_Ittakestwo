@@ -841,7 +841,7 @@ void AEnemyFlyingSaucer::DisableCutSceneCameraBlend(AActor* PrevViewTargetActor,
 void AEnemyFlyingSaucer::ActiveCodyUI(bool bNewVisibility, bool bPropagateToChildren)
 {
 	FOutputDeviceNull OutputDevice;
-	FString TestString = TEXT("ActiveCodyInteractionUI");
+	FString FunctionString = TEXT("ActiveCodyInteractionUI");
 	FString NewVisibilityToString;
 	FString PropagateToChildrenToString;
 
@@ -864,16 +864,16 @@ void AEnemyFlyingSaucer::ActiveCodyUI(bool bNewVisibility, bool bPropagateToChil
 	}
 
 
-	TestString += NewVisibilityToString;
-	TestString += PropagateToChildrenToString;
+	FunctionString += NewVisibilityToString;
+	FunctionString += PropagateToChildrenToString;
 
-	CallFunctionByNameWithArguments(*TestString, OutputDevice, nullptr, true);
+	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
 }
 
 void AEnemyFlyingSaucer::ActiveMayUI(bool bNewVisibility, bool bPropagateToChildren)
 {
 	FOutputDeviceNull OutputDevice;
-	FString TestString = TEXT("ActiveMayInteractionUI");
+	FString FunctionString = TEXT("ActiveMayInteractionUI");
 	FString NewVisibilityToString;
 	FString PropagateToChildrenToString;
 
@@ -896,10 +896,30 @@ void AEnemyFlyingSaucer::ActiveMayUI(bool bNewVisibility, bool bPropagateToChild
 	}
 
 
-	TestString += NewVisibilityToString;
-	TestString += PropagateToChildrenToString;
+	FunctionString += NewVisibilityToString;
+	FunctionString += PropagateToChildrenToString;
 
-	CallFunctionByNameWithArguments(*TestString, OutputDevice, nullptr, true);
+	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
+}
+
+void AEnemyFlyingSaucer::ActiveSplitScreen(bool bActive)
+{
+	FOutputDeviceNull OutputDevice;
+	FString FunctionString = TEXT("ActiveSplitScreenMode");
+	FString ActiveString;
+	FString PropagateToChildrenToString;
+
+	if (true == bActive)
+	{
+		ActiveString = TEXT(" true");
+	}
+	else
+	{
+		ActiveString = TEXT(" false");
+	}
+
+	FunctionString += ActiveString;
+	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
 }
 
 
@@ -1132,8 +1152,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
 
+			// 화면분할 해제
+			ActiveSplitScreen(true);
 			// 카메라블렌드 
-			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
 			// 포커스 해제 및 비헤이비어트리 동작중지 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
@@ -1145,13 +1167,16 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this](float DT)
 		{
 			// 게임스테이트 카메라 반갈 온오프 함수 생기면 주석해제 
-			/*if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
+			if (true == PowerCoreDestroyCameraRail->IsMoveEnd())
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
 					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+
+					// 화면분할 적용 
+					ActiveSplitScreen(false);
 				}
-			}*/
+			}
 
 			if (4.5f <= FsmComp->GetStateLiveTime() && FsmComp->GetStateLiveTime() <= 5.5f)
 			{
@@ -1345,8 +1370,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			PlayerMay->CutSceneStart();
 			CorrectMayLocationAndRoation();
 
-			// 카메라블렌드 
-			// EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
+			ActiveSplitScreen(true);
+			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1374,7 +1399,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 컴포넌트 디스트로이 오버랩 컴포넌트 비활성
 			PlayerOverlapCheckComp->SetVisibility(false);
 
-			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			ActiveSplitScreen(false);
 		});
 
 	
@@ -1678,7 +1704,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			
 			// 남은체력만큼 데미지 
 			SetDamage(GetCurrentHp());
-			// EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
+
+			ActiveSplitScreen(true);
+			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)
@@ -1694,7 +1722,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			// DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			ActiveSplitScreen(false);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,
@@ -1716,15 +1745,23 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			if (true == HasAuthority())
+			{
+				// 그럼 서버일 때. 자. 
+				// 1. 블루프린트로 게임스테이트 함수를 가져오고, 인자로 불값을 받아서 오프시킬지, 온시킬지 선택하는 함수를 만들어. 
+				UE_LOG(LogTemp, Warning, TEXT("Boss Server"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Boss Not Server"));
+			}
 		},
 
 		[this](float DT)
 		{
-			HomingRocket1FireTime -= DT;
+			/*HomingRocket1FireTime -= DT;
 			HomingRocket2FireTime -= DT;
-			FireHomingRocket();
+			FireHomingRocket();*/
 		},
 
 		[this]
