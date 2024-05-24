@@ -175,12 +175,26 @@ void ACody::Tick(float DeltaTime)
 			break;
 		}
 	}
+	//Sit
+	if (!CanSit)
+	{
+		CurrentSitTime = GetWorld()->GetTimeSeconds();
+		if (CurrentSitTime >= SitStartTime + SitDuration)
+		{
+			NowPlayerGravityScale = 10.0f;
+			if (!GetCharacterMovement()->IsFalling())
+			{
+				SitEnd();
+			}
+		}
+	}
 }
 
 void ACody::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction(TEXT("Player_Sit"), EInputEvent::IE_Pressed, this, &ACody::Sit);
 	if (PlayerInput != nullptr)
 	{
 		if(true == HasAuthority())
@@ -372,6 +386,121 @@ void ACody::DashEnd()
 		bIsDashingStart = false;
 		bCanDash = false;
 		DashDuration = 0.75f;
+	}
+}
+
+
+void ACody::Sit()
+{
+	if (HasAuthority())
+	{
+		ClientSitStart();
+	}
+	else
+	{
+		ServerSitStart();
+	}
+}
+
+void ACody::ClientSitStart_Implementation()
+{
+	SitStartTime = GetWorld()->GetTimeSeconds();
+	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
+	{
+		ChangeState(Cody_State::SIT);
+		IsSit = true;
+		ChangeIdle = false;
+		//ÀÏ´Ü Áß·Â¾ø¾Ö
+		NowPlayerGravityScale = 0.0f;
+		//ÀÏ´Ü ¸ØÃç
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		CanSit = false;
+	}
+}
+bool ACody::ServerSitStart_Validate()
+{
+	return true;
+}
+
+void ACody::ServerSitStart_Implementation()
+{
+	SitStartTime = GetWorld()->GetTimeSeconds();
+	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
+	{
+		ChangeState(Cody_State::SIT);
+		IsSit = true;
+		ChangeIdle = false;
+		//ÀÏ´Ü Áß·Â¾ø¾Ö
+		NowPlayerGravityScale = 0.0f;
+		//ÀÏ´Ü ¸ØÃç
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		CanSit = false;
+	}
+}
+
+
+void ACody::SitEnd()
+{
+	ClientSitEnd();
+	ServerSitEnd();
+}
+
+void ACody::ClientSitEnd_Implementation()
+{
+	IsSit = false;
+	CanSit = true;
+	switch (GetCodySize())
+	{
+	case CodySize::BIG:
+	{
+		NowPlayerGravityScale = 5.5f;
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		NowPlayerGravityScale = DefaultGravityScale;
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		NowPlayerGravityScale = 1.0f;
+		break;
+	}
+	default:
+		break;
+	}
+	
+}
+bool ACody::ServerSitEnd_Validate()
+{
+	return true;
+}
+
+void ACody::ServerSitEnd_Implementation()
+{
+	IsSit = false;
+	CanSit = true;
+	switch (GetCodySize())
+	{
+	case CodySize::BIG:
+	{
+		NowPlayerGravityScale = 5.5f;
+		break;
+	}
+	case CodySize::NORMAL:
+	{
+		NowPlayerGravityScale = DefaultGravityScale;
+		break;
+	}
+	case CodySize::SMALL:
+	{
+		NowPlayerGravityScale = 1.0f;
+		break;
+	}
+	default:
+		break;
 	}
 }
 
