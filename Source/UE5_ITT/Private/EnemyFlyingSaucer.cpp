@@ -178,7 +178,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneEnd);
 	DOREPLIFETIME(AEnemyFlyingSaucer, bIsCutSceneStart);
 	DOREPLIFETIME(AEnemyFlyingSaucer, HatchOpenStaticMeshComp);
-	
+	DOREPLIFETIME(AEnemyFlyingSaucer, PlayerOverlapCheckComp);
+	DOREPLIFETIME(AEnemyFlyingSaucer, CodyOverlapCheckComp);
 }
 
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
@@ -382,8 +383,11 @@ void AEnemyFlyingSaucer::Tick(float DeltaTime)
 			return;
 		}
 
-		// DrawDebugMesh();
-		UpdateLerpRatioForLaserBeam(DeltaTime);
+		// 비헤이비어 트리가 동작중이 아니라면 호출하지 않음.
+		if (false == bIsPhase1End)
+		{
+			UpdateLerpRatioForLaserBeam(DeltaTime);
+		}
 	}
 }
 
@@ -1082,9 +1086,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 카메라블렌드 
 			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
-			// 포커스 해제 
+			// 포커스 해제 및 비헤이비어트리 동작중지 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+			AIController->GetCurrentBehaviorTree()->StopTree();
 			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			bIsPhase1End = true;
 		},
 
 		[this](float DT)
@@ -1210,11 +1216,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			// 여기들어왔을때 메이 UI On
 			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, true, true);
-
-
-			// 임시코드 
-			/*AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-			AIController->ClearFocus(EAIFocusPriority::Gameplay);*/
 		},
 
 		[this](float DT)
@@ -1326,9 +1327,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_RotateSetting,
 		[this]
 		{
-			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
-			AIController->ClearFocus(EAIFocusPriority::Gameplay);
-
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -1563,6 +1561,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			if (Cody_State::PlayerDeath == PlayerMay->GetITTPlayerState())
+			{
+				return;
+			}
+
 			MoveToTargetLerpRatio += DT;
 			if (1.0f <= MoveToTargetLerpRatio)
 			{

@@ -389,7 +389,7 @@ private:
 
 	// 코디 홀딩 상태 시작시 코디 위치 이동에 관련한 값
 	// 이동 시켜서 고정시킬 코디 위치
-	FVector CodyLerpEndLocation = FVector(521.47f, -568.51f, 376.55f);
+	FVector CodyLerpEndLocation = FVector(621.47f, -591.51f, 10366.55f);
 	
 	// 메이 위치보정값 
 	// 104 + 9990
@@ -463,4 +463,7 @@ private:
 	// 모든 패턴 종료시 사용될 값 
 	UPROPERTY(EditAnywhere)
 	bool bIsAllPhaseEnd = false;
+
+	UPROPERTY(EditAnywhere)
+	bool bIsPhase1End = false;
 };
