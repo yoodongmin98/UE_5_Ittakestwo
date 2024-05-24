@@ -158,7 +158,7 @@ void APlayerBase::Tick(float DeltaTime)
 		CurrentSitTime = GetWorld()->GetTimeSeconds();
 		if (CurrentSitTime >= SitStartTime + SitDuration)
 		{
-			GetCharacterMovement()->GravityScale = 10.0f;
+			NowPlayerGravityScale = 10.0f;
 			if (!GetCharacterMovement()->IsFalling())
 			{
 				SitEnd();
@@ -521,14 +521,47 @@ void APlayerBase::JumpDash()
 
 void APlayerBase::Sit()
 {
+	if (HasAuthority())
+	{
+		ClientSitStart();
+	}
+	else
+	{
+		ServerSitStart();
+	}
+}
+
+void APlayerBase::ClientSitStart_Implementation()
+{
 	SitStartTime = GetWorld()->GetTimeSeconds();
 	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
 	{
 		ChangeState(Cody_State::SIT);
-		IsSit = true;		
+		IsSit = true;
 		ChangeIdle = false;
 		//일단 중력없애
-		GetCharacterMovement()->GravityScale = 0.0f;
+		NowPlayerGravityScale = 0.0f;
+		//일단 멈춰
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		CanSit = false;
+	}
+}
+bool APlayerBase::ServerSitStart_Validate()
+{
+	return true;
+}
+
+void APlayerBase::ServerSitStart_Implementation()
+{
+	SitStartTime = GetWorld()->GetTimeSeconds();
+	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
+	{
+		ChangeState(Cody_State::SIT);
+		IsSit = true;
+		ChangeIdle = false;
+		//일단 중력없애
+		NowPlayerGravityScale = 0.0f;
 		//일단 멈춰
 		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 
@@ -539,9 +572,26 @@ void APlayerBase::Sit()
 
 void APlayerBase::SitEnd()
 {
+	ClientSitEnd();
+	ServerSitEnd();
+}
+
+void APlayerBase::ClientSitEnd_Implementation()
+{
 	IsSit = false;
 	CanSit = true;
-	GetCharacterMovement()->GravityScale = DefaultGravityScale;
+	NowPlayerGravityScale = DefaultGravityScale; //얘가 작을때는 1.0이어야함 ㄷㄷ
+}
+bool APlayerBase::ServerSitEnd_Validate()
+{
+	return true;
+}
+
+void APlayerBase::ServerSitEnd_Implementation()
+{
+	IsSit = false;
+	CanSit = true;
+	NowPlayerGravityScale = DefaultGravityScale;
 }
 void APlayerBase::InteractInput_Implementation()
 {
@@ -705,7 +755,7 @@ void APlayerBase::UpdateCamTrans()
 void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
+	
 	DOREPLIFETIME(APlayerBase, ITTPlayerState);
 	DOREPLIFETIME(APlayerBase, IsMoveEnd);
 	DOREPLIFETIME(APlayerBase, CurrentAnimationEnd);
@@ -755,4 +805,7 @@ void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(APlayerBase, NextCodySize);
 	DOREPLIFETIME(APlayerBase, NowPlayerGravityScale);
 	DOREPLIFETIME(APlayerBase, PlayerJumpZVelocity);
+	DOREPLIFETIME(APlayerBase, CurrentSitTime);
+	DOREPLIFETIME(APlayerBase, SitStartTime);
+	DOREPLIFETIME(APlayerBase, SitDuration);
 }

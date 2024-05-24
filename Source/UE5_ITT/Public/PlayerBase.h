@@ -384,6 +384,18 @@ public:
 	UFUNCTION(Server, Reliable)
 	void InteractNoneInput();
 
+	void Sit();
+	UFUNCTION(Client, Reliable)
+	void ClientSitStart();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSitStart();
+	void SitEnd();
+	UFUNCTION(Client, Reliable)
+	void ClientSitEnd();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSitEnd();
+
+
 	void Idle(const FInputActionInstance& _Instance);
 	void Look(const FInputActionInstance& _Instance);
 	virtual void SprintInput() {};
@@ -391,8 +403,6 @@ public:
 	void CustomMove(const FInputActionInstance& _Instance);
 	void CustomFlyMove(const FInputActionInstance& _Instance);
 	void CustomFlyNoneMove(const FInputActionInstance& _Instance);
-	void Sit();
-	void SitEnd();
 	void DashInput();
 	void DashNoneInput();
 	void GroundDash();
@@ -477,12 +487,15 @@ public:
 	UPROPERTY(Replicated)
 	bool IsSprint; //달리기 여부
 
+	UPROPERTY(Replicated)
 	float SitStartTime;
+	UPROPERTY(Replicated)
 	float SitDuration;
 	UPROPERTY(Replicated)
 	bool CanSit;
 	UPROPERTY(Replicated)
 	bool IsSit;
+	UPROPERTY(Replicated)
 	float CurrentSitTime;
 	UPROPERTY(Replicated)
 	bool ChangeIdle;
