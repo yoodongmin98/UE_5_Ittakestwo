@@ -270,6 +270,8 @@ private:
 	void ActiveCodyUI(bool bNewVisibility, bool bPropagateToChildren);
 	void ActiveMayUI(bool bNewVisibility, bool bPropagateToChildren);
 
+	void ActiveSplitScreen(bool bActive);
+
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyInput = false;
