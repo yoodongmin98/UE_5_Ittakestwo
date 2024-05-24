@@ -22,6 +22,7 @@ UInteractionWidget::UInteractionWidget(const FObjectInitializer& ObjectInitializ
     ViewportSizey = 0;
 
     SpawnTime = FDateTime::Now();
+    bIsViewWiget = false;
 }
 
 
@@ -63,17 +64,8 @@ void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType
     }
     if (bOnlyCody && WidgetInstance)
     {
-       /* if (false == IsWidgetVisible())
-        {
-            WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-            return;
-        }
-        else
-        {
-            WidgetInstance->SetVisibility(ESlateVisibility::Visible);
-        }*/
 
-        if (false == WidgetInstance->IsVisible())
+        if (false == bIsViewWiget)
         {
             return;
         }

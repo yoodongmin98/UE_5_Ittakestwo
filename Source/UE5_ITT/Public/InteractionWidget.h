@@ -37,6 +37,9 @@ public:
     // The widget instance 
     UUserWidget* WidgetInstance;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    bool bIsViewWiget;
+
 protected:
 
 
@@ -65,5 +68,6 @@ private:
     int32 ViewportSizex, ViewportSizey;
 
     FDateTime SpawnTime;
+
 
 };
