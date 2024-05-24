@@ -18,6 +18,10 @@ UInteractionWidget::UInteractionWidget(const FObjectInitializer& ObjectInitializ
 
     bOnlyMay = false;
     bOnlyCody = false;
+    ViewportSizex = 0;
+    ViewportSizey = 0;
+
+    SpawnTime = FDateTime::Now();
 }
 
 
@@ -45,63 +49,75 @@ void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType
         {
             WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), UIWidgetClass);
             WidgetInstance->AddToViewport();
+            WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
         }
         return;
     } 
 
-
+    FDateTime CurTime = FDateTime::Now();
+    if ((CurTime - SpawnTime).GetTotalSeconds() < 10)
+    {
+        return;
+    }
     if (bOnlyCody && WidgetInstance)
     {
-        FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator();
-        int32 NumofPlayer = GetWorld()->GetNumPlayerControllers();
-		if (NumofPlayer == 2)
+        if (false == IsWidgetVisible())
         {
-            It++;
-        }
-        else if (NumofPlayer == 4)
-        {
-            It++;
-            It++;
-        }
-        //for (int index = 1; index < NumofPlayer; ++index)
-        //{
-        //    It++;
-        //}
-        
-        if (!It)
-        {
+            WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
             return;
         }
-        It->Get();
-        FVector TargetActorLocation = TargetActor->GetActorLocation();
+        else
+        {
+            WidgetInstance->SetVisibility(ESlateVisibility::Visible);
+        }
+
+        if(!CodyViewController)
+        {
+            FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator();
+            int32 NumofPlayer = GetWorld()->GetNumPlayerControllers();
+            if (NumofPlayer == 2)
+            {
+                It++;
+            }
+            else if (NumofPlayer == 4)
+            {
+                It++;
+                It++;
+            }
+            else
+            {
+                return;
+            }
+
+
+            if (!It)
+            {
+                return;
+            }
+            if(It->Get())
+            {
+                CodyViewController = It->Get();
+                CodyViewController->GetViewportSize(ViewportSizex, ViewportSizey);
+            }
+        }
+		FVector TargetActorLocation = TargetActor->GetActorLocation();
 
         // 액터의 월드 위치를 스크린 좌표로 변환하여 위치 확인
         FVector2D ScreenPosition;
-        if (UGameplayStatics::ProjectWorldToScreen(It->Get(), GetComponentLocation(), ScreenPosition))
+        if (UGameplayStatics::ProjectWorldToScreen(CodyViewController, GetComponentLocation(), ScreenPosition))
         {
             ScreenPosition.X -= 50.0f;
             ScreenPosition.Y -= 50.0f;
             // 스크린 좌표가 뷰포트의 범위 내에 있는지 확인
-            int32 ViewportSizex, ViewportSizey;
-            It->Get()->GetViewportSize(ViewportSizex, ViewportSizey);
 
             if (ScreenPosition.X >= ViewportSizex / 2 && ScreenPosition.X <= ViewportSizex &&
                 ScreenPosition.Y >= 0 && ScreenPosition.Y <= ViewportSizey)
             {
                 SetCodyWidget(ScreenPosition, true);
-                // 액터가 스크린에 있는 경우
-                //UE_LOG(LogTemp, Warning, TEXT("Actor %s is on screen at (%f, %f)"), *TargetActor->GetName(), ScreenPosition.X, ScreenPosition.Y);
-
-                //WidgetInstance->SetPositionInViewport(ScreenPosition);
-                //WidgetInstance->SetVisibility(ESlateVisibility::Visible);
             }
             else
             {
                 SetCodyWidget(ScreenPosition, false);
-
-                // 액터가 스크린에 없는 경우
-                //UE_LOG(LogTemp, Warning, TEXT("Actor %s is not on screen"), *TargetActor->GetName());
-                //WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
             }
         }
     }
@@ -125,31 +141,6 @@ bool UInteractionWidget::SetCodyWidget_Validate(const FVector2D _Pos, const bool
 {
     return true;
 }
-
-void UInteractionWidget::SetVisibilityBasedOnDistance()
-{
-    FVector PlayerLocation = TargetActor->GetActorLocation();
-    FVector SceneComponentLocation = GetComponentLocation();
-    Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
-
-    // Toggle widget visibility based on distance threshold
-    if (Distance < DistanceThreshold)
-    {
-        // Player is near, show near widget and hide far widget
-        //SetWidget(NearWidgetInstance);
-        //NearWidgetComponent->SetVisibility(true);
-        //FarWidgetComponent->SetVisibility(false);
-    }
-    else
-    {
-        // Player is far, hide near widget and show far widget
-        //SetWidget(FarWidgetInstance);
-        //NearWidgetComponent->SetVisibility(false);
-        //FarWidgetComponent->SetVisibility(true);
-    }
-}
-
-
 
 
 void UInteractionWidget::FindTargetActor()
@@ -188,5 +179,4 @@ void UInteractionWidget::FindTargetActor()
             }
         }
     }
-    // Player를 사용하여 플레이어 처리
 }
