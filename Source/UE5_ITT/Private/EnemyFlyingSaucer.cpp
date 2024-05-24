@@ -31,9 +31,7 @@
 #include "PhaseEndCameraRail.h"
 #include "DrawDebugHelpers.h"
 #include "CoreExplosionEffect.h"
-
-#include "Engine/StreamableManager.h"
-#include "Engine/AssetManager.h"
+#include "Misc/OutputDeviceNull.h"
 
 // Sets default values
 AEnemyFlyingSaucer::AEnemyFlyingSaucer()
@@ -71,14 +69,6 @@ void AEnemyFlyingSaucer::SetupComponent()
 
 	ArcingProjectileSpawnPointMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArcingProjectileSpawnPointMesh"));
 	ArcingProjectileSpawnPointMesh->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("ArcingProjectileSpawnPointSocket"));
-
-	CodyHoldingUIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("CodyHoldingUIComponent"));
-	CodyHoldingUIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("CodyUISocket"));
-	CodyHoldingUIComp->SetVisibility(false, true);
-
-	MayLaserDestroyUIComp = CreateDefaultSubobject<UInteractionUIComponent>(TEXT("MayLaserDestroyUIComponent"));
-	MayLaserDestroyUIComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("MayUISocket"));
-	MayLaserDestroyUIComp->SetVisibility(false, true);
 
 	RotatingComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
 	RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
@@ -145,8 +135,6 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	
 	DOREPLIFETIME(AEnemyFlyingSaucer, EnemyMoonBaboon);
 	DOREPLIFETIME(AEnemyFlyingSaucer, FsmComp);
-	DOREPLIFETIME(AEnemyFlyingSaucer, CodyHoldingUIComp);
-	DOREPLIFETIME(AEnemyFlyingSaucer, MayLaserDestroyUIComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, RotatingComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, SkeletalMeshComp);
 	DOREPLIFETIME(AEnemyFlyingSaucer, LaserSpawnPointMesh);
@@ -850,6 +838,70 @@ void AEnemyFlyingSaucer::DisableCutSceneCameraBlend(AActor* PrevViewTargetActor,
 	bIsCutSceneStart = false;
 }
 
+void AEnemyFlyingSaucer::ActiveCodyUI(bool bNewVisibility, bool bPropagateToChildren)
+{
+	FOutputDeviceNull OutputDevice;
+	FString TestString = TEXT("ActiveCodyInteractionUI");
+	FString NewVisibilityToString;
+	FString PropagateToChildrenToString;
+
+	if (true == bNewVisibility)
+	{
+		NewVisibilityToString = TEXT(" true");
+	}
+	else
+	{
+		NewVisibilityToString = TEXT(" false");
+	}
+
+	if (true == bPropagateToChildren)
+	{
+		PropagateToChildrenToString = TEXT(" true");
+	}
+	else
+	{
+		PropagateToChildrenToString = TEXT(" false");
+	}
+
+
+	TestString += NewVisibilityToString;
+	TestString += PropagateToChildrenToString;
+
+	CallFunctionByNameWithArguments(*TestString, OutputDevice, nullptr, true);
+}
+
+void AEnemyFlyingSaucer::ActiveMayUI(bool bNewVisibility, bool bPropagateToChildren)
+{
+	FOutputDeviceNull OutputDevice;
+	FString TestString = TEXT("ActiveMayInteractionUI");
+	FString NewVisibilityToString;
+	FString PropagateToChildrenToString;
+
+	if (true == bNewVisibility)
+	{
+		NewVisibilityToString = TEXT(" true");
+	}
+	else
+	{
+		NewVisibilityToString = TEXT(" false");
+	}
+
+	if (true == bPropagateToChildren)
+	{
+		PropagateToChildrenToString = TEXT(" true");
+	}
+	else
+	{
+		PropagateToChildrenToString = TEXT(" false");
+	}
+
+
+	TestString += NewVisibilityToString;
+	TestString += PropagateToChildrenToString;
+
+	CallFunctionByNameWithArguments(*TestString, OutputDevice, nullptr, true);
+}
+
 
 
 ///////////////////////////////////FSM//////////////////////////////////////
@@ -873,9 +925,12 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
+
+					// test code 
+					// AIController->ClearFocus(EAIFocusPriority::Gameplay);
 					return;
 				}
 			}
@@ -1077,12 +1132,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
 
-			// UI Component Activate
-			FTimerHandle TimerHandle;
-			FTimerDelegate TimerDelegate;
-			TimerDelegate.BindUFunction(this, TEXT("MulticastSetActivateUIComponent"), CodyHoldingUIComp, true, true);
-			GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.5f, false);
-
 			// 카메라블렌드 
 			// EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
@@ -1103,6 +1152,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 				}
 			}*/
+
+			if (4.5f <= FsmComp->GetStateLiveTime() && FsmComp->GetStateLiveTime() <= 5.5f)
+			{
+				ActiveCodyUI(true, true);
+			}
 
 			// 코디가 오버랩 상태일 때만 들어오고.
 			if (true == bIsCodyOverlap)
@@ -1215,7 +1269,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			KeyInputTime = KeyInputMaxTime;
 
 			// 여기들어왔을때 메이 UI On
-			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, true, true);
+			ActiveMayUI(true, true);
 		},
 
 		[this](float DT)
@@ -1253,8 +1307,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsKeyInput = false;
 			KeyInputTime = KeyInputMaxTime;
-			MulticastSetActivateUIComponent(CodyHoldingUIComp, false, true);
-			MulticastSetActivateUIComponent(MayLaserDestroyUIComp, false, true);
+			ActiveCodyUI(false, true);
+			ActiveMayUI(false, true);
 			
 			PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Base"));
 		});
@@ -1678,23 +1732,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		});
 
 	// TEST 전용 state 
-	FsmComp->CreateState(EBossState::HatchTestState,
-		[this]
-		{
-			// 멀티캐스트로 메시를 스왑한다. 
-
-			// MulticastSwapMesh();
-			UE_LOG(LogTemp, Display, TEXT("tttttttttt"));
-		},
-
-		[this](float DT)
-		{
-			
-		},
-
-		[this]
-		{
-		});
+	
 }
 
 
