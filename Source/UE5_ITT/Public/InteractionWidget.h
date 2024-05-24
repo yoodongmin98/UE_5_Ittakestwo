@@ -33,6 +33,10 @@ public:
         return Distance;
     }
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    // The widget instance 
+    UUserWidget* WidgetInstance;
+
 protected:
 
 
@@ -43,11 +47,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
     float DistanceThreshold;
 
-    UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "UI")
-    // The widget instance 
-    UUserWidget* WidgetInstance;
+    
 
-protected:
+private:
     void SetVisibilityBasedOnDistance();
 
 

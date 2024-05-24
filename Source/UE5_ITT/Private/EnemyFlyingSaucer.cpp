@@ -1175,14 +1175,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 					// 화면분할 적용 
 					ActiveSplitScreen(false);
+					ActiveCodyUI(true, true);
 				}
 			}
-
-			if (4.5f <= FsmComp->GetStateLiveTime() && FsmComp->GetStateLiveTime() <= 5.5f)
-			{
-				ActiveCodyUI(true, true);
-			}
-
+			
 			// 코디가 오버랩 상태일 때만 들어오고.
 			if (true == bIsCodyOverlap)
 			{
@@ -1332,7 +1328,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		{
 			bIsKeyInput = false;
 			KeyInputTime = KeyInputMaxTime;
-			ActiveCodyUI(false, true);
+			
 			ActiveMayUI(false, true);
 			
 			PrevAnimBoneLocation = SkeletalMeshComp->GetBoneLocation(TEXT("Base"));
@@ -1371,6 +1367,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			CorrectMayLocationAndRoation();
 
 			ActiveSplitScreen(true);
+			ActiveCodyUI(false, true);
 			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
