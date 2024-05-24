@@ -925,7 +925,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
