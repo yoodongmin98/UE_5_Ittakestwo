@@ -174,7 +174,7 @@ public:
 
 		AllPhaseEnd,
 		TestState,
-		HatchTestState,
+		InteractionTestState,
 	};
 
 	UFUNCTION(BlueprintCallable)
@@ -267,6 +267,9 @@ private:
 	void EnableCutSceneCameraBlend(class APlayerBase* BlendTargetActor, class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
 	void DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime);
 
+	void ActiveCodyUI(bool bNewVisibility, bool bPropagateToChildren);
+	void ActiveMayUI(bool bNewVisibility, bool bPropagateToChildren);
+
 	// 패턴 파훼시 플레이어 추가 키 입력 관련 변수 
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsKeyInput = false;
@@ -330,12 +333,6 @@ private:
 	// Component
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class UFsmComponent* FsmComp = nullptr;
-
-	UPROPERTY(Replicated, EditDefaultsOnly)
-	class UInteractionUIComponent* CodyHoldingUIComp = nullptr;
-
-	UPROPERTY(Replicated, EditDefaultsOnly)
-	class UInteractionUIComponent* MayLaserDestroyUIComp = nullptr;
 
 	UPROPERTY(Replicated, EditDefaultsOnly)
 	class URotatingMovementComponent* RotatingComp = nullptr;
