@@ -21,31 +21,31 @@ public:
     // Æ½ ÇÔ¼ö ¼±¾ð
     virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    UPROPERTY(EditAnywhere, Category = "UI")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     bool bOnlyMay;
 
-    UPROPERTY(EditAnywhere, Category = "UI")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     bool bOnlyCody;
+
+    UFUNCTION(BlueprintCallable)
+    inline float GetDistanceFromTarget() const
+    {
+        return Distance;
+    }
 
 protected:
 
 
-    // The widget to display when the interaction is near
+    // The widget to display
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Widget")
-    TSubclassOf<UUserWidget> NearWidgetClass;
+    TSubclassOf<UUserWidget> UIWidgetClass;
 
-    // The widget to display when the interaction is far
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction Widget")
-    TSubclassOf<UUserWidget> FarWidgetClass;
-
-    UPROPERTY(EditAnywhere, Category = "UI")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
     float DistanceThreshold;
 
-    // The widget instance for the near interaction
-    UUserWidget* NearWidgetInstance;
-
-    // The widget instance for the far interaction
-    UUserWidget* FarWidgetInstance;
+    UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = "UI")
+    // The widget instance 
+    UUserWidget* WidgetInstance;
 
 protected:
     void SetVisibilityBasedOnDistance();
@@ -54,5 +54,8 @@ protected:
     void FindTargetActor();
     class APlayerBase* TargetActor;
 
-    float delaytime;
+    float Distance;
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+    void SetCodyWidget(const FVector2D _Pos, const bool isvisible);
 };

@@ -4,19 +4,20 @@
 #include "InteractionWidget.h"
 #include "PlayerBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 UInteractionWidget::UInteractionWidget(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
     // Default initialization
-    NearWidgetInstance = nullptr;
-    FarWidgetInstance = nullptr;
+    WidgetInstance = nullptr;
+    //NearWidgetInstance = nullptr;
+    //FarWidgetInstance = nullptr;
     DistanceThreshold = 1000.f; // Default distance threshold
-
+    Distance = 1500.0f;
 
     bOnlyMay = false;
     bOnlyCody = false;
-    delaytime = 1.0f;
 }
 
 
@@ -24,72 +25,112 @@ UInteractionWidget::UInteractionWidget(const FObjectInitializer& ObjectInitializ
 void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-    if (!NearWidgetInstance)
-    {
-        NearWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), NearWidgetClass);
-        SetWidget(NearWidgetInstance);
-        return;
-    }
-    if (!FarWidgetInstance)
-    {
-        FarWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), FarWidgetClass);
-        SetWidget(FarWidgetInstance);
-        return;
-    }
     if (!TargetActor)
     {
         FindTargetActor();
         return;
     }
 
-    if (delaytime > 0.0f)
-    {
-        delaytime -= DeltaTime;
-        return;
-    }
-
     FVector PlayerLocation = TargetActor->GetActorLocation();
     FVector SceneComponentLocation = GetComponentLocation();
-    float Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
-
-    // Toggle widget visibility based on distance threshold
-    if (Distance < DistanceThreshold)
+    Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
+    if (!WidgetInstance)
     {
-        // Player is near, show near widget and hide far widget
-       
-        //SetWidget(NearWidgetInstance);
-        delaytime = 0.5f;
-        //NearWidgetComponent->SetVisibility(true);
-        //FarWidgetComponent->SetVisibility(false);
+        if(true == bOnlyMay)
+        {
+            WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), UIWidgetClass);
+            SetWidget(WidgetInstance);
+        }
+        else if (true == bOnlyCody)
+        {
+            WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), UIWidgetClass);
+            WidgetInstance->AddToViewport();
+        }
+        return;
+    } 
+
+
+    if (bOnlyCody && WidgetInstance)
+    {
+        FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator();
+        int32 NumofPlayer = GetWorld()->GetNumPlayerControllers();
+		if (NumofPlayer == 2)
+        {
+            It++;
+        }
+        else if (NumofPlayer == 4)
+        {
+            It++;
+            It++;
+        }
+        //for (int index = 1; index < NumofPlayer; ++index)
+        //{
+        //    It++;
+        //}
+        
+        if (!It)
+        {
+            return;
+        }
+        It->Get();
+        FVector TargetActorLocation = TargetActor->GetActorLocation();
+
+        // 액터의 월드 위치를 스크린 좌표로 변환하여 위치 확인
+        FVector2D ScreenPosition;
+        if (UGameplayStatics::ProjectWorldToScreen(It->Get(), GetComponentLocation(), ScreenPosition))
+        {
+            ScreenPosition.X -= 50.0f;
+            ScreenPosition.Y -= 50.0f;
+            // 스크린 좌표가 뷰포트의 범위 내에 있는지 확인
+            int32 ViewportSizex, ViewportSizey;
+            It->Get()->GetViewportSize(ViewportSizex, ViewportSizey);
+
+            if (ScreenPosition.X >= ViewportSizex / 2 && ScreenPosition.X <= ViewportSizex &&
+                ScreenPosition.Y >= 0 && ScreenPosition.Y <= ViewportSizey)
+            {
+                SetCodyWidget(ScreenPosition, true);
+                // 액터가 스크린에 있는 경우
+                //UE_LOG(LogTemp, Warning, TEXT("Actor %s is on screen at (%f, %f)"), *TargetActor->GetName(), ScreenPosition.X, ScreenPosition.Y);
+
+                //WidgetInstance->SetPositionInViewport(ScreenPosition);
+                //WidgetInstance->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                SetCodyWidget(ScreenPosition, false);
+
+                // 액터가 스크린에 없는 경우
+                //UE_LOG(LogTemp, Warning, TEXT("Actor %s is not on screen"), *TargetActor->GetName());
+                //WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+    }
+
+}
+
+void UInteractionWidget::SetCodyWidget_Implementation(const FVector2D _Pos, const bool isvisible)
+{
+    if(true == isvisible)
+    {
+        WidgetInstance->SetPositionInViewport(_Pos);
+        WidgetInstance->SetVisibility(ESlateVisibility::Visible);
     }
     else
     {
-        // Player is far, hide near widget and show far widget
-        //SetWidget(FarWidgetInstance);
-        delaytime = 0.5f;
-        //NearWidgetComponent->SetVisibility(false);
-        //FarWidgetComponent->SetVisibility(true);
+        WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
     }
-    //SetVisibilityBasedOnDistance();
 }
-//
-//void UInteractionWidget::SetNearWidget(TSubclassOf<UUserWidget> WidgetClass)
-//{
-//    NearWidgetClass = WidgetClass;
-//}
-//
-//void UInteractionWidget::SetFarWidget(TSubclassOf<UUserWidget> WidgetClass)
-//{
-//    FarWidgetClass = WidgetClass;
-//}
 
-
+bool UInteractionWidget::SetCodyWidget_Validate(const FVector2D _Pos, const bool isvisible)
+{
+    return true;
+}
 
 void UInteractionWidget::SetVisibilityBasedOnDistance()
 {
     FVector PlayerLocation = TargetActor->GetActorLocation();
     FVector SceneComponentLocation = GetComponentLocation();
-    float Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
+    Distance = FVector::Distance(PlayerLocation, SceneComponentLocation);
 
     // Toggle widget visibility based on distance threshold
     if (Distance < DistanceThreshold)
