@@ -153,18 +153,6 @@ void APlayerBase::Tick(float DeltaTime)
 			DashEnd();
 		}
 	}
-	if (!CanSit)
-	{
-		CurrentSitTime = GetWorld()->GetTimeSeconds();
-		if (CurrentSitTime >= SitStartTime + SitDuration)
-		{
-			NowPlayerGravityScale = 10.0f;
-			if (!GetCharacterMovement()->IsFalling())
-			{
-				SitEnd();
-			}
-		}
-	}
 
 	if (JumplocationSet)
 	{
@@ -188,7 +176,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	Input = PlayerInputComponent;
 	PlayerInputComponent->BindAction(TEXT("Player_Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction(TEXT("Player_Sit"), EInputEvent::IE_Pressed, this, &APlayerBase::Sit);
+	
 
 
 	PlayerInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
@@ -519,80 +507,6 @@ void APlayerBase::JumpDash()
 
 
 
-void APlayerBase::Sit()
-{
-	if (HasAuthority())
-	{
-		ClientSitStart();
-	}
-	else
-	{
-		ServerSitStart();
-	}
-}
-
-void APlayerBase::ClientSitStart_Implementation()
-{
-	SitStartTime = GetWorld()->GetTimeSeconds();
-	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
-	{
-		ChangeState(Cody_State::SIT);
-		IsSit = true;
-		ChangeIdle = false;
-		//일단 중력없애
-		NowPlayerGravityScale = 0.0f;
-		//일단 멈춰
-		GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
-		CanSit = false;
-	}
-}
-bool APlayerBase::ServerSitStart_Validate()
-{
-	return true;
-}
-
-void APlayerBase::ServerSitStart_Implementation()
-{
-	SitStartTime = GetWorld()->GetTimeSeconds();
-	if (GetCharacterMovement()->IsFalling() && CanSit && !bIsDashing)
-	{
-		ChangeState(Cody_State::SIT);
-		IsSit = true;
-		ChangeIdle = false;
-		//일단 중력없애
-		NowPlayerGravityScale = 0.0f;
-		//일단 멈춰
-		GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
-		CanSit = false;
-	}
-}
-
-
-void APlayerBase::SitEnd()
-{
-	ClientSitEnd();
-	ServerSitEnd();
-}
-
-void APlayerBase::ClientSitEnd_Implementation()
-{
-	IsSit = false;
-	CanSit = true;
-	NowPlayerGravityScale = DefaultGravityScale; //얘가 작을때는 1.0이어야함 ㄷㄷ
-}
-bool APlayerBase::ServerSitEnd_Validate()
-{
-	return true;
-}
-
-void APlayerBase::ServerSitEnd_Implementation()
-{
-	IsSit = false;
-	CanSit = true;
-	NowPlayerGravityScale = DefaultGravityScale;
-}
 void APlayerBase::InteractInput_Implementation()
 {
 	IsInteract = true;

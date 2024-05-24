@@ -384,17 +384,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void InteractNoneInput();
 
-	void Sit();
-	UFUNCTION(Client, Reliable)
-	void ClientSitStart();
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSitStart();
-	void SitEnd();
-	UFUNCTION(Client, Reliable)
-	void ClientSitEnd();
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSitEnd();
-
 
 	void Idle(const FInputActionInstance& _Instance);
 	void Look(const FInputActionInstance& _Instance);
