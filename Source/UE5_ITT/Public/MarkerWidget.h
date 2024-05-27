@@ -21,12 +21,6 @@ public:
     // Æ½ ÇÔ¼ö ¼±¾ð
     virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-
-    UFUNCTION(BlueprintCallable)
-    inline float GetDistanceFromTarget() const
-    {
-        return Distance;
-    }
     // The widget to display
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<UUserWidget> UIWidgetClass;
@@ -38,37 +32,41 @@ public:
 
 protected:
 
-    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-
-
+    // The widget instance 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     UUserWidget* MarkerInstance;
+
 private:
 
-    // The widget instance 
 
+    
+    // check is cody or may
     bool bChecked;
-    void SetIsCody();
     bool bIsCody;
+
+    // Dist between target & owner
     float Distance;
+
+    // viewportsize
+    FVector2D StartView;
     int32 ViewportSizex, ViewportSizey;
 
+    // MayView -> Cody Target, Cody View -> MayTarget
     class APlayerBase* TargetActor;
-    void FindTargetActor();
-
-    UPROPERTY(Replicated)
-    FVector2D RenderPosition;
-
-    UPROPERTY(Replicated)
-    bool bIsRender;
-    FVector2D GetRenderPosition();
-
-    //APlayerBase* MyOwner;
 
     APlayerController* MyViewController;
 
     FDateTime SpawnTime;
 
-    //UFUNCTION(NetMulticast, Reliable, WithValidation)
-    //void SetCodyWidget(const FVector2D _Pos, const bool isvisible);
+    bool bAllSettingDone;
+
+    void SetIsCody();
+
+    void FindTargetActor();
+
+    void FindMyViewController();
+
+    void SettingWidget();
+
+    void RenderWidgetPosition();
 };
