@@ -53,8 +53,6 @@ protected:
     
 
 private:
-    void SetVisibilityBasedOnDistance();
-
 
     void FindTargetActor();
     class APlayerBase* TargetActor;
@@ -65,6 +63,7 @@ private:
     void SetCodyWidget(const FVector2D _Pos, const bool isvisible);
 
     APlayerController* CodyViewController;
+
     int32 ViewportSizex, ViewportSizey;
 
     FDateTime SpawnTime;

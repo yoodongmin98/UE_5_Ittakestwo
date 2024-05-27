@@ -57,11 +57,7 @@ void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType
         return;
     } 
 
-    FDateTime CurTime = FDateTime::Now();
-    if ((CurTime - SpawnTime).GetTotalSeconds() < 10)
-    {
-        return;
-    }
+    
     if (bOnlyCody && WidgetInstance)
     {
 
@@ -72,6 +68,12 @@ void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType
 
         if(!CodyViewController)
         {
+            FDateTime CurTime = FDateTime::Now();
+            if ((CurTime - SpawnTime).GetTotalSeconds() < 10)
+            {
+                return;
+            }
+
             FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator();
             int32 NumofPlayer = GetWorld()->GetNumPlayerControllers();
             if (NumofPlayer == 2)
@@ -148,34 +150,30 @@ void UInteractionWidget::FindTargetActor()
 
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerBase::StaticClass(), AllPlayerActors);
 
-    APlayerBase* me = Cast<APlayerBase>(GetOwner());
     // PlayerActors를 순회하며 각 플레이어의 처리 수행
     for (AActor* Player : AllPlayerActors)
     {
-        if (me != Cast<APlayerBase>(Player))
-        {
-            APlayerBase* NextPlayer = Cast<APlayerBase>(Player);
-            const TArray<FName>& CheckTag = NextPlayer->Tags;
-            for (const FName& V : CheckTag)
-            {
-                if (V == FName("Cody") || V == FName("May"))
-                {
-                    if (true == bOnlyMay && V == FName("May"))
-                    {
-                        TargetActor = NextPlayer;
-                        //SetWidget(NearWidgetInstance);
-                        //SetWidget(FarWidgetInstance);
-                        return;
-                    }
-                    else if (true == bOnlyCody && V == FName("Cody"))
-                    {
-                        TargetActor = NextPlayer;
-                        //SetWidget(NearWidgetInstance);
-                        //SetWidget(FarWidgetInstance);
-                        return;
-                    }
-                }
-            }
-        }
+		APlayerBase* NextPlayer = Cast<APlayerBase>(Player);
+		const TArray<FName>& CheckTag = NextPlayer->Tags;
+		for (const FName& V : CheckTag)
+		{
+			if (V == FName("Cody") || V == FName("May"))
+			{
+				if (true == bOnlyMay && V == FName("May"))
+				{
+					TargetActor = NextPlayer;
+					//SetWidget(NearWidgetInstance);
+					//SetWidget(FarWidgetInstance);
+					return;
+				}
+				else if (true == bOnlyCody && V == FName("Cody"))
+				{
+					TargetActor = NextPlayer;
+					//SetWidget(NearWidgetInstance);
+					//SetWidget(FarWidgetInstance);
+					return;
+				}
+			}
+		}
     }
 }

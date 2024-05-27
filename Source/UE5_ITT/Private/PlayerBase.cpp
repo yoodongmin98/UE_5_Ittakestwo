@@ -10,7 +10,7 @@
 #include "Logging/LogMacros.h"
 //#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
-#include "PlayerMarkerUI.h"
+#include "MarkerWidget.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -40,13 +40,13 @@ APlayerBase::APlayerBase()
 
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	MarkerUIWidget = CreateDefaultSubobject<UPlayerMarkerUI>(TEXT("WidgetComponent"));
+	MarkerUIWidget = CreateDefaultSubobject<UMarkerWidget>(TEXT("MarkerWidgetCom"));
 	MarkerUIWidget->SetupAttachment(RootComponent);
 }
 
 void APlayerBase::SettingMarkerWidget()
 {
-	MarkerUIWidget->SettingCustomVisible();
+	//MarkerUIWidget->SettingCustomVisible();
 }
 
 

@@ -551,8 +551,8 @@ public:
 
 
 	///////////////////Widget//////////////////
-	UPROPERTY(EditAnywhere, Category = "UI")
-	class UPlayerMarkerUI* MarkerUIWidget;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "UI")
+	class UMarkerWidget* MarkerUIWidget;
 	UCapsuleComponent* CustomPlayerCapsuleComponent;
 	UFUNCTION(BlueprintCallable)
 	void SettingMarkerWidget();
