@@ -18,10 +18,19 @@ public:
 	virtual void Init() override;
 
 	void AddCameraRigRail(const FString& KeyName, class AParentCameraRail* _CameraRigRail);
-	void ChangeCameraView(const FString& KeyName);
+	void ChangeCameraView(const FString& KeyName, float BlendTime);
+	void SetCody(class ACody* ActorCody);
+	ACody* GetCody()
+	{
+		return Cody;
+	}
+	
+	
 
 protected:
 
 private:
 	TMap<FString,class AParentCameraRail*> MapCamera;
+
+	ACody* Cody = nullptr;
 };

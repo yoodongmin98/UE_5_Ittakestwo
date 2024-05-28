@@ -21,7 +21,7 @@ public:
 	virtual void Tick(float DeltaTime)override;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetCameraView();
+	void Multicast_SetCameraView(float BlendTime = 0.f);
 
 protected:
 	virtual void BeginPlay() override;
@@ -35,5 +35,6 @@ protected:
 	class UCameraComponent* CamComp = nullptr;
 	class UFsmComponent* FsmComp;
 	float CamMoveRatio = 1.f;
+	bool bStart = false;
 private:
 };

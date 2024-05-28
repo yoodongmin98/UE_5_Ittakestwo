@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
 #include "GameManager.h"
+#include "Cody.h"
 
 AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -44,23 +45,38 @@ void AUfoCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
-
 		},
 
 		[this](float DT)
 		{
+			if (bStart)
+			{
+				FsmComp->ChangeState(Fsm::Move);
+			}
 		},
 
 		[this]
 		{
 		});
+
 	FsmComp->CreateState(Fsm::Move,
 		[this]
 		{
+			Cody = Cast<UGameManager>(GetGameInstance())->GetCody();
 		},
 
 		[this](float DT)
-		{			
+		{
+			if (nullptr == Cody)
+			{
+				UE_LOG(LogTemp, Display, TEXT("null"));
+				return;
+			}
+			double Dist = FVector::Distance(Cody->GetActorLocation(), CamComp->GetComponentLocation());
+			float Ratio = 50.f - Dist; 
+			Ratio *= 0.001f;
+			
+			Multicast_MoveRailCamera(DT *-Ratio);		
 		},
 
 		[this]

@@ -33,7 +33,6 @@ protected:
 private:
 	UPROPERTY(EditAnywhere)
 	class USphereComponent* ColComp = nullptr;
-	bool bStart = false;
 
 	void SetupFsm();
 

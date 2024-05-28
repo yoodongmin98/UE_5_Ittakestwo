@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameManager.h"
+#include "Cody.h"
 
 AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -93,6 +94,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 			if (CurrentPositionOnRail>=1.f)
 			{
 				FsmComp->ChangeState(Fsm::Delay1);
+				return;
 			}
 			Multicast_MoveRailCamera(DT * CamMoveRatio);
 		},
@@ -122,7 +124,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
-			Cast<UGameManager>(GetGameInstance())->ChangeCameraView(TEXT("UfoRoad"));
+			Cast<UGameManager>(GetGameInstance())->ChangeCameraView(TEXT("UfoRoad"),1.f);
 		},
 
 		[this](float DT)
@@ -138,8 +140,8 @@ void AUfoCutSceneCameraRail::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 {
 	if (OtherActor != this && true == OtherActor->ActorHasTag("Player"))
 	{
-		UE_LOG(LogTemp, Display, TEXT("overlap"));
-		Multicast_SetCameraView();
-		bStart = true;
+		Multicast_SetCameraView(0.1f);
+		ACody* Cody = Cast<ACody>(OtherActor);
+		Cast<UGameManager>(GetGameInstance())->SetCody(Cody);
 	}
 }

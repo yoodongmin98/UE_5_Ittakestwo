@@ -24,7 +24,7 @@ void UGameManager::AddCameraRigRail(const FString& KeyName , AParentCameraRail* 
 	}
 }
 
-void UGameManager::ChangeCameraView(const FString& KeyName)
+void UGameManager::ChangeCameraView(const FString& KeyName, float BlendTime)
 {
 	if (nullptr == MapCamera.Find(KeyName))
 	{
@@ -34,6 +34,11 @@ void UGameManager::ChangeCameraView(const FString& KeyName)
 	else
 	{
 		AParentCameraRail* CamActor = MapCamera[KeyName];
-		CamActor->Multicast_SetCameraView();
+		CamActor->Multicast_SetCameraView(BlendTime);
 	}
+}
+
+void UGameManager::SetCody(ACody* ActorCody)
+{
+	Cody = ActorCody;
 }

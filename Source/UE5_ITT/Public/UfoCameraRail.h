@@ -29,4 +29,5 @@ protected:
 
 private:
 	void SetupFsm();
+	class ACody* Cody = nullptr;
 };
