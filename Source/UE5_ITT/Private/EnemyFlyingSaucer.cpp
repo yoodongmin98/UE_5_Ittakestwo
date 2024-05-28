@@ -814,7 +814,7 @@ void AEnemyFlyingSaucer::MulticastEnableCutSceneCameraBlend_Implementation(APlay
 			{
 				// 카메라 변경 후 재생비율 세팅
 				ViewTargetChangeController->SetViewTargetWithBlend(Cast<AActor>(CameraRail), BlendTime);
-				CameraRail->MulticastEnableCameraMove(BlendRatio);
+				CameraRail->EnableCameraMove(BlendRatio);
 			}
 		}
 	}
