@@ -5,6 +5,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -791,15 +792,17 @@ int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 	return FloorObject->GetCurrentPhase();
 }
 
-void AEnemyFlyingSaucer::EnableCutSceneCameraBlend(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
+void AEnemyFlyingSaucer::EnableCutSceneCameraBlend_Implementation(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
 {
 	if (nullptr == BlendTargetActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CameraBlend TargetActor is nullptr"));
 		return;
 	}
-
-	AController* PlayerController = BlendTargetActor->GetController();
+	
+	// AController* PlayerController = BlendTargetActor->GetController();
+	AController* PlayerController = GetWorld()->GetFirstPlayerController();
+	
 	if (nullptr != PlayerController)
 	{
 		ViewTargetChangeController = Cast<APlayerController>(PlayerController);
@@ -945,7 +948,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
+					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
@@ -1156,6 +1159,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			ActiveSplitScreen(true);
 			// 카메라블렌드 
 			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			// EnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
 			// 포커스 해제 및 비헤이비어트리 동작중지 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
@@ -1175,6 +1179,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 					// 화면분할 적용 
 					ActiveSplitScreen(false);
+					ResetFollowView();
 					ActiveCodyUI(true, true);
 				}
 			}
@@ -1531,7 +1536,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-		});
+		});	
 
 	FsmComp->CreateState(EBossState::Phase2_Fly,
 		[this]
@@ -1539,9 +1544,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastSwapMesh(true, false);
 			MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
-
-
-			PlayerCody->SetActorLocation(FVector(394.0f, 60103.0f, -4437.0f));
+			PlayerCody->SetActorLocation(CodyUfoInsideLocation, false, nullptr, ETeleportType::TeleportPhysics);
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
 		},
