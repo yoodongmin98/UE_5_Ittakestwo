@@ -264,11 +264,15 @@ private:
 	void SetupComponent();
 	void SetupFsmComponent();
 	
+	UFUNCTION(NetMulticast, Reliable)
 	void EnableCutSceneCameraBlend(class APlayerBase* BlendTargetActor, class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
+	
 	void DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime);
 
 	void ActiveCodyUI(bool bNewVisibility, bool bPropagateToChildren);
 	void ActiveMayUI(bool bNewVisibility, bool bPropagateToChildren);
+
+	void ResetFollowView();
 
 	void ActiveSplitScreen(bool bActive);
 
@@ -393,6 +397,8 @@ private:
 	// 메이 위치보정값 
 	// 104 + 9990
 	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 10094.55f);
+
+	FVector CodyUfoInsideLocation = FVector(394.0f, 60103.0f, -4437.0f);
 
 	// 러프 비율을 저장할 float
 	float CodyLerpRatio = 0.0f;
