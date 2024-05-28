@@ -7,6 +7,7 @@
 #include "Components/SplineComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameManager.h"
 
 AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -17,19 +18,10 @@ AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectI
 	{
 		bReplicates = true;
 		SetReplicateMovement(true);
-		ColComp = CreateDefaultSubobject<USphereComponent>(TEXT("ColComp"));
-		ColComp->SetupAttachment(RootComponent);
-
-		CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
-		CamComp->SetupAttachment(RailCameraMount);
+		ColComp= CreateDefaultSubobject<USphereComponent>(TEXT("ColComp"));
 
 		SetupFsm();
 	}
-}
-
-bool AUfoCutSceneCameraRail::ShouldTickIfViewportsOnly() const
-{
-	return false;
 }
 
 
@@ -38,27 +30,6 @@ void AUfoCutSceneCameraRail::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AUfoCutSceneCameraRail::Multicast_MoveRailCamera_Implementation(float RailRatio)
-{
-	CurrentPositionOnRail += RailRatio;
-	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
-}
-
-void AUfoCutSceneCameraRail::Multicast_SetCameraView_Implementation()
-{
-	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
-
-	if (HasAuthority() == true)
-	{
-		++++PlayerControllerIter;
-	}
-	else
-	{
-		++PlayerControllerIter;
-	}
-
-	PlayerControllerIter->Get()->SetViewTargetWithBlend(this, 0.1f);
-}
 
 void AUfoCutSceneCameraRail::BeginPlay()
 {
@@ -68,12 +39,13 @@ void AUfoCutSceneCameraRail::BeginPlay()
 	{
 		FsmComp->ChangeState(Fsm::Wait);
 		ColComp->OnComponentBeginOverlap.AddDynamic(this, &AUfoCutSceneCameraRail::OnOverlapBegin);
+		Cast<UGameManager>(GetGameInstance())->AddCameraRigRail(TEXT("UfoCutScene"), this);
+		CamMoveRatio = 0.333333f;
 	}
 }
 
 void AUfoCutSceneCameraRail::SetupFsm()
 {
-	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
@@ -84,7 +56,8 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		{	
 			if (bStart)
 			{
-				FsmComp->ChangeState(Fsm::Delay);
+				FsmComp->ChangeState(Fsm::Delay0);
+				ColComp->DestroyComponent();
 			}
 		},
 
@@ -92,7 +65,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		{
 		});
 
-	FsmComp->CreateState(Fsm::Delay,
+	FsmComp->CreateState(Fsm::Delay0,
 		[this]
 		{
 		},
@@ -119,9 +92,26 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		{
 			if (CurrentPositionOnRail>=1.f)
 			{
-
+				FsmComp->ChangeState(Fsm::Delay1);
 			}
 			Multicast_MoveRailCamera(DT * CamMoveRatio);
+		},
+
+		[this]
+		{
+		});
+
+	FsmComp->CreateState(Fsm::Delay1,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime() > 1.f)
+			{
+				FsmComp->ChangeState(Fsm::End);
+			}
 		},
 
 		[this]
@@ -132,14 +122,11 @@ void AUfoCutSceneCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
+			Cast<UGameManager>(GetGameInstance())->ChangeCameraView(TEXT("UfoRoad"));
 		},
 
 		[this](float DT)
 		{
-			if (CurrentPositionOnRail >= 1.f)
-			{
-				FsmComp->ChangeState(Fsm::End);
-			}
 		},
 
 		[this]
@@ -151,6 +138,7 @@ void AUfoCutSceneCameraRail::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 {
 	if (OtherActor != this && true == OtherActor->ActorHasTag("Player"))
 	{
+		UE_LOG(LogTemp, Display, TEXT("overlap"));
 		Multicast_SetCameraView();
 		bStart = true;
 	}

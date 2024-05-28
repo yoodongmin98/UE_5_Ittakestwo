@@ -3,36 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CameraRig_Rail.h"
+#include "ParentCameraRail.h"
 #include "UfoCutSceneCameraRail.generated.h"
 
 /**
  *
  */
 UCLASS()
-class UE5_ITT_API AUfoCutSceneCameraRail : public ACameraRig_Rail
+class UE5_ITT_API AUfoCutSceneCameraRail : public AParentCameraRail
 {
 	GENERATED_BODY()
 
 public:
 	AUfoCutSceneCameraRail(const FObjectInitializer& ObjectInitializer);
 
-	virtual bool ShouldTickIfViewportsOnly() const override;
-
 	enum class Fsm
 	{
 		Wait,
-		Delay,
+		Delay0,
 		Move,
+		Delay1,
 		End,
 	};
 	virtual void Tick(float DeltaTime)override;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_MoveRailCamera(float RailRatio);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetCameraView();
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,10 +35,6 @@ private:
 	class USphereComponent* ColComp = nullptr;
 	bool bStart = false;
 
-	float CamMoveRatio = 0.333333f;
-	UPROPERTY(EditAnywhere)
-	class UCameraComponent* CamComp = nullptr;
-	class UFsmComponent* FsmComp;
 	void SetupFsm();
 
 

@@ -5,6 +5,7 @@
 #include "FsmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameManager.h"
 
 AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -16,33 +17,14 @@ AUfoCameraRail::AUfoCameraRail(const FObjectInitializer& ObjectInitializer)
 		bReplicates = true;
 		SetReplicateMovement(true);
 
-		CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
-
 		SetupFsm();
 	}
 }
-
-bool AUfoCameraRail::IsSupportedForNetworking() const
-{
-	return true;
-}
-
-bool AUfoCameraRail::ShouldTickIfViewportsOnly() const
-{
-	return false;
-}
-
 
 void AUfoCameraRail::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-void AUfoCameraRail::MulticastMoveRailCamera_Implementation(float RailRatio)
-{
-	CurrentPositionOnRail = RailRatio;
-	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
 }
 
 void AUfoCameraRail::BeginPlay()
@@ -53,12 +35,12 @@ void AUfoCameraRail::BeginPlay()
 	{
 		FsmComp->ChangeState(Fsm::Wait);
 		CamComp->AttachToComponent(RailCameraMount, FAttachmentTransformRules::KeepRelativeTransform);
+		Cast<UGameManager>(GetGameInstance())->AddCameraRigRail(TEXT("UfoRoad"), this);
 	}
 }
 
 void AUfoCameraRail::SetupFsm()
 {
-	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
@@ -67,7 +49,6 @@ void AUfoCameraRail::SetupFsm()
 
 		[this](float DT)
 		{
-			FsmComp->ChangeState(Fsm::Move);
 		},
 
 		[this]
@@ -76,13 +57,10 @@ void AUfoCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Move,
 		[this]
 		{
-			CurrentPositionOnRail = 0;
 		},
 
 		[this](float DT)
 		{			
-			CurrentPositionOnRail += DT*0.1;
-			//MulticastMoveRailCamera(CurrentPositionOnRail);
 		},
 
 		[this]
