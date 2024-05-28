@@ -87,10 +87,10 @@ public:
 	virtual void DashEnd() override;
 
 
-	UFUNCTION(Client, Reliable)
-	void ClientCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
+	//UFUNCTION(Client, Reliable)
+	//void ClientCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
+	//UFUNCTION(Server, Reliable, WithValidation)
+	//void ServerCameraLengthChange(float _Length, float _DeltaTime, float _CameraSpeed);
 
 	//Size
 	FVector BigSize;
@@ -105,7 +105,8 @@ public:
 
 	float CodyDefaultSpeed;
 
-
+	float SpringArmLerpTime;
+	float CurSprintArmLength;
 	UPROPERTY(Replicated)
 	float SpringArmLength;
 	UPROPERTY(Replicated)
