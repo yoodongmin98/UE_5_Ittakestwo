@@ -81,7 +81,6 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		[this](float DT)
 		{
 			Multicast_MoveRailCamera(DT * CamMoveRatio);
-			UE_LOG(LogTemp, Display, TEXT("======================"));
 		},
 
 		[this]
