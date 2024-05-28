@@ -59,7 +59,6 @@ private:
 
     float Distance;
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
     void SetCodyWidget(const FVector2D _Pos, const bool isvisible);
 
     APlayerController* CodyViewController;

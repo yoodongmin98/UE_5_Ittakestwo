@@ -125,7 +125,7 @@ void UInteractionWidget::TickComponent(float DeltaTime, enum ELevelTick TickType
 
 }
 
-void UInteractionWidget::SetCodyWidget_Implementation(const FVector2D _Pos, const bool isvisible)
+void UInteractionWidget::SetCodyWidget(const FVector2D _Pos, const bool isvisible)
 {
     if(true == isvisible)
     {
@@ -136,11 +136,6 @@ void UInteractionWidget::SetCodyWidget_Implementation(const FVector2D _Pos, cons
     {
         WidgetInstance->SetVisibility(ESlateVisibility::Hidden);
     }
-}
-
-bool UInteractionWidget::SetCodyWidget_Validate(const FVector2D _Pos, const bool isvisible)
-{
-    return true;
 }
 
 
