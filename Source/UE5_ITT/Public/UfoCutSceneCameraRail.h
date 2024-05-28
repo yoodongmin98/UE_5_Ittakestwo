@@ -29,8 +29,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_MoveRailCamera(float RailRatio);
 
-	bool IsSupportedForNetworking() const override;
-
 protected:
 	virtual void BeginPlay() override;
 

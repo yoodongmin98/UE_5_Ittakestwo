@@ -7,7 +7,6 @@
 #include "Components/SplineComponent.h"
 #include "Net/UnrealNetwork.h"
 
-static int Testint = 0;
 AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
@@ -25,11 +24,6 @@ AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectI
 	}
 }
 
-bool AUfoCutSceneCameraRail::IsSupportedForNetworking() const
-{
-	return true;
-}
-
 bool AUfoCutSceneCameraRail::ShouldTickIfViewportsOnly() const
 {
 	return false;
@@ -39,19 +33,12 @@ bool AUfoCutSceneCameraRail::ShouldTickIfViewportsOnly() const
 void AUfoCutSceneCameraRail::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AUfoCutSceneCameraRail::Multicast_MoveRailCamera_Implementation(float RailRatio)
 {
-	++Testint;
 	CurrentPositionOnRail += RailRatio;
 	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
-	UE_LOG(LogTemp, Display, TEXT("%d"), Testint);
-	if (HasAuthority()==false)
-	{
-		UE_LOG(LogTemp, Display, TEXT("%f"),CurrentPositionOnRail);
-	}
 }
 
 void AUfoCutSceneCameraRail::BeginPlay()
@@ -74,7 +61,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		},
 
 		[this](float DT)
-		{
+		{				
 			if (bTest == false)
 			{
 				return;
@@ -88,7 +75,6 @@ void AUfoCutSceneCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Move,
 		[this]
 		{
-			Testint = 0;
 			CurrentPositionOnRail = 0.f;
 		},
 
