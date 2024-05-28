@@ -792,7 +792,7 @@ int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 	return FloorObject->GetCurrentPhase();
 }
 
-void AEnemyFlyingSaucer::EnableCutSceneCameraBlend_Implementation(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
+void AEnemyFlyingSaucer::MulticastEnableCutSceneCameraBlend_Implementation(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
 {
 	if (nullptr == BlendTargetActor)
 	{
@@ -822,7 +822,7 @@ void AEnemyFlyingSaucer::EnableCutSceneCameraBlend_Implementation(APlayerBase* B
 	bIsCutSceneStart = true;
 }
 
-void AEnemyFlyingSaucer::DisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime)
+void AEnemyFlyingSaucer::MulticastDisableCutSceneCameraBlend_Implementation(AActor* PrevViewTargetActor, const float BlendTime)
 {
 	if (nullptr == PrevViewTargetActor)
 	{
@@ -948,7 +948,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				ServerDelayTime -= DT;
 				if (ServerDelayTime <= 0.0f)
 				{
-					FsmComp->ChangeState(EBossState::Phase1_BreakThePattern);
+					FsmComp->ChangeState(EBossState::Phase1_LaserBeam_1);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
@@ -1158,8 +1158,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 화면분할 해제
 			ActiveSplitScreen(true);
 			// 카메라블렌드 
-			EnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
-			// EnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			MulticastEnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			// MulticastEnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
 			// 포커스 해제 및 비헤이비어트리 동작중지 
 			AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
@@ -1175,11 +1175,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			{
 				if (nullptr != ViewTargetChangeController)
 				{
-					DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+					MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 
 					// 화면분할 적용 
 					ActiveSplitScreen(false);
-					ResetFollowView();
+					// ResetFollowView();
 					ActiveCodyUI(true, true);
 				}
 			}
@@ -1373,7 +1373,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			ActiveSplitScreen(true);
 			ActiveCodyUI(false, true);
-			EnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
+			MulticastEnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1401,7 +1401,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 여기서 컴포넌트 디스트로이 오버랩 컴포넌트 비활성
 			PlayerOverlapCheckComp->SetVisibility(false);
 
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 			ActiveSplitScreen(false);
 		});
 
@@ -1500,7 +1500,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			
 
 			// 카메라블렌드 
-			EnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
+			MulticastEnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
@@ -1515,7 +1515,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.3f);
+			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.3f);
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
@@ -1706,7 +1706,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			SetDamage(GetCurrentHp());
 
 			ActiveSplitScreen(true);
-			EnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
+			MulticastEnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)
@@ -1722,7 +1722,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			DisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
 			ActiveSplitScreen(false);
 		});
 
