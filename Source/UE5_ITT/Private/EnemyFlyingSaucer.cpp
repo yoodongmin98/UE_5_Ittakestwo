@@ -792,14 +792,8 @@ int32 AEnemyFlyingSaucer::GetFloorCurrentState()
 	return FloorObject->GetCurrentPhase();
 }
 
-void AEnemyFlyingSaucer::MulticastEnableCutSceneCameraBlend_Implementation(APlayerBase* BlendTargetActor, APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
+void AEnemyFlyingSaucer::MulticastEnableCutSceneCameraBlend_Implementation(APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio)
 {
-	if (nullptr == BlendTargetActor)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CameraBlend TargetActor is nullptr"));
-		return;
-	}
-	
 	// AController* PlayerController = BlendTargetActor->GetController();
 	AController* PlayerController = GetWorld()->GetFirstPlayerController();
 	
@@ -1158,7 +1152,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			// 화면분할 해제
 			ActiveSplitScreen(true);
 			// 카메라블렌드 
-			MulticastEnableCutSceneCameraBlend(PlayerCody, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
+			MulticastEnableCutSceneCameraBlend(PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 			// MulticastEnableCutSceneCameraBlend(PlayerMay, PowerCoreDestroyCameraRail, 0.2f, 0.25f);
 
 			// 포커스 해제 및 비헤이비어트리 동작중지 
@@ -1373,7 +1367,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 			ActiveSplitScreen(true);
 			ActiveCodyUI(false, true);
-			MulticastEnableCutSceneCameraBlend(PlayerMay, LaserDestroyCameraRail, 0.2f, 0.23f);
+			MulticastEnableCutSceneCameraBlend(LaserDestroyCameraRail, 0.2f, 0.23f);
 		},
 
 		[this](float DT)
@@ -1500,7 +1494,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			
 
 			// 카메라블렌드 
-			MulticastEnableCutSceneCameraBlend(PlayerMay, BossFallCameraRail, 0.2f, 0.25f);
+			MulticastEnableCutSceneCameraBlend(BossFallCameraRail, 0.2f, 0.25f);
 		},
 
 		[this](float DT)
@@ -1545,6 +1539,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
 			PlayerCody->SetActorLocation(CodyUfoInsideLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_MoonBaboon_Anim"), 1, false);
 		},
@@ -1706,7 +1702,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			SetDamage(GetCurrentHp());
 
 			ActiveSplitScreen(true);
-			MulticastEnableCutSceneCameraBlend(PlayerMay, BossEjectCameraRail, 0.2f, 0.35f);
+			MulticastEnableCutSceneCameraBlend(BossEjectCameraRail, 0.2f, 0.35f);
 		},
 
 		[this](float DT)

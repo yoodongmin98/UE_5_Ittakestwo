@@ -265,7 +265,7 @@ private:
 	void SetupFsmComponent();
 	
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastEnableCutSceneCameraBlend(class APlayerBase* BlendTargetActor, class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
+	void MulticastEnableCutSceneCameraBlend(class APhaseEndCameraRail* CameraRail, const float BlendTime, const float BlendRatio);
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastDisableCutSceneCameraBlend(AActor* PrevViewTargetActor, const float BlendTime);
