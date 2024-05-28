@@ -5,6 +5,7 @@
 #include "FsmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectInitializer)
@@ -16,6 +17,8 @@ AUfoCutSceneCameraRail::AUfoCutSceneCameraRail(const FObjectInitializer& ObjectI
 	{
 		bReplicates = true;
 		SetReplicateMovement(true);
+		ColComp = CreateDefaultSubobject<USphereComponent>(TEXT("ColComp"));
+		ColComp->SetupAttachment(RootComponent);
 
 		CamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CamComp"));
 		CamComp->SetupAttachment(RailCameraMount);
@@ -41,6 +44,22 @@ void AUfoCutSceneCameraRail::Multicast_MoveRailCamera_Implementation(float RailR
 	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
 }
 
+void AUfoCutSceneCameraRail::Multicast_SetCameraView_Implementation()
+{
+	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
+
+	if (HasAuthority() == true)
+	{
+		++++PlayerControllerIter;
+	}
+	else
+	{
+		++PlayerControllerIter;
+	}
+
+	PlayerControllerIter->Get()->SetViewTargetWithBlend(this, 0.1f);
+}
+
 void AUfoCutSceneCameraRail::BeginPlay()
 {
 	Super::BeginPlay();
@@ -48,6 +67,7 @@ void AUfoCutSceneCameraRail::BeginPlay()
 	if (true == HasAuthority())
 	{
 		FsmComp->ChangeState(Fsm::Wait);
+		ColComp->OnComponentBeginOverlap.AddDynamic(this, &AUfoCutSceneCameraRail::OnOverlapBegin);
 	}
 }
 
@@ -61,17 +81,34 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		},
 
 		[this](float DT)
-		{				
-			if (bTest == false)
+		{	
+			if (bStart)
 			{
-				return;
+				FsmComp->ChangeState(Fsm::Delay);
 			}
-			FsmComp->ChangeState(Fsm::Move);
 		},
 
 		[this]
 		{
 		});
+
+	FsmComp->CreateState(Fsm::Delay,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime()>1.f)
+			{
+				FsmComp->ChangeState(Fsm::Move);
+			}
+		},
+
+		[this]
+		{
+		});
+
 	FsmComp->CreateState(Fsm::Move,
 		[this]
 		{
@@ -80,10 +117,41 @@ void AUfoCutSceneCameraRail::SetupFsm()
 
 		[this](float DT)
 		{
+			if (CurrentPositionOnRail>=1.f)
+			{
+
+			}
 			Multicast_MoveRailCamera(DT * CamMoveRatio);
 		},
 
 		[this]
 		{
 		});
+
+
+	FsmComp->CreateState(Fsm::End,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+			if (CurrentPositionOnRail >= 1.f)
+			{
+				FsmComp->ChangeState(Fsm::End);
+			}
+		},
+
+		[this]
+		{
+		});
+}
+
+void AUfoCutSceneCameraRail::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor != this && true == OtherActor->ActorHasTag("Player"))
+	{
+		Multicast_SetCameraView();
+		bStart = true;
+	}
 }
