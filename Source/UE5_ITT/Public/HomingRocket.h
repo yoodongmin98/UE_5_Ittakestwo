@@ -60,9 +60,6 @@ private:
 	void SetupOverlapEvent();
 	void SetupFsmComponent();
 
-	void PlaySound();
-
-
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnDestroyEffect();
 
@@ -147,4 +144,7 @@ private:
 
 	void EnablePlayerFlying();
 	void DisablePlayerFlying();
+
+	class USoundManageComponent* SoundComp = nullptr;
+	bool bIsRocketLoopSoundPlay = false;
 };

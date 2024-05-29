@@ -8,6 +8,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "NiagaraComponent.h"
+#include "SoundManageComponent.h"
 #include "FsmComponent.h"
 #include "EnemyFlyingSaucer.h"
 #include "ExplosionEffect.h"
@@ -37,6 +38,7 @@ AHomingRocket::AHomingRocket()
 		FireEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("FireEffectComponent"));
 		FireEffectComp->SetupAttachment(SceneComp);
 
+		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComponent"));
 		SetupFsmComponent();
 	}
 }
@@ -110,15 +112,23 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerChase,
 		[this]
 		{
+			SoundComp->ChangeSound(TEXT("SC_RocketFireStart"));
 		},
 
 		[this](float DT)
 		{
+			if (false == bIsRocketLoopSoundPlay && 0.75f <= RocketFsmComponent->GetStateLiveTime())
+			{
+				bIsRocketLoopSoundPlay = true;
+				SoundComp->ChangeSound(TEXT("SC_RocketLoop"));
+			}
+
 			// 플레이어 충돌시 
 			if (false == bIsActive)
 			{
 				Multicast_SpawnDestroyEffect();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
 			}
 			
@@ -131,6 +141,7 @@ void AHomingRocket::SetupFsmComponent()
 			{
 				RocketLifeTime = 0.0f;
 				RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
+				SoundComp->ChangeSound(TEXT("SC_RocketStopFollowing"));
 				return;
 			}
 
@@ -140,7 +151,7 @@ void AHomingRocket::SetupFsmComponent()
 
 		[this]
 		{
-			
+			bIsRocketLoopSoundPlay = false;
 		});
 
 	// 바닥에 떨어져 있는 상태 
@@ -210,10 +221,17 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			PlayerEquipBegin();
 			Multicast_FireEffectToggleSwitch();
+			SoundComp->ChangeSound(TEXT("SC_RocketRideStart"));
 		},
 
 		[this](float DT)
 		{
+			if (false == bIsRocketLoopSoundPlay && 0.75f <= RocketFsmComponent->GetStateLiveTime())
+			{
+				bIsRocketLoopSoundPlay = true;
+				SoundComp->ChangeSound(TEXT("SC_RocketLoop"));
+			}
+
 			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
 			{
 				Multicast_SpawnDestroyEffect();
@@ -221,6 +239,7 @@ void AHomingRocket::SetupFsmComponent()
 				// 플레이어 로켓하차 함수 
 				OverlapActor->OverlapHomingFunc();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
 			}
 			
@@ -232,20 +251,20 @@ void AHomingRocket::SetupFsmComponent()
 				OverlapActor->OverlapHomingFunc();
 				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
 				BossActor->SetDamage(RocketDamageToBoss);
+				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
 			}
 		},
 
 		[this]
 		{
-			
+			bIsRocketLoopSoundPlay = false;
 		});
 
 	// 대기상태일 때 실제로 제거하지 않고 이펙트만 생성한 상태로 10초후에 삭제
 	RocketFsmComponent->CreateState(ERocketState::DestroyWait,
 		[this]
 		{
-			PlaySound();
 			this->SetActorHiddenInGame(true);
 		},
 
@@ -275,13 +294,6 @@ void AHomingRocket::SetupFsmComponent()
 		[this]
 		{
 		});
-}
-
-void AHomingRocket::PlaySound()
-{
-	FOutputDeviceNull OutputDevice;
-	FString FunctionString = TEXT("PlayDestroySound");
-	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
 }
 
 void AHomingRocket::Multicast_FireEffectToggleSwitch_Implementation()
