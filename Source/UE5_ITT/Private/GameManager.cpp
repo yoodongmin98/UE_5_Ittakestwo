@@ -35,7 +35,7 @@ void UGameManager::ChangeCameraView(const FString& KeyName, float BlendTime)
 	else
 	{
 		AParentCameraRail* CamActor = MapCamera[KeyName];
-		CamActor->Multicast_SetCameraView(BlendTime);
+		CamActor->MulticastSetCameraView(BlendTime);
 	}
 }
 

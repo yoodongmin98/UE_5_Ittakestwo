@@ -34,14 +34,14 @@ void AParentCameraRail::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AParentCameraRail::Multicast_MoveRailCamera_Implementation(float RailRatio)
+void AParentCameraRail::MulticastMoveRailCamera_Implementation(float RailRatio)
 {
 	CurrentPositionOnRail += RailRatio;
 	CurrentPositionOnRail = FMath::Clamp(CurrentPositionOnRail, 0.f, 1.f);
 	CamComp->SetWorldLocation(GetRailSplineComponent()->GetLocationAtTime(CurrentPositionOnRail, ESplineCoordinateSpace::World));
 }
 
-void AParentCameraRail::Multicast_SetCameraView_Implementation(float BlendTime)
+void AParentCameraRail::MulticastSetCameraView_Implementation(float BlendTime)
 {
 	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
 	if (HasAuthority() == true)
@@ -72,7 +72,7 @@ bool AParentCameraRail::IsSupportedForNetworking() const
 	return true;
 }
 
-void AParentCameraRail::Multicast_CameraViewReset_Implementation(float BlendTime)
+void AParentCameraRail::MulticastCameraViewReset_Implementation(float BlendTime)
 {
 	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
 	if (HasAuthority() == true)

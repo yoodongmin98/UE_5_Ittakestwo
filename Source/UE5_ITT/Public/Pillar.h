@@ -112,7 +112,7 @@ private:
 
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void Multicast_SpawnNiagaraEffect();
+	void MulticastSpawnNiagaraEffect();
 
 
 	// Explosion Effect

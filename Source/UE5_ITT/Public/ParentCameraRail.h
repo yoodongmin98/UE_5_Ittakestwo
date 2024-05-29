@@ -21,9 +21,9 @@ public:
 	virtual void Tick(float DeltaTime)override;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetCameraView(float BlendTime = 0.f);
+	void MulticastSetCameraView(float BlendTime = 0.f);
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_CameraViewReset(float BlendTime = 0.f);
+	void MulticastCameraViewReset(float BlendTime = 0.f);
 protected:
 	virtual void BeginPlay() override;
 	virtual bool ShouldTickIfViewportsOnly() const override;
@@ -31,7 +31,7 @@ protected:
 	void ResetScreenView();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_MoveRailCamera(float RailRatio);
+	void MulticastMoveRailCamera(float RailRatio);
 
 	UPROPERTY(EditAnywhere)
 	class UCameraComponent* CamComp = nullptr;

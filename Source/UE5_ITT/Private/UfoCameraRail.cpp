@@ -78,7 +78,7 @@ void AUfoCameraRail::SetupFsm()
 			float Ratio = 50.f - Dist; 
 			Ratio *= 0.001f;
 			
-			Multicast_MoveRailCamera(DT *-Ratio);		
+			MulticastMoveRailCamera(DT *-Ratio);		
 		},
 
 		[this]
