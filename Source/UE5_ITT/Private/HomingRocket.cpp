@@ -14,6 +14,7 @@
 #include "Floor.h"
 #include "Cody.h"
 #include "PlayerBase.h"
+#include "Misc/OutputDeviceNull.h"
 
 // Sets default values
 AHomingRocket::AHomingRocket()
@@ -244,6 +245,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::DestroyWait,
 		[this]
 		{
+			PlaySound();
 			this->SetActorHiddenInGame(true);
 		},
 
@@ -273,6 +275,13 @@ void AHomingRocket::SetupFsmComponent()
 		[this]
 		{
 		});
+}
+
+void AHomingRocket::PlaySound()
+{
+	FOutputDeviceNull OutputDevice;
+	FString FunctionString = TEXT("PlayDestroySound");
+	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
 }
 
 void AHomingRocket::Multicast_FireEffectToggleSwitch_Implementation()
