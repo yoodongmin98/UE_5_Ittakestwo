@@ -18,10 +18,10 @@ public:
 	USoundCue* GetCurSound();
 
 	UFUNCTION(BlueprintCallable,Reliable,NetMulticast)
-	void ChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
+	void MulticastChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
 
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
-	void PlaySoundDirect(const FString& KeyName);
+	void MulticastPlaySoundDirect(const FString& KeyName);
 
 protected:
 

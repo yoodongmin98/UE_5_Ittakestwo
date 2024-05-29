@@ -11,7 +11,7 @@ USoundCue* USoundManageComponent::GetCurSound()
 	return CurSound;
 }
 
-void USoundManageComponent::ChangeSound(const FString& KeyName, bool bPlay, float StartTime)
+void USoundManageComponent::MulticastChangeSound_Implementation(const FString& KeyName, bool bPlay, float StartTime)
 {	
 	//매니저에게 사운드 불러오기
 	CurSound = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
@@ -25,7 +25,7 @@ void USoundManageComponent::ChangeSound(const FString& KeyName, bool bPlay, floa
 	}
 }
 
-void USoundManageComponent::PlaySoundDirect(const FString& KeyName)
+void USoundManageComponent::MulticastPlaySoundDirect_Implementation(const FString& KeyName)
 {
 	UGameplayStatics::PlaySound2D(GetWorld(), Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName));
 }

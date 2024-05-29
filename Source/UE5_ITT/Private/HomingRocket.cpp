@@ -112,7 +112,7 @@ void AHomingRocket::SetupFsmComponent()
 	RocketFsmComponent->CreateState(ERocketState::PlayerChase,
 		[this]
 		{
-			SoundComp->ChangeSound(TEXT("SC_RocketFireStart"));
+			SoundComp->MulticastChangeSound(TEXT("SC_RocketFireStart"));
 		},
 
 		[this](float DT)
@@ -120,7 +120,7 @@ void AHomingRocket::SetupFsmComponent()
 			if (false == bIsRocketLoopSoundPlay && 0.75f <= RocketFsmComponent->GetStateLiveTime())
 			{
 				bIsRocketLoopSoundPlay = true;
-				SoundComp->ChangeSound(TEXT("SC_RocketLoop"));
+				SoundComp->MulticastChangeSound(TEXT("SC_RocketLoop"));
 			}
 
 			// 플레이어 충돌시 
@@ -128,7 +128,7 @@ void AHomingRocket::SetupFsmComponent()
 			{
 				Multicast_SpawnDestroyEffect();
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
-				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
+				SoundComp->MulticastPlaySoundDirect(TEXT("SC_RocketDestroy"));
 				return;
 			}
 			
@@ -141,7 +141,7 @@ void AHomingRocket::SetupFsmComponent()
 			{
 				RocketLifeTime = 0.0f;
 				RocketFsmComponent->ChangeState(ERocketState::PlayerEquipWait);
-				SoundComp->ChangeSound(TEXT("SC_RocketStopFollowing"));
+				SoundComp->MulticastChangeSound(TEXT("SC_RocketStopFollowing"));
 				return;
 			}
 
@@ -221,7 +221,7 @@ void AHomingRocket::SetupFsmComponent()
 		{
 			PlayerEquipBegin();
 			Multicast_FireEffectToggleSwitch();
-			SoundComp->ChangeSound(TEXT("SC_RocketRideStart"));
+			SoundComp->MulticastChangeSound(TEXT("SC_RocketRideStart"));
 		},
 
 		[this](float DT)
@@ -229,7 +229,7 @@ void AHomingRocket::SetupFsmComponent()
 			if (false == bIsRocketLoopSoundPlay && 0.75f <= RocketFsmComponent->GetStateLiveTime())
 			{
 				bIsRocketLoopSoundPlay = true;
-				SoundComp->ChangeSound(TEXT("SC_RocketLoop"));
+				SoundComp->MulticastChangeSound(TEXT("SC_RocketLoop"));
 			}
 
 			if (PlayerEquipMaxLiveTime <= RocketFsmComponent->GetStateLiveTime())
@@ -239,7 +239,7 @@ void AHomingRocket::SetupFsmComponent()
 				// 플레이어 로켓하차 함수 
 				OverlapActor->OverlapHomingFunc();
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
-				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
+				SoundComp->MulticastPlaySoundDirect(TEXT("SC_RocketDestroy"));
 				return;
 			}
 			
@@ -251,7 +251,7 @@ void AHomingRocket::SetupFsmComponent()
 				OverlapActor->OverlapHomingFunc();
 				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 				BossActor->SetDamage(RocketDamageToBoss);
-				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
+				SoundComp->MulticastPlaySoundDirect(TEXT("SC_RocketDestroy"));
 				return;
 			}
 		},
