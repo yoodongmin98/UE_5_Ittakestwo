@@ -31,9 +31,6 @@ public:
 	
 	int32 GetCurrentState() const;
 
-	UFUNCTION()
-	void DestroyRocket();
-
 	enum class ERocketState
 	{
 		PlayerChase,	     // 플레이어 추적 상태
@@ -59,9 +56,6 @@ protected:
 private:
 	void SetupOverlapEvent();
 	void SetupFsmComponent();
-
-	void PlaySound();
-
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnDestroyEffect();
@@ -147,4 +141,7 @@ private:
 
 	void EnablePlayerFlying();
 	void DisablePlayerFlying();
+
+	class USoundManageComponent* SoundComp = nullptr;
+	bool bIsRocketLoopSoundPlay = false;
 };
