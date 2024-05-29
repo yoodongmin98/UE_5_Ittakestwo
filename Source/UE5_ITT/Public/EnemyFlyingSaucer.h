@@ -425,7 +425,7 @@ private:
 	bool bIsCorretLocation = false;
 	float HomingRocket1FireTime = 0.0f;
 	float HomingRocket2FireTime = 0.0f;
-	float HomingRocketCoolTime = 15.0f;
+	float HomingRocketCoolTime = 11.0f;
 
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;
