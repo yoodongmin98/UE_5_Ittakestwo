@@ -44,8 +44,6 @@ void AParentCameraRail::Multicast_SetCameraView_Implementation(float BlendTime)
 {
 	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
 
-	PlayerControllerIter->Get()->SetViewTargetWithBlend(this, BlendTime);
-
 	if (HasAuthority() == true)
 	{
 		++++PlayerControllerIter;
