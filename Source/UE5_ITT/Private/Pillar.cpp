@@ -156,7 +156,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveUp,
 		[this]
 		{
-			//SoundComp->PlaySoundDirect(TEXT("LiftStart_Cue"));
+			SoundComp->MulticastPlaySoundDirect(TEXT("LiftStart_Cue"));
 		},
 
 		[this](float DT)
@@ -241,7 +241,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveDown,
 		[this]
 		{
-
+			SoundComp->MulticastChangeSound(TEXT("liftstop_cue"));
 		},
 
 		[this](float DT)

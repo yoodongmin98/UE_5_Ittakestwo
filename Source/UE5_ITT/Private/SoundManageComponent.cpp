@@ -17,15 +17,23 @@ void USoundManageComponent::MulticastChangeSound_Implementation(const FString& K
 	CurSound = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
 
 	//현재 사운드 변경
-	SetSound(CurSound);
-
-	if (bPlay)
+	if (CurSound!=nullptr)
 	{
-		Play(StartTime);
+		SetSound(CurSound);
+
+		if (bPlay)
+		{
+			Play(StartTime);
+		}
 	}
+
 }
 
 void USoundManageComponent::MulticastPlaySoundDirect_Implementation(const FString& KeyName)
 {
-	UGameplayStatics::PlaySound2D(GetWorld(), Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName));
+	USoundCue* TempCue = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
+	if (TempCue!=nullptr)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), TempCue);
+	}
 }
