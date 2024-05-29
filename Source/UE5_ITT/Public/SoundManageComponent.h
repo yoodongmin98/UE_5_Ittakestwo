@@ -18,7 +18,7 @@ public:
 	USoundCue* GetCurSound();
 
 	UFUNCTION(BlueprintCallable)
-	void ChangeSound(const FString& KeyName);
+	void ChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
 
 
 protected:
