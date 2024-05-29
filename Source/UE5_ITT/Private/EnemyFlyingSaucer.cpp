@@ -1538,7 +1538,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastSwapMesh(true, false);
 			MulticastHideLaserBaseBoneAndSpawnDestroyEffect();
 
-			PlayerCody->SetActorLocation(CodyUfoInsideLocation, false, nullptr, ETeleportType::TeleportPhysics);
+			PlayerCody->TeleportTo(CodyUfoInsideLocation, CodyUfoInsideRotation);
 
 
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_EnterUFO_FlyingSaucer_Anim"), 1, false);
