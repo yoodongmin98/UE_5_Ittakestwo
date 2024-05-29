@@ -8,6 +8,8 @@
 #include "EnergyCore.h"
 #include "NiagaraComponent.h"
 #include "CoreExplosionEffect.h"
+#include "SoundManageComponent.h"
+#include "GameManager.h"
 
 
 // Sets default values
@@ -26,6 +28,8 @@ APillar::APillar()
 
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
 	ButtonMesh->SetupAttachment(PillarMesh);
+
+	SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
 
 	if (true == HasAuthority())
 	{

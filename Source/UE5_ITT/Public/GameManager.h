@@ -24,13 +24,19 @@ public:
 	{
 		return Cody;
 	}
-	
-	
+
+
+	UFUNCTION(BlueprintCallable)
+	void LoadSound();
+	class USoundCue* GetSound(const FString& KeyName);
 
 protected:
 
 private:
 	TMap<FString,class AParentCameraRail*> MapCamera;
+	class UObjectLibrary* ObjLibrary = nullptr;
+
+	TMap<FString, class USoundCue*> SoundList;
 
 	ACody* Cody = nullptr;
 };
