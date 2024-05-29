@@ -1755,9 +1755,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			/*HomingRocket1FireTime -= DT;
+			HomingRocket1FireTime -= DT;
 			HomingRocket2FireTime -= DT;
-			FireHomingRocket();*/
+			FireHomingRocket();
 		},
 
 		[this]

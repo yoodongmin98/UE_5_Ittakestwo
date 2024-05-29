@@ -60,6 +60,9 @@ private:
 	void SetupOverlapEvent();
 	void SetupFsmComponent();
 
+	void PlaySound();
+
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SpawnDestroyEffect();
 
