@@ -127,7 +127,7 @@ void AHomingRocket::SetupFsmComponent()
 			if (false == bIsActive)
 			{
 				Multicast_SpawnDestroyEffect();
-				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
 			}
@@ -238,7 +238,7 @@ void AHomingRocket::SetupFsmComponent()
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 				// 플레이어 로켓하차 함수 
 				OverlapActor->OverlapHomingFunc();
-				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
 			}
@@ -249,7 +249,7 @@ void AHomingRocket::SetupFsmComponent()
 				DetachFromActor(FDetachmentTransformRules::KeepRelativeTransform);
 				// 플레이어한테 너 이제 로켓하차임 
 				OverlapActor->OverlapHomingFunc();
-				RocketFsmComponent->ChangeState(ERocketState::DestroyWait);
+				RocketFsmComponent->ChangeState(ERocketState::Destroy);
 				BossActor->SetDamage(RocketDamageToBoss);
 				SoundComp->ChangeSound(TEXT("SC_RocketDestroy"));
 				return;
@@ -261,30 +261,10 @@ void AHomingRocket::SetupFsmComponent()
 			bIsRocketLoopSoundPlay = false;
 		});
 
-	// 대기상태일 때 실제로 제거하지 않고 이펙트만 생성한 상태로 10초후에 삭제
-	RocketFsmComponent->CreateState(ERocketState::DestroyWait,
-		[this]
-		{
-			this->SetActorHiddenInGame(true);
-		},
-
-		[this](float DT)
-		{
-			if (10.0f <= RocketFsmComponent->GetStateLiveTime())
-			{
-				RocketFsmComponent->ChangeState(ERocketState::Destroy);
-				return;
-			}
-		},
-
-		[this]
-		{
-		});
-
 	RocketFsmComponent->CreateState(ERocketState::Destroy,
 		[this]
 		{
-			DestroyRocket();
+			this->SetActorHiddenInGame(true);
 		},
 
 		[this](float DT)
@@ -437,12 +417,6 @@ void AHomingRocket::PlayerEquipBegin()
 
 	// 플레이어의 장착완료시 함수 호출 후 종료 
 	OverlapActor->PlayerToHomingRoketJumpFinished();
-}
-
-void AHomingRocket::DestroyRocket()
-{
-	Destroy();
-	RocketFsmComponent = nullptr;
 }
 
 // Fly 활성 

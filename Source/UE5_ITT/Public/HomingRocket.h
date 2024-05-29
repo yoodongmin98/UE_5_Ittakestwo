@@ -31,9 +31,6 @@ public:
 	
 	int32 GetCurrentState() const;
 
-	UFUNCTION()
-	void DestroyRocket();
-
 	enum class ERocketState
 	{
 		PlayerChase,	     // 플레이어 추적 상태

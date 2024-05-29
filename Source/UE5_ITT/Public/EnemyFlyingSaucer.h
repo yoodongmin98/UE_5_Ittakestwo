@@ -18,11 +18,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
-
-	UFUNCTION(BlueprintCallable)
-	void FireHomingRocket();
-
 	UFUNCTION(BlueprintCallable)
 	void FireArcingProjectile();
 
@@ -209,6 +204,12 @@ protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
+	void SpawnCodyChaseHomingRocket();
+	void SpawnMayChaseHomingRocket();
+
+	void CodyChaseRocketSpawnCheck(float DeltaTime);
+	void MayChaseRocketSpawnCheck(float DeltaTime);
+
 	// 보스애니메이션 변경시 사용하는 애니메이션 리소스 정보 애니메이션 시퀀스 or 애니메이션 블루프린트 
 	enum class EAnimationAssetType : uint8
 	{
@@ -426,9 +427,12 @@ private:
 	class AMay* PlayerMay = nullptr;
 
 	bool bIsCorretLocation = false;
-	float HomingRocket1FireTime = 0.0f;
-	float HomingRocket2FireTime = 0.0f;
-	float HomingRocketCoolTime = 11.0f;
+	float HomingRocket1FireTime = 4.0f;
+	float HomingRocket2FireTime = 4.0f;
+	float HomingRocketCoolTime = 4.0f;
+
+	bool bIsCodyChaseRocketDestroy = false;
+	bool bIsMayChaseRocketDestroy = false;
 
 	// 로켓 액터 
 	class AHomingRocket* HomingRocketActor_1 = nullptr;

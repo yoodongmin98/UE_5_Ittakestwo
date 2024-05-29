@@ -174,6 +174,8 @@ void AEnemyFlyingSaucer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AEnemyFlyingSaucer, CodyOverlapCheckComp);
 }
 
+
+
 // 애니메이션 리소스 타입에 따라서 애니메이션 변경
 void AEnemyFlyingSaucer::MulticastChangeAnimationFlyingSaucer_Implementation(const FString& AnimationPath, const uint8 AnimType, bool AnimationLoop)
 {
@@ -405,27 +407,59 @@ void AEnemyFlyingSaucer::MulticastHideLaserBaseBone_Implementation()
 	}
 }
 
-void AEnemyFlyingSaucer::FireHomingRocket()
+void AEnemyFlyingSaucer::SpawnCodyChaseHomingRocket()
 {
-	if (HomingRocket1FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState() && Cody_State::FLYING != PlayerCody->GetITTPlayerState())
+	HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+	HomingRocketActor_1->SetTarget(Cast<AActor>(PlayerCody));
+	HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
+	HomingRocketActor_1->SetOwner(this);
+	
+}
+
+void AEnemyFlyingSaucer::SpawnMayChaseHomingRocket()
+{
+	HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
+	HomingRocketActor_2->SetTarget(Cast<AActor>(PlayerMay));
+	HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
+	HomingRocketActor_2->SetOwner(this);
+}
+
+void AEnemyFlyingSaucer::CodyChaseRocketSpawnCheck(float DeltaTime)
+{
+	if (nullptr == HomingRocketActor_1)
 	{
-		/*Cody_State CodyState = PlayerCody->GetITTPlayerState();
-		UE_LOG(LogTemp, Warning, TEXT("CodyState : %d"), static_cast<int32>(CodyState));*/
-		HomingRocketActor_1 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_1->SetTarget(Cast<AActor>(PlayerCody));
-		HomingRocketActor_1->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
-		HomingRocketActor_1->SetOwner(this);
-		HomingRocket1FireTime = HomingRocketCoolTime;
+		HomingRocket1FireTime -= DeltaTime;
+
+		if (0.0f >= HomingRocket1FireTime && Cody_State::PlayerDeath != PlayerCody->GetITTPlayerState())
+		{
+			SpawnCodyChaseHomingRocket();
+		}
 	}
 
-	if (HomingRocket2FireTime <= 0.0f && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState() && Cody_State::FLYING != PlayerMay->GetITTPlayerState())
+	if (nullptr != HomingRocketActor_1 && static_cast<int32>(AHomingRocket::ERocketState::Destroy) == HomingRocketActor_1->GetCurrentState())
 	{
-		/*Cody_State MayState = PlayerMay->GetITTPlayerState();
-		UE_LOG(LogTemp, Warning, TEXT("MayState : %d"), static_cast<int32>(MayState));*/
-		HomingRocketActor_2 = GetWorld()->SpawnActor<AHomingRocket>(HomingRocketClass);
-		HomingRocketActor_2->SetTarget(Cast<AActor>(PlayerMay));
-		HomingRocketActor_2->SetActorLocation(HomingRocketSpawnPointMesh1->GetComponentLocation());
-		HomingRocketActor_2->SetOwner(this);
+		HomingRocketActor_1->Destroy();
+		HomingRocketActor_1 = nullptr;
+		HomingRocket1FireTime = HomingRocketCoolTime;
+	}
+}
+
+void AEnemyFlyingSaucer::MayChaseRocketSpawnCheck(float DeltaTime)
+{
+	if (nullptr == HomingRocketActor_2)
+	{
+		HomingRocket2FireTime -= DeltaTime;
+
+		if (0.0f >= HomingRocket1FireTime && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState())
+		{
+			SpawnMayChaseHomingRocket();
+		}
+	}
+
+	if (nullptr != HomingRocketActor_2 && static_cast<int32>(AHomingRocket::ERocketState::Destroy) == HomingRocketActor_2->GetCurrentState())
+	{
+		HomingRocketActor_2->Destroy();
+		HomingRocketActor_2 = nullptr;
 		HomingRocket2FireTime = HomingRocketCoolTime;
 	}
 }
@@ -1436,6 +1470,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Left_Anim"), 1, true);
+
+			SpawnCodyChaseHomingRocket();
+			SpawnMayChaseHomingRocket();
 		},
 
 		[this](float DT)
@@ -1452,10 +1489,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			HomingRocket1FireTime -= DT;
-			HomingRocket2FireTime -= DT;
-			FireHomingRocket();
-
+			CodyChaseRocketSpawnCheck(DT);
+			MayChaseRocketSpawnCheck(DT);
 		},
 
 		[this]
@@ -1744,14 +1779,14 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			SoundComp->ChangeSound(TEXT("SC_LaserStart"));
+			SpawnCodyChaseHomingRocket();
+			SpawnMayChaseHomingRocket();
 		},
 
 		[this](float DT)
 		{
-			HomingRocket1FireTime -= DT;
-			HomingRocket2FireTime -= DT;
-			FireHomingRocket();
+			CodyChaseRocketSpawnCheck(DT);
+			MayChaseRocketSpawnCheck(DT);
 		},
 
 		[this]
