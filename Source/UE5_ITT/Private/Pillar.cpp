@@ -11,7 +11,6 @@
 #include "SoundManageComponent.h"
 #include "GameManager.h"
 
-
 // Sets default values
 APillar::APillar()
 {
@@ -157,7 +156,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveUp,
 		[this]
 		{
-
+			//SoundComp->PlaySoundDirect(TEXT("LiftStart_Cue"));
 		},
 
 		[this](float DT)

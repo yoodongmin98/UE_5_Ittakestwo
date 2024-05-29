@@ -20,6 +20,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
 
+	void PlaySoundDirect(const FString& KeyName);
 
 protected:
 

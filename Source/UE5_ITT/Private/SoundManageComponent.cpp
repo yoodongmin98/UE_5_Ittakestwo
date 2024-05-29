@@ -4,6 +4,7 @@
 #include "SoundManageComponent.h"
 #include "Sound/SoundCue.h"
 #include "GameManager.h"
+#include "Kismet/GameplayStatics.h"
 
 USoundCue* USoundManageComponent::GetCurSound()
 {
@@ -22,4 +23,9 @@ void USoundManageComponent::ChangeSound(const FString& KeyName, bool bPlay, floa
 	{
 		Play(StartTime);
 	}
+}
+
+void USoundManageComponent::PlaySoundDirect(const FString& KeyName)
+{
+	UGameplayStatics::PlaySound2D(GetWorld(), Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName));
 }
