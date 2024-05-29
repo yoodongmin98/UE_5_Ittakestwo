@@ -12,7 +12,9 @@ USoundCue* USoundManageComponent::GetCurSound()
 
 void USoundManageComponent::ChangeSound(const FString& KeyName)
 {	
+	//매니저에게 사운드 불러오기
 	CurSound = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
 
+	//현재 사운드 변경
 	SetSound(CurSound);
 }

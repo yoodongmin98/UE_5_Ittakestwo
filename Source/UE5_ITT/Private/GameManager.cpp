@@ -46,15 +46,18 @@ void UGameManager::SetCody(ACody* ActorCody)
 
 void UGameManager::LoadSound()
 {
+	//라이브러리 불러와서 에셋 로드
 	ObjLibrary = UObjectLibrary::CreateLibrary(nullptr, false, false);
 	if (ObjLibrary != nullptr)
 	{
 		ObjLibrary->LoadAssetsFromPath(TEXT("/Game/Sound"));
 	}
 
+	//로드한 에셋 가져오기
 	TArray<USoundCue*> TempArray;
 	ObjLibrary->GetObjects(TempArray);
 
+	//가져온 에셋 맵에 이름으로 저장
 	for (size_t i = 0; i < TempArray.Num(); i++)
 	{
 		if (SoundList.Find(TempArray[i]->GetName())!=nullptr)
@@ -65,12 +68,11 @@ void UGameManager::LoadSound()
 
 		SoundList.Add(TempArray[i]->GetName(),TempArray[i]);
 	}
-
-	UE_LOG(LogTemp, Display, TEXT("Load Sound %d"), SoundList.Num());
 }
 
 USoundCue* UGameManager::GetSound(const FString& KeyName)
 {
+	//이름을 통해서 사운드 큐 불러오기
 	if (SoundList.Find(KeyName) == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Invalid Key"));

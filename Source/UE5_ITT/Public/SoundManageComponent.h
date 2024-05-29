@@ -16,6 +16,8 @@ class UE5_ITT_API USoundManageComponent : public UAudioComponent
 	
 public:
 	USoundCue* GetCurSound();
+
+	UFUNCTION(BlueprintCallable)
 	void ChangeSound(const FString& KeyName);
 
 
