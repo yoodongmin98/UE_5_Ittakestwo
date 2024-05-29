@@ -22,11 +22,13 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetCameraView(float BlendTime = 0.f);
-
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_CameraViewReset(float BlendTime = 0.f);
 protected:
 	virtual void BeginPlay() override;
 	virtual bool ShouldTickIfViewportsOnly() const override;
 	virtual bool IsSupportedForNetworking() const override;
+	void ResetScreenView();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_MoveRailCamera(float RailRatio);
@@ -36,5 +38,7 @@ protected:
 	class UFsmComponent* FsmComp;
 	float CamMoveRatio = 1.f;
 	bool bStart = false;
+
 private:
+	AActor* PrevViewTarget = nullptr;
 };

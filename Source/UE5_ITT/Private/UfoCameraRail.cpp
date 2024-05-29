@@ -45,6 +45,8 @@ void AUfoCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
+			//현재는 안씀
+			Destroy();
 		},
 
 		[this](float DT)

@@ -112,6 +112,25 @@ void AUfoCutSceneCameraRail::SetupFsm()
 		{
 			if (FsmComp->GetStateLiveTime() > 1.f)
 			{
+				FsmComp->ChangeState(Fsm::Delay2);
+			}
+		},
+
+		[this]
+		{
+		});
+
+	FsmComp->CreateState(Fsm::Delay2,
+		[this]
+		{
+			Cast<UGameManager>(GetGameInstance())->GetCody()->GetController()->SetControlRotation(FRotator(0.f, -150.f, 0.f));
+			Multicast_CameraViewReset(1.f);
+		},
+
+		[this](float DT)
+		{
+			if (FsmComp->GetStateLiveTime() > 1.f)
+			{
 				FsmComp->ChangeState(Fsm::End);
 			}
 		},
@@ -124,7 +143,8 @@ void AUfoCutSceneCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::End,
 		[this]
 		{
-			Cast<UGameManager>(GetGameInstance())->ChangeCameraView(TEXT("UfoRoad"),1.f);
+			ResetScreenView();
+			Destroy();
 		},
 
 		[this](float DT)
@@ -140,7 +160,7 @@ void AUfoCutSceneCameraRail::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 {
 	if (OtherActor != this && true == OtherActor->ActorHasTag("Player"))
 	{
-		Multicast_SetCameraView(0.1f);
+		Multicast_SetCameraView(0.f);
 		ACody* Cody = Cast<ACody>(OtherActor);
 		Cast<UGameManager>(GetGameInstance())->SetCody(Cody);
 	}

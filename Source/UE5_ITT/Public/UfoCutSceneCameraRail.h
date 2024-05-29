@@ -23,6 +23,7 @@ public:
 		Delay0,
 		Move,
 		Delay1,
+		Delay2,
 		End,
 	};
 	virtual void Tick(float DeltaTime)override;

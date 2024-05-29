@@ -5,6 +5,7 @@
 #include "FsmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SplineComponent.h"
+#include "Misc/OutputDeviceNull.h"
 
 AParentCameraRail::AParentCameraRail(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -43,7 +44,6 @@ void AParentCameraRail::Multicast_MoveRailCamera_Implementation(float RailRatio)
 void AParentCameraRail::Multicast_SetCameraView_Implementation(float BlendTime)
 {
 	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
-
 	if (HasAuthority() == true)
 	{
 		++++PlayerControllerIter;
@@ -53,13 +53,39 @@ void AParentCameraRail::Multicast_SetCameraView_Implementation(float BlendTime)
 		++PlayerControllerIter;
 	}
 
+	PrevViewTarget = PlayerControllerIter->Get()->GetViewTarget();
 	PlayerControllerIter->Get()->SetViewTargetWithBlend(this, BlendTime);
 	bStart = true;
+}
+
+void AParentCameraRail::ResetScreenView()
+{
+	
+	FOutputDeviceNull OutputDevice;
+	FString FunctionString = TEXT("ResetScreenMode");
+
+	CallFunctionByNameWithArguments(*FunctionString, OutputDevice, nullptr, true);
 }
 
 bool AParentCameraRail::IsSupportedForNetworking() const
 {
 	return true;
+}
+
+void AParentCameraRail::Multicast_CameraViewReset_Implementation(float BlendTime)
+{
+	FConstPlayerControllerIterator PlayerControllerIter = GetWorld()->GetPlayerControllerIterator();
+	if (HasAuthority() == true)
+	{
+		++++PlayerControllerIter;
+	}
+	else
+	{
+		++PlayerControllerIter;
+	}
+
+	PlayerControllerIter->Get()->SetViewTargetWithBlend(PrevViewTarget, BlendTime);
+	PrevViewTarget = nullptr;
 }
 
 void AParentCameraRail::BeginPlay()
