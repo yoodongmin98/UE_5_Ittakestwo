@@ -200,6 +200,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsDebugChangePhase = false;
 
+	// »ç¿îµå
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class USoundManageComponent* SoundComp = nullptr;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -470,4 +473,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bIsPhase1End = false;
+
+
+	
 };

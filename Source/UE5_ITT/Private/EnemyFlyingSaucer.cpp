@@ -15,6 +15,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "SoundManageComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "FsmComponent.h"
 #include "InteractionUIComponent.h"
@@ -83,6 +84,8 @@ void AEnemyFlyingSaucer::SetupComponent()
 	HatchOpenStaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HatchOpenStaticMeshComponent"));
 	HatchOpenStaticMeshComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("Base"));
 	HatchOpenStaticMeshComp->SetVisibility(false);
+
+	SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundManageComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -1741,16 +1744,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			if (true == HasAuthority())
-			{
-				// 그럼 서버일 때. 자. 
-				// 1. 블루프린트로 게임스테이트 함수를 가져오고, 인자로 불값을 받아서 오프시킬지, 온시킬지 선택하는 함수를 만들어. 
-				UE_LOG(LogTemp, Warning, TEXT("Boss Server"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Boss Not Server"));
-			}
+			SoundComp->ChangeSound(TEXT("SC_LaserStart"));
 		},
 
 		[this](float DT)
