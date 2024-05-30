@@ -345,15 +345,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline void SetRespawnPosition();
 
-	//////////////////////////////////////////
 	
-	//마우스 돌아가는 스피드
-	float RotationInterpSpeed = 2.0f;
-	//상호작용
-	UPROPERTY(Replicated)
-	bool IsInteract = false;
-
-	//////////////////////////////////////////
 
 
 
@@ -399,19 +391,76 @@ public:
 	void JumpDash();
 	///////////////////////////////////////////////////////
 
+	//void GetOnlineSubsystem();
+	//IOnlineSessionPtr OnlineSeesioninterface;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	///////////////////Widget//////////////////
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	class UMarkerWidget* MarkerUIWidget;
+
+	UFUNCTION(BlueprintCallable)
+	void SettingMarkerWidget();
+	///////////////////////////////////////////
+
+
+
+	///////////////////Overlap//////////////////
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	////////////////////////////////////////////
+
+
+
+	///////////////////Rocket//////////////////
+	void PlayerToHomingRocketJumpStart();
+
+	UFUNCTION(BlueprintCallable)
+	inline void PlayerToHomingRoketJumpFinished();
+	UFUNCTION(Client, Reliable)
+	inline void ClientPlayerToHomingRoketJumpFinished();
+	UFUNCTION(Server, Reliable, WithValidation)
+	inline void ServerPlayerToHomingRoketJumpFinished();
+
+	UFUNCTION(Client, Reliable)
+	void CustomClientRideJump();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void CustomServerRideJump();
+	///////////////////////////////////////////
+	
 
 	
-	/////////////////Controller///////////////////
-	APlayerController* CodyController = nullptr;
-	//////////////////////////////////////////////
 
-	///////////////////State/////////////////////
+	///////////////////??????//////////////////
+
 	UPROPERTY(Replicated)
-	Cody_State ITTPlayerState;
-	//////////////////////////////////////////////
+	FRotator CurControllerRot;
 
+	UFUNCTION(BlueprintCallable)
+	inline FRotator GetCurControllerRot() const
+	{
+		return CurControllerRot;
+	}
+	UPROPERTY(Replicated)
+	FVector CurControllerLoc;
+
+	UFUNCTION(BlueprintCallable)
+	inline FVector GetCurControllerLoc() const
+	{
+		return CurControllerLoc;
+	}
+	void UpdateCamTrans();
+	///////////////////////////////////////////
+
+
+protected:
 	///////////////////Player/////////////////////
-	UPROPERTY(Replicated,EditAnywhere, BlueprintReadOnly, Category = Player)
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerHP = 12;
 	int32 FullHP = 12;
 	UPROPERTY(Replicated)
@@ -437,13 +486,12 @@ public:
 	float NormalLength;
 	float SmallLength;
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
-	FVector ResPawnPosition = FVector(1000.0f,1000.0f,100.0f); //임시
+	FVector ResPawnPosition = FVector(1000.0f, 1000.0f, 100.0f); //임시
 
 	//SpringArm기본 세팅 함수입니다.
 	UFUNCTION(BlueprintCallable)
 	void SpringArmDefaultFunction();
 	//////////////////////////////////////////////
-
 	//////////////////Movement////////////////////
 	UPROPERTY(Replicated)
 	float DashDistance = 2500.0f; // 앞구르기 거리
@@ -452,7 +500,7 @@ public:
 	float PlayerDefaultSpeed;
 	UPROPERTY(Replicated)
 	float NowPlayerSpeed;
-	UPROPERTY(Replicated=OnRep_IsMoveEnd)
+	UPROPERTY(Replicated = OnRep_IsMoveEnd)
 	bool IsMoveEnd; //움직임이 끝났는지
 	UFUNCTION()
 	void OnRep_IsMoveEnd();
@@ -512,7 +560,7 @@ public:
 
 	UPROPERTY(Replicated)
 	FVector FlyForwardVector;
-	
+
 	//Fly
 	UPROPERTY(Replicated)
 	bool IsFly = false;
@@ -520,16 +568,6 @@ public:
 	UPROPERTY(Replicated)
 	float FlyingSpeed;
 	//////////////////////////////////////////////
-
-	///////////////////Animation//////////////////
-	UPROPERTY(Replicated)
-	bool CurrentAnimationEnd; 
-	//////////////////////////////////////////////
-
-	//void GetOnlineSubsystem();
-	//IOnlineSessionPtr OnlineSeesioninterface;
-
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	///////////////////Cody//////////////////
 	UPROPERTY(Replicated)
@@ -543,44 +581,11 @@ public:
 	UPROPERTY(Replicated)
 	bool CodyHoldEnemy = false;
 	/////////////////////////////////////////
-
-
-
-
-
-
-
+private:
 	///////////////////Widget//////////////////
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "UI")
-	class UMarkerWidget* MarkerUIWidget;
 	UCapsuleComponent* CustomPlayerCapsuleComponent;
-	UFUNCTION(BlueprintCallable)
-	void SettingMarkerWidget();
-	///////////////////////////////////////////
-
-
-
-	///////////////////Overlap//////////////////
-	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	////////////////////////////////////////////
-
-
 
 	///////////////////Rocket//////////////////
-	void PlayerToHomingRocketJumpStart();
-
-	UFUNCTION(BlueprintCallable)
-	inline void PlayerToHomingRoketJumpFinished();
-	UFUNCTION(Client, Reliable)
-	inline void ClientPlayerToHomingRoketJumpFinished();
-	UFUNCTION(Server, Reliable, WithValidation)
-	inline void ServerPlayerToHomingRoketJumpFinished();
-
 	UPROPERTY(Replicated)
 	FVector CunstomEndLocation;
 	UPROPERTY(Replicated)
@@ -595,36 +600,28 @@ public:
 	double CustomTargetLocationsY;
 	UPROPERTY(Replicated)
 	FVector ResultTargetLocations;
-
-	UFUNCTION(Client, Reliable)
-	void CustomClientRideJump();
-	UFUNCTION(Server, Reliable, WithValidation)
-	void CustomServerRideJump();
-
 	bool OverlapHoming = false;
-	///////////////////////////////////////////
-	
 
 	
-
-	///////////////////??????//////////////////
-
+	///////////////////Animation//////////////////
 	UPROPERTY(Replicated)
-	FRotator CurControllerRot;
+	bool CurrentAnimationEnd;
+	//////////////////////////////////////////////
 
-	UFUNCTION(BlueprintCallable)
-	inline FRotator GetCurControllerRot() const
-	{
-		return CurControllerRot;
-	}
+	/////////////////Controller///////////////////
+	APlayerController* CodyController = nullptr;
+	//////////////////////////////////////////////
+
+	///////////////////State/////////////////////
 	UPROPERTY(Replicated)
-	FVector CurControllerLoc;
+	Cody_State ITTPlayerState;
+	//////////////////////////////////////////////
 
-	UFUNCTION(BlueprintCallable)
-	inline FVector GetCurControllerLoc() const
-	{
-		return CurControllerLoc;
-	}
-	void UpdateCamTrans();
-	///////////////////////////////////////////
+	//////////////////////////////////////////
+	//마우스 돌아가는 스피드
+	float RotationInterpSpeed = 2.0f;
+	//상호작용
+	UPROPERTY(Replicated)
+	bool IsInteract = false;
+	//////////////////////////////////////////
 };
