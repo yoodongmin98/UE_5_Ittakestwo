@@ -1181,7 +1181,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
-
+			SoundComp->MulticastChangeSound(TEXT("PowerCoreDestroyed_Cue"));
 			// 추락애니메이션 재생
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
@@ -1526,6 +1526,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_BreakThePattern,
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("RocketsPhaseFinished_Cue"));
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
