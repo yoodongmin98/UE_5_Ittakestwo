@@ -56,7 +56,7 @@ public:
 	float LaserLerpRatio = 0.0f;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
-	float LaserLerpScale = 5.0f;
+	float LaserLerpScale = 7.5f;
 
 	UPROPERTY(BlueprintReadWrite, Replicated)
 	float LaserLerpRate = 25.0f;
