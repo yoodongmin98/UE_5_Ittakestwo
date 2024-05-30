@@ -466,6 +466,8 @@ void AEnemyFlyingSaucer::MayChaseRocketSpawnCheck(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
+	SoundComp->MulticastPlaySoundDirect(TEXT("LaserBomb_ShotFired_Cue"));
+
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
 	Projectile->SetOwner(this);
 	
