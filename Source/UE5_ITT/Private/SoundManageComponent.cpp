@@ -1,3 +1,4 @@
+#include "SoundManageComponent.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
@@ -9,6 +10,11 @@
 USoundCue* USoundManageComponent::GetCurSound()
 {
 	return CurSound;
+}
+
+void USoundManageComponent::MulticastSoundStop_Implementation()
+{
+	Stop();
 }
 
 void USoundManageComponent::MulticastChangeSound_Implementation(const FString& KeyName, bool bPlay, float StartTime)

@@ -23,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
 	void MulticastPlaySoundDirect(const FString& KeyName);
 
+	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
+	void MulticastSoundStop();
+
 protected:
 
 private:
