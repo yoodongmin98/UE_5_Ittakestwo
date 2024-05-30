@@ -15,17 +15,17 @@ class UE5_ITT_API USoundManageComponent : public UAudioComponent
 	GENERATED_BODY()
 	
 public:
-	USoundCue* GetCurSound();
-
 	UFUNCTION(BlueprintCallable,Reliable,NetMulticast)
 	void MulticastChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
 
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
 	void MulticastPlaySoundDirect(const FString& KeyName);
+	
+	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
+	void MulticastPlaySoundLocation(const FString& KeyName,FVector Location,float Attenuation = 0.f);
 
 protected:
 
 private:
-	USoundCue* CurSound = nullptr;
 
 };

@@ -241,7 +241,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveDown,
 		[this]
 		{
-			SoundComp->MulticastChangeSound(TEXT("liftstop_cue"));
+			SoundComp->MulticastPlaySoundLocation(TEXT("liftstop_cue"),GetActorLocation()+FVector(2000.f,0.f,0.f),1800.f);
 		},
 
 		[this](float DT)
@@ -288,6 +288,7 @@ void APillar::SetupFsm()
 		{
 			ParentShutter->SetDone();
 			EnergyCoreActor->Destroy();
+			SoundComp->MulticastPlaySoundDirect("SC_CoreExplosion");
 		},
 
 		[this](float DT)
