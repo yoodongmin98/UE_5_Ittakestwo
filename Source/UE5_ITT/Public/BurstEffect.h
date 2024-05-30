@@ -28,6 +28,9 @@ protected:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:
+	UPROPERTY(BlueprintReadWrite)
+	class USoundManageComponent* SoundComp = nullptr;
+
 	void SetupComponent();
 	void SetupDestroyTimerEvent();
 	void EffectDestroy();
