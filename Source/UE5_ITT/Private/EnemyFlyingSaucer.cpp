@@ -86,6 +86,7 @@ void AEnemyFlyingSaucer::SetupComponent()
 	HatchOpenStaticMeshComp->SetVisibility(false);
 
 	SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundManageComponent"));
+	BGMComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("BGMComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -466,6 +467,8 @@ void AEnemyFlyingSaucer::MayChaseRocketSpawnCheck(float DeltaTime)
 
 void AEnemyFlyingSaucer::FireArcingProjectile()
 {
+	SoundComp->MulticastPlaySoundDirect(TEXT("LaserBomb_ShotFired_Cue"));
+
 	AArcingProjectile* Projectile = GetWorld()->SpawnActor<AArcingProjectile>(ArcingProjectileClass, ArcingProjectileSpawnPointMesh->GetComponentLocation(), FRotator::ZeroRotator);
 	Projectile->SetOwner(this);
 	
@@ -998,6 +1001,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1,
 		[this]
 		{
+			BGMComp->MulticastChangeSound(TEXT("Phase1_BGM_Cue"));
+
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -1181,7 +1186,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
-
+			BGMComp->MulticastChangeSound(TEXT("Phase2_BGM_Cue"));
+			SoundComp->MulticastChangeSound(TEXT("PowerCoreDestroyed_Cue"));
 			// 추락애니메이션 재생
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Programming_Anim"), 1, true);
@@ -1477,6 +1483,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// test
+			CurrentHp = 33.0f;
+
+
 			if (CurrentHp <= 33.0f)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
@@ -1489,8 +1499,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			CodyChaseRocketSpawnCheck(DT);
-			MayChaseRocketSpawnCheck(DT);
+			if (CurrentHp > 33.0f)
+			{
+				CodyChaseRocketSpawnCheck(DT);
+				MayChaseRocketSpawnCheck(DT);
+			}
 		},
 
 		[this]
@@ -1526,6 +1539,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase2_BreakThePattern,
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("RocketsPhaseFinished_Cue"));
 			RotatingComp->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
@@ -1756,8 +1770,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
-			ActiveSplitScreen(false);
+			//MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			//ActiveSplitScreen(false);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,

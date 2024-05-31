@@ -26,6 +26,9 @@ public:
 
 	bool IsSupportedForNetworking() const override;
 
+	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
+	void MulticastSoundStop();
+
 protected:
 
 private:

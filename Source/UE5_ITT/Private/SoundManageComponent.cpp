@@ -1,3 +1,4 @@
+#include "SoundManageComponent.h"
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
@@ -19,6 +20,11 @@ void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FStr
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), TempCue, Location,1.f,1.f,0.f, AttenuationSet);
 	}
 
+}
+
+void USoundManageComponent::MulticastSoundStop_Implementation()
+{
+	Stop();
 }
 
 void USoundManageComponent::MulticastChangeSound_Implementation(const FString& KeyName, bool bPlay, float StartTime)
