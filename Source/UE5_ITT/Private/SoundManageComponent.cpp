@@ -6,7 +6,19 @@
 #include "GameManager.h"
 #include "Kismet/GameplayStatics.h"
 
-void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FString& KeyName, FVector Location, float Attenuation)
+USoundManageComponent::USoundManageComponent()
+{
+	bOverrideAttenuation = true; 
+	bAllowSpatialization = true;
+
+	AttenuationOverrides.bAttenuate = true;
+	AttenuationOverrides.AttenuationShape = EAttenuationShape::Sphere;
+	AttenuationOverrides.AttenuationShapeExtents = FVector(1500.f, 0.f, 0.f);
+	AttenuationOverrides.FalloffDistance = 4000.f;
+	AttenuationOverrides.bSpatialize = true;
+}
+
+void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FString& KeyName, FVector Location, float Min, float Max)
 {
 	USoundCue* TempCue = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
 	if (TempCue != nullptr)
@@ -14,7 +26,8 @@ void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FStr
 		USoundAttenuation* AttenuationSet = NewObject<USoundAttenuation>();
 		AttenuationSet->Attenuation.bAttenuate = true;
 		AttenuationSet->Attenuation.AttenuationShape = EAttenuationShape::Sphere;
-		AttenuationSet->Attenuation.FalloffDistance = Attenuation;
+		AttenuationOverrides.AttenuationShapeExtents = FVector(Min, 0.f, 0.f);
+		AttenuationSet->Attenuation.FalloffDistance = Max-Min;
 
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), TempCue, Location,1.f,1.f,0.f, AttenuationSet);
 	}
@@ -56,4 +69,10 @@ void USoundManageComponent::MulticastPlaySoundDirect_Implementation(const FStrin
 bool USoundManageComponent::IsSupportedForNetworking() const
 {
 	return true;
+}
+
+void USoundManageComponent::SetAttenuationDistance(float Min, float Max)
+{
+	AttenuationOverrides.AttenuationShapeExtents = FVector(Min, 0.f, 0.f);
+	AttenuationOverrides.FalloffDistance = Max- Min;
 }

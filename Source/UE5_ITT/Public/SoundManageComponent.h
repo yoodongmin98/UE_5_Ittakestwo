@@ -15,6 +15,7 @@ class UE5_ITT_API USoundManageComponent : public UAudioComponent
 	GENERATED_BODY()
 	
 public:
+	USoundManageComponent();
 	UFUNCTION(BlueprintCallable,Reliable,NetMulticast)
 	void MulticastChangeSound(const FString& KeyName,bool bPlay = true,float StartTime = 0.f);
 
@@ -22,12 +23,14 @@ public:
 	void MulticastPlaySoundDirect(const FString& KeyName);
 	
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
-	void MulticastPlaySoundLocation(const FString& KeyName,FVector Location,float Attenuation = 0.f);
+	void MulticastPlaySoundLocation(const FString& KeyName,FVector Location, float Min=1500.f, float Max= 5500.f);
 
 	bool IsSupportedForNetworking() const override;
 
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
 	void MulticastSoundStop();
+
+	void SetAttenuationDistance(float Min, float Max =5500.f);
 
 protected:
 

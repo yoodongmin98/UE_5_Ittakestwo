@@ -25,7 +25,17 @@ public:
 		return Cody;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	bool IsGameStart()
+	{
+		return bGameStart;
+	}
 
+	UFUNCTION(BlueprintCallable)
+	void SetGameStart()
+	{
+		bGameStart = true;
+	}
 	UFUNCTION(BlueprintCallable)
 	void LoadSound();
 	class USoundCue* GetSound(const FString& KeyName);
@@ -33,6 +43,7 @@ public:
 protected:
 
 private:
+	bool bGameStart = false;
 	TMap<FString,class AParentCameraRail*> MapCamera;
 	class UObjectLibrary* ObjLibrary = nullptr;
 

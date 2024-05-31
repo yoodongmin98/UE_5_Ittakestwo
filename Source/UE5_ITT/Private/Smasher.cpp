@@ -8,6 +8,7 @@
 #include "PlayerBase.h"
 #include "ITTGameModeBase.h"
 #include "Components/BoxComponent.h"
+#include "SoundManageComponent.h"
 
 // Sets default values
 ASmasher::ASmasher()
@@ -25,6 +26,12 @@ ASmasher::ASmasher()
 
 		BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCol"));
 		BoxCollision->SetupAttachment(SmasherMesh);
+
+		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
+
+		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		SoundComp->SetAttenuationDistance(250.f, 300.f);
+
 		SetupFsm();
 	}
 }
@@ -98,6 +105,7 @@ void ASmasher::SetupFsm()
 
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("Smasher_Cue"), true, 2000.f);
 		}
 	);
 

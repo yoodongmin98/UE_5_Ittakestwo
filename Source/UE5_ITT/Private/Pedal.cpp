@@ -8,6 +8,7 @@
 #include "ITTGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimSequence.h"
+#include "SoundManageComponent.h"
 
 // Sets default values
 APedal::APedal()
@@ -28,6 +29,9 @@ APedal::APedal()
 
 		PedalCollision = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pedal"));
 		PedalCollision->SetupAttachment(SmasherMesh);
+
+		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
+
 		SetupFsm();
 	}
 }
@@ -40,6 +44,8 @@ void APedal::BeginPlay()
 		FsmComp->ChangeState(Fsm::ServerDelay);
 		PedalCollision->OnComponentBeginOverlap.AddDynamic(this, &APedal::OnOverlapBegin);
 		PedalCollision->OnComponentEndOverlap.AddDynamic(this, &APedal::OnOverlapEnd);
+		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		SoundComp->SetAttenuationDistance(250.f, 300.f);
 	}
 }
 
@@ -93,6 +99,7 @@ void APedal::SetupFsm()
 		[this]
 		{
 			SmashRatio = 0.f;
+			SoundComp->MulticastChangeSound(TEXT("PedalPress_Cue"));
 		},
 
 		[this](float DeltaTime)
