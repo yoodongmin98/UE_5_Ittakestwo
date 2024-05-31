@@ -86,6 +86,7 @@ void AEnemyFlyingSaucer::SetupComponent()
 	HatchOpenStaticMeshComp->SetVisibility(false);
 
 	SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundManageComponent"));
+	BGMComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("BGMComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -1000,6 +1001,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::Phase1_LaserBeam_1,
 		[this]
 		{
+			BGMComp->MulticastChangeSound(TEXT("Phase1_BGM_Cue"));
+
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/Animations/FlyingSaucer_Ufo_Mh_Anim"), 1, true);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/Animations/MoonBaboon_Ufo_Mh_Anim"), 1, true);
 		},
@@ -1183,6 +1186,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			SetDamage(CoreExplodeDamage);
+			BGMComp->MulticastChangeSound(TEXT("Phase2_BGM_Cue"));
 			SoundComp->MulticastChangeSound(TEXT("PowerCoreDestroyed_Cue"));
 			// 추락애니메이션 재생
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/CutScenes/PlayRoom_SpaceStation_BossFight_PowerCoresDestroyed_FlyingSaucer_Anim"), 1, false);
@@ -1479,6 +1483,10 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
+			// test
+			CurrentHp = 33.0f;
+
+
 			if (CurrentHp <= 33.0f)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
@@ -1762,8 +1770,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this]
 		{
-			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
-			ActiveSplitScreen(false);
+			//MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.2f);
+			//ActiveSplitScreen(false);
 		});
 
 	FsmComp->CreateState(EBossState::AllPhaseEnd,

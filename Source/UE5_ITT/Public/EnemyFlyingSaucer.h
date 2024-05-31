@@ -198,12 +198,18 @@ public:
 	// 사운드
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class USoundManageComponent* SoundComp = nullptr;
+	
+	// 배경음
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	class USoundManageComponent* BGMComp = nullptr;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
+	
+
 	void SpawnCodyChaseHomingRocket();
 	void SpawnMayChaseHomingRocket();
 
@@ -477,7 +483,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bIsPhase1End = false;
-
 
 	
 };
