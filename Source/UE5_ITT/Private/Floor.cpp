@@ -6,6 +6,7 @@
 #include "Pillar.h"
 #include "FsmComponent.h"
 #include "Laser.h"
+#include "SoundManageComponent.h"
 
 // Sets default values
 AFloor::AFloor()
@@ -22,6 +23,8 @@ AFloor::AFloor()
 		bReplicates = true;
 		SetReplicateMovement(true);
 		SetupFsm();
+
+		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
 	}
 }
 
@@ -97,6 +100,8 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_1Attack,
 		[this]
 		{
+			SoundComp->MulticastPlaySoundDirect(TEXT("LiftStart_Cue"));
+			SoundComp->MulticastChangeSound(TEXT("Liftloop_Cue"));
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -120,6 +125,7 @@ void AFloor::SetupFsm()
 
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("Liftstop_Cue"));
 		}
 	);
 
@@ -145,6 +151,8 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase1_2Attack,
 		[this]
 		{
+			SoundComp->MulticastPlaySoundDirect(TEXT("LiftStart_Cue"));
+			SoundComp->MulticastChangeSound(TEXT("Liftloop_Cue"));
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -168,6 +176,7 @@ void AFloor::SetupFsm()
 
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("Liftstop_Cue"));
 		}
 	);
 
@@ -241,6 +250,8 @@ void AFloor::SetupFsm()
 	FsmComp->CreateState(Fsm::Phase3,
 		[this]
 		{
+			SoundComp->MulticastPlaySoundDirect(TEXT("LiftStart_Cue"));
+			SoundComp->MulticastChangeSound(TEXT("Liftloop_Cue"));
 			MoveRatio = 0.f;
 			CurPos = GetActorLocation();
 			NextPos = CurPos;
@@ -262,6 +273,7 @@ void AFloor::SetupFsm()
 
 		[this]
 		{
+			SoundComp->MulticastChangeSound(TEXT("Liftstop_Cue"));
 		}
 	);
 

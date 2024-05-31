@@ -6,20 +6,30 @@
 #include "GameManager.h"
 #include "Kismet/GameplayStatics.h"
 
-USoundCue* USoundManageComponent::GetCurSound()
+void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FString& KeyName, FVector Location, float Attenuation)
 {
-	return CurSound;
+	USoundCue* TempCue = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
+	if (TempCue != nullptr)
+	{
+		USoundAttenuation* AttenuationSet = NewObject<USoundAttenuation>();
+		AttenuationSet->Attenuation.bAttenuate = true;
+		AttenuationSet->Attenuation.AttenuationShape = EAttenuationShape::Sphere;
+		AttenuationSet->Attenuation.FalloffDistance = Attenuation;
+
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), TempCue, Location,1.f,1.f,0.f, AttenuationSet);
+	}
+
 }
 
 void USoundManageComponent::MulticastChangeSound_Implementation(const FString& KeyName, bool bPlay, float StartTime)
 {	
 	//매니저에게 사운드 불러오기
-	CurSound = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
+	USoundCue* TempCue = Cast<UGameManager>(GetWorld()->GetGameInstance())->GetSound(KeyName);
 
 	//현재 사운드 변경
-	if (CurSound!=nullptr)
+	if (TempCue !=nullptr)
 	{
-		SetSound(CurSound);
+		SetSound(TempCue);
 
 		if (bPlay)
 		{

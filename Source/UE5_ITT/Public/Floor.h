@@ -43,6 +43,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	class USoundManageComponent* SoundComp = nullptr;
 
 	float MoveTime = 20.f;
 	float MoveSize = 4995.f;
