@@ -47,3 +47,8 @@ void USoundManageComponent::MulticastPlaySoundDirect_Implementation(const FStrin
 		UGameplayStatics::PlaySound2D(GetWorld(), TempCue);
 	}
 }
+
+bool USoundManageComponent::IsSupportedForNetworking() const
+{
+	return true;
+}

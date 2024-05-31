@@ -24,6 +24,8 @@ public:
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
 	void MulticastPlaySoundLocation(const FString& KeyName,FVector Location,float Attenuation = 0.f);
 
+	bool IsSupportedForNetworking() const override;
+
 protected:
 
 private:
