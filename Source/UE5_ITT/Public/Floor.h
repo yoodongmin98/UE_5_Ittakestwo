@@ -22,6 +22,7 @@ public:
 public:
 	enum class Fsm
 	{
+		PlayerWait,
 		Phase1_1,
 		Phase1_1Attack,
 		Phase1_2,

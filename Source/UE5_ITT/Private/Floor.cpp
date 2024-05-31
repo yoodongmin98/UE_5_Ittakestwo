@@ -7,6 +7,7 @@
 #include "FsmComponent.h"
 #include "Laser.h"
 #include "SoundManageComponent.h"
+#include "GameManager.h"
 
 // Sets default values
 AFloor::AFloor()
@@ -36,7 +37,7 @@ void AFloor::BeginPlay()
 	// 네트워크 권한을 확인하는 코드
 	if (true == HasAuthority())
 	{
-		FsmComp->ChangeState(Fsm::Phase1_1);
+		FsmComp->ChangeState(Fsm::PlayerWait);
 
 		MainLaser->SetLaserMaxSize(6000.f);
 		ArraySubLaser.Push(SubLaser0);
@@ -77,6 +78,24 @@ void AFloor::SetupFsm()
 {
 	FsmComp = CreateDefaultSubobject<UFsmComponent>(TEXT("FsmComp"));
 
+	FsmComp->CreateState(Fsm::PlayerWait,
+		[this]
+		{
+		},
+
+		[this](float DT)
+		{
+
+			if (true == Cast<UGameManager>(GetWorld()->GetGameInstance())->IsGameStart())
+			{
+				FsmComp->ChangeState(Fsm::Phase1_1);
+			}
+		},
+
+		[this]
+		{
+		}
+	);
 
 	FsmComp->CreateState(Fsm::Phase1_1,
 		[this]

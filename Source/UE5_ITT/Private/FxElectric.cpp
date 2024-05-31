@@ -7,6 +7,7 @@
 #include "ITTGameModeBase.h"
 #include "Components/BoxComponent.h"
 #include "PlayerBase.h"
+#include "SoundManageComponent.h"
 
 AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
 {
@@ -22,6 +23,8 @@ AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
 
 		BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCol"));
 		BoxCollision->SetupAttachment(NiagaraComp);
+
+		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
 	}
 }
 
@@ -43,7 +46,9 @@ void AFxElectric::BeginPlay()
 		NiagaraToggle();
 
 		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AFxElectric::OnOverlapBegin);
-		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AFxElectric::OnOverlapEnd);
+		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AFxElectric::OnOverlapEnd); 
+		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		SoundComp->SetAttenuationDistance(250.f, 300.f);
 	}
 }
 
@@ -126,6 +131,28 @@ void AFxElectric::SetupFsm()
 			}
 			if (ActiveTime >= 2.f)
 			{
+				FsmComp->ChangeState(Fsm::End);
+				return;
+			}
+		},
+
+		[this]
+		{
+			ActiveTime -= 2.f;
+		}
+	);
+
+	FsmComp->CreateState(Fsm::End,
+		[this]
+		{
+			NiagaraToggle();
+		},
+
+		[this](float DT)
+		{
+			ActiveTime += DT;
+			if (ActiveTime >= 2.f)
+			{
 				FsmComp->ChangeState(Fsm::Wait);
 				return;
 			}
@@ -140,13 +167,13 @@ void AFxElectric::SetupFsm()
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
-			NiagaraToggle();
+			SoundComp->MulticastChangeSound(TEXT("Electric_Cue"));
 		},
 
 		[this](float DT)
 		{
 			ActiveTime += DT;
-			if (ActiveTime >= 4.f)
+			if (ActiveTime >= 2.f)
 			{
 				FsmComp->ChangeState(Fsm::Active);
 				return;
@@ -155,7 +182,7 @@ void AFxElectric::SetupFsm()
 
 		[this]
 		{
-			ActiveTime -= 4.f;
+			ActiveTime -= 2.f;
 		}
 	);
 }
