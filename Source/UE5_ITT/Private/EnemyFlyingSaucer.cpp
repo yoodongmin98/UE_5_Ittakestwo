@@ -1491,8 +1491,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 				return;
 			}
 
-			CodyChaseRocketSpawnCheck(DT);
-			MayChaseRocketSpawnCheck(DT);
+			if (CurrentHp > 33.0f)
+			{
+				CodyChaseRocketSpawnCheck(DT);
+				MayChaseRocketSpawnCheck(DT);
+			}
 		},
 
 		[this]

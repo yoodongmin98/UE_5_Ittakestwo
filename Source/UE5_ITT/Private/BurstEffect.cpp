@@ -32,7 +32,7 @@ void ABurstEffect::BeginPlay()
 	
 	if (true == HasAuthority())
 	{
-		// SoundComp->MulticastPlaySoundDirect(TEXT("??"));
+		SoundComp->MulticastPlaySoundDirect(TEXT("LaserBomb_Explosion_Cue"));
 
 		StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &ABurstEffect::OnOverlapBegin);
 		StaticMeshComp->OnComponentEndOverlap.AddDynamic(this, &ABurstEffect::OnOverlapEnd);

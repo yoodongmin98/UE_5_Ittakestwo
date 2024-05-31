@@ -17,6 +17,9 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(BlueprintReadWrite)
+	class USoundManageComponent* SoundComp = nullptr;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -28,8 +31,7 @@ protected:
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:
-	UPROPERTY(BlueprintReadWrite)
-	class USoundManageComponent* SoundComp = nullptr;
+	
 
 	void SetupComponent();
 	void SetupDestroyTimerEvent();
