@@ -9,7 +9,6 @@
 #include "NiagaraComponent.h"
 #include "CoreExplosionEffect.h"
 #include "SoundManageComponent.h"
-#include "GameManager.h"
 
 // Sets default values
 APillar::APillar()
@@ -80,6 +79,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::ShutterOpen,
 		[this]
 		{
+			//SoundComp->MulticastChangeSound(TEXT("Shutter_Cue"));
 			DefaultPos = GetActorLocation();
 			ParentShutter->SetShutterOpen();
 		},
@@ -100,6 +100,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::WaitMove,
 		[this]
 		{
+			//SoundComp->MulticastChangeSound(TEXT("PowerCoreElevatorUp_Cue"));
 			PlayerWaitPos = DefaultPos;
 			PlayerWaitPos.Z += PlayerWaitSize;
 
@@ -156,7 +157,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveUp,
 		[this]
 		{
-			SoundComp->MulticastPlaySoundDirect(TEXT("LiftStart_Cue"));
+			//SoundComp->MulticastChangeSound(TEXT("PowerCoreElevatorLoop_Cue"));
 		},
 
 		[this](float DT)
@@ -190,7 +191,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::WaitBoom,
 		[this]
 		{
-
+			//SoundComp->MulticastChangeSound(TEXT("PowerCoreShieldActivate_Cue"));
 		},
 
 		[this](float DT)
@@ -241,7 +242,11 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::MoveDown,
 		[this]
 		{
-			SoundComp->MulticastPlaySoundLocation(TEXT("liftstop_cue"),GetActorLocation()+FVector(2000.f,0.f,0.f),1800.f);
+			//SoundComp->MulticastChangeSound(TEXT("PowerCoreElevatorLoop_Cue"));
+			if (bShieldOpen)
+			{
+				//SoundComp->MulticastPlaySoundLocation(TEXT("PowerCoreShieldDeactivate_Cue"),GetActorLocation(),1000.f);
+			}
 		},
 
 		[this](float DT)
@@ -288,7 +293,7 @@ void APillar::SetupFsm()
 		{
 			ParentShutter->SetDone();
 			EnergyCoreActor->Destroy();
-			SoundComp->MulticastPlaySoundDirect("SC_CoreExplosion");
+			//SoundComp->MulticastPlaySoundDirect("SC_CoreExplosion");
 		},
 
 		[this](float DT)
