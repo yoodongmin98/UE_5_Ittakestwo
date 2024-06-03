@@ -51,6 +51,7 @@ void AHomingRocket::BeginPlay()
 	{
 		RocketFsmComponent->ChangeState(ERocketState::PlayerChase);
 		SetupOverlapEvent();
+		SoundComp->AttachToComponent(SceneComp, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 

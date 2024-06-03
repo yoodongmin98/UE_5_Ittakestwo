@@ -108,6 +108,9 @@ void AEnemyFlyingSaucer::BeginPlay()
 		SetupOverlapEvent();
 		// 충돌이벤트 세팅
 		SetupHitEvent();
+
+		SoundComp->SetAttenuationDistance(12000.0f, 12000.0f);
+		BGMComp->SetAttenuationDistance(12000.0f, 12000.0f);
 	}
 }
 
@@ -1483,10 +1486,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 
 		[this](float DT)
 		{
-			// test
-			CurrentHp = 33.0f;
-
-
 			if (CurrentHp <= 33.0f)
 			{
 				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
