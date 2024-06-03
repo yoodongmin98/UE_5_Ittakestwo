@@ -45,7 +45,7 @@ void APedal::BeginPlay()
 		PedalCollision->OnComponentBeginOverlap.AddDynamic(this, &APedal::OnOverlapBegin);
 		PedalCollision->OnComponentEndOverlap.AddDynamic(this, &APedal::OnOverlapEnd);
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->SetAttenuationDistance(250.f, 300.f);
+		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 	}
 }
 

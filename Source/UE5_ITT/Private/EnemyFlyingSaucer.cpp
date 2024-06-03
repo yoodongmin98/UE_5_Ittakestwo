@@ -109,8 +109,8 @@ void AEnemyFlyingSaucer::BeginPlay()
 		// 충돌이벤트 세팅
 		SetupHitEvent();
 
-		SoundComp->SetAttenuationDistance(12000.0f, 12000.0f);
-		BGMComp->SetAttenuationDistance(12000.0f, 12000.0f);
+		SoundComp->MulticastSetAttenuationDistance(12000.0f, 12000.0f);
+		BGMComp->MulticastSetAttenuationDistance(12000.0f, 12000.0f);
 	}
 }
 

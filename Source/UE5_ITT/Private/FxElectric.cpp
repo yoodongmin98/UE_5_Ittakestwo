@@ -48,7 +48,7 @@ void AFxElectric::BeginPlay()
 		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AFxElectric::OnOverlapBegin);
 		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AFxElectric::OnOverlapEnd); 
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->SetAttenuationDistance(250.f, 300.f);
+		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 	}
 }
 

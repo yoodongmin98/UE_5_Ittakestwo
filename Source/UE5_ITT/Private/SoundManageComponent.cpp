@@ -71,7 +71,7 @@ bool USoundManageComponent::IsSupportedForNetworking() const
 	return true;
 }
 
-void USoundManageComponent::SetAttenuationDistance(float Min, float Max)
+void USoundManageComponent::MulticastSetAttenuationDistance_Implementation(float Min, float Max)
 {
 	AttenuationOverrides.AttenuationShapeExtents = FVector(Min, 0.f, 0.f);
 	AttenuationOverrides.FalloffDistance = Max- Min;

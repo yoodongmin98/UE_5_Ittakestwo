@@ -30,7 +30,7 @@ ASmasher::ASmasher()
 		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
 
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->SetAttenuationDistance(250.f, 300.f);
+		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 
 		SetupFsm();
 	}

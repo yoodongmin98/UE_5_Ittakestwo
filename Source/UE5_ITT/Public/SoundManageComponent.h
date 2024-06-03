@@ -30,7 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
 	void MulticastSoundStop();
 
-	void SetAttenuationDistance(float Min, float Max =5500.f);
+	UFUNCTION(BlueprintCallable, Reliable, NetMulticast)
+	void MulticastSetAttenuationDistance(float Min, float Max =5500.f);
 
 protected:
 
