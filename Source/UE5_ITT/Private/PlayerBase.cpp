@@ -626,11 +626,14 @@ void APlayerBase::SetTriggerActors(ARespawnTrigger* _Other)
 
 void APlayerBase::SetRespawnPosition()
 {
-	ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
+	if (HasAuthority())
+	{
+		ResPawnPosition = ResPawnTriggers->GetRespawnPosition();
+	}
 }
 
 void APlayerBase::AttackPlayer(const int att)
-{
+ {
 	AttackPlayerServer(att);
 }
 

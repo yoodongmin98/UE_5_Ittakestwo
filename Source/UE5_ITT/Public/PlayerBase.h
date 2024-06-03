@@ -345,9 +345,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline void SetRespawnPosition();
 
+
+
 	
-
-
 
 
 	///////////////////Movement+Replicate Function///////////////////
@@ -486,6 +486,7 @@ protected:
 	float NormalLength;
 	float SmallLength;
 	FVector2D CameraLookVector = FVector2D::ZeroVector;
+	UPROPERTY(Replicated)
 	FVector ResPawnPosition = FVector(1000.0f, 1000.0f, 100.0f); //임시
 
 	//SpringArm기본 세팅 함수입니다.
