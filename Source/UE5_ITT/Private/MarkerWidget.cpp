@@ -51,7 +51,7 @@ void UMarkerWidget::SetIsCody()
 void UMarkerWidget::FindMyViewController()
 {
     FDateTime CurTime = FDateTime::Now();
-    if ((CurTime - SpawnTime).GetTotalSeconds() < 10)
+    if ((CurTime - SpawnTime).GetTotalSeconds() < 3.0f)
     {
         return;
     }
@@ -129,6 +129,8 @@ void UMarkerWidget::RenderWidgetPosition()
 
     FVector2D ActorScreenPosition;
     FVector TargetLocation = TargetActor->GetActorLocation();
+    float NextRotation = 0.0f;
+
     if (!MyViewController->ProjectWorldLocationToScreen(TargetLocation, ActorScreenPosition))
     {
         return; // Failed to project actor's location to screen space
@@ -147,6 +149,7 @@ void UMarkerWidget::RenderWidgetPosition()
             MarkerInstance->SetVisibility(ESlateVisibility::Hidden);
             return;
         }
+        NextRotation = 0.0f;
     }
     else // 화면 밖에 존재
     {
@@ -154,25 +157,51 @@ void UMarkerWidget::RenderWidgetPosition()
         if (ActorScreenPosition.X < StartView.X)
         {
             ActorScreenPosition.X = StartView.X + 30.0f;
+            NextRotation = 90.0f;
         }
         else if (ActorScreenPosition.X > StartView.X + ViewportSizex)
         {
-            ActorScreenPosition.X = StartView.X + ViewportSizex - 10.0f;
+            ActorScreenPosition.X = StartView.X + ViewportSizex - 30.0f;
+            NextRotation = -90.0f;
         }
 
         if (ActorScreenPosition.Y < StartView.Y)
         {
-            ActorScreenPosition.Y = StartView.Y + 30.0f;
+            ActorScreenPosition.Y = StartView.Y + 60.0f;
+            if (NextRotation > 0.0f)
+            {
+                NextRotation = 135.0f;
+            }
+            else if (NextRotation < 0.0f)
+            {
+                NextRotation = -135.0f;
+            }
+            else
+            {
+                NextRotation = 180.0f;
+            }
         }
         else if (ActorScreenPosition.Y > StartView.Y + ViewportSizey)
         {
-            ActorScreenPosition.Y = StartView.Y + ViewportSizey - 10.0f;
+            ActorScreenPosition.Y = StartView.Y + ViewportSizey - 10.0;
+            if (NextRotation > 0.0f)
+            {
+                NextRotation = 45.0f;
+            }
+            else if (NextRotation < 0.0f)
+            {
+                NextRotation = -45.0f;
+            }
         }
 
     }
     // 위치 보정
     ActorScreenPosition.X -= 23.0f;
     ActorScreenPosition.Y -= 60.0f;
+
+    // 새로운 변환행렬
+    const FWidgetTransform NextTransf = FWidgetTransform(FVector2D::ZeroVector, FVector2D::UnitVector, FVector2D::ZeroVector, NextRotation);
+    MarkerInstance->SetRenderTransform(NextTransf);
     MarkerInstance->SetPositionInViewport(ActorScreenPosition);
 }
 

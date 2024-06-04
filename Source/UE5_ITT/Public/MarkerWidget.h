@@ -24,7 +24,7 @@ public:
     // The widget to display
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<UUserWidget> UIWidgetClass;
-
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     float DistanceThreshold;
 
