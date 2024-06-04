@@ -988,6 +988,8 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					FsmComp->ChangeState(EBossState::TestState);
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
+
+					// test code , 
 					AIController->GetCurrentBehaviorTree()->StopTree();
 					AIController->ClearFocus(EAIFocusPriority::Gameplay);
 					return;
