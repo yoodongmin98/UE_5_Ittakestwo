@@ -9,6 +9,7 @@
 #include "ITTGameModeBase.h"
 #include "Components/BoxComponent.h"
 #include "SoundManageComponent.h"
+#include "GameManager.h"
 
 // Sets default values
 ASmasher::ASmasher()
@@ -30,7 +31,6 @@ ASmasher::ASmasher()
 		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
 
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 
 		SetupFsm();
 	}
@@ -64,11 +64,7 @@ void ASmasher::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			if (GetWorld()->GetAuthGameMode()->GetNumPlayers()==2)
-			{
-				ClientWaitTime += DeltaTime;
-			}
-			if (ClientWaitTime>1.f)
+			if (true == Cast<UGameManager>(GetWorld()->GetGameInstance())->IsGameStart())
 			{
 				FsmComp->ChangeState(Fsm::Smash);
 			}
@@ -82,6 +78,7 @@ void ASmasher::SetupFsm()
 	FsmComp->CreateState(Fsm::Smash,
 		[this]
 		{
+			SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 			SmashRatio = 0.f;
 		},
 

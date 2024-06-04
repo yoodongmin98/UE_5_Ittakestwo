@@ -51,7 +51,7 @@ void ALaser::SetupFsm()
 	FsmComp->CreateState(Fsm::Wait,
 		[this]
 		{
-
+			SoundComp->MulticastSetAttenuationDistance(1500.f, 4000.f);
 		},
 
 		[this](float DT)

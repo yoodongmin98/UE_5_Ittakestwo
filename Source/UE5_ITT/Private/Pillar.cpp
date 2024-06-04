@@ -62,7 +62,7 @@ void APillar::SetupFsm()
 	FsmComp->CreateState(Fsm::Close,
 		[this]
 		{
-
+			SoundComp->MulticastSetAttenuationDistance(1500.f, 4000.f);
 		},
 
 		[this](float DT)

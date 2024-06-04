@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimSequence.h"
 #include "SoundManageComponent.h"
+#include "GameManager.h"
 
 // Sets default values
 APedal::APedal()
@@ -45,7 +46,6 @@ void APedal::BeginPlay()
 		PedalCollision->OnComponentBeginOverlap.AddDynamic(this, &APedal::OnOverlapBegin);
 		PedalCollision->OnComponentEndOverlap.AddDynamic(this, &APedal::OnOverlapEnd);
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 	}
 }
 
@@ -60,12 +60,7 @@ void APedal::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			AITTGameModeBase* ITTGameMode = Cast<AITTGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
-			if (ITTGameMode->GetPlayerLoginCount() == 2)
-			{
-				ServerDelayTime -= DeltaTime;
-			}
-			if (ServerDelayTime<=0.f)
+			if (true == Cast<UGameManager>(GetWorld()->GetGameInstance())->IsGameStart())
 			{
 				FsmComp->ChangeState(Fsm::SmashWait);
 			}
@@ -79,7 +74,7 @@ void APedal::SetupFsm()
 	FsmComp->CreateState(Fsm::SmashWait,
 		[this]
 		{
-
+			SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 		},
 
 		[this](float DeltaTime)
