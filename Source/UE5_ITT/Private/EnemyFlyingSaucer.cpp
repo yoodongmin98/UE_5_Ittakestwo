@@ -454,7 +454,7 @@ void AEnemyFlyingSaucer::MayChaseRocketSpawnCheck(float DeltaTime)
 	{
 		HomingRocket2FireTime -= DeltaTime;
 
-		if (0.0f >= HomingRocket1FireTime && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState())
+		if (0.0f >= HomingRocket2FireTime && Cody_State::PlayerDeath != PlayerMay->GetITTPlayerState())
 		{
 			SpawnMayChaseHomingRocket();
 		}
