@@ -989,8 +989,9 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 					AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
 					AIController->GetBlackboardComponent()->SetValueAsBool(TEXT("bIsFsmStart"), true);
 
-					// test code 
-					// AIController->ClearFocus(EAIFocusPriority::Gameplay);
+					// test code , 
+					//AIController->GetCurrentBehaviorTree()->StopTree();
+					//AIController->ClearFocus(EAIFocusPriority::Gameplay);
 					return;
 				}
 			}
@@ -1543,9 +1544,11 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			MulticastChangeAnimationFlyingSaucer(TEXT("/Game/Characters/EnemyFlyingSaucer/BluePrints/ABP_EnemyFlyingSaucer_RocketPhaseEnd"), 2, false);
 			MulticastChangeAnimationMoonBaboon(TEXT("/Game/Characters/EnemyMoonBaboon/CutScenes/PlayRoom_SpaceStation_BossFight_RocketsPhaseFinished_MoonBaboon_Anim"), 1, false);
 			
-
+			// 화면분할 해제
+			ActiveSplitScreen(true);
 			// 카메라블렌드 
 			MulticastEnableCutSceneCameraBlend(BossFallCameraRail, 0.2f, 0.25f);
+			
 		},
 
 		[this](float DT)
@@ -1553,7 +1556,6 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 			if (7.5f <= FsmComp->GetStateLiveTime())
 			{
 				FsmComp->ChangeState(EBossState::Phase2_ChangePhase_Wait);
-				
 				return;
 			}
 		},
@@ -1561,6 +1563,7 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 		[this]
 		{
 			MulticastDisableCutSceneCameraBlend(PrevViewTarget, 0.3f);
+			ActiveSplitScreen(false);
 		});
 
 	FsmComp->CreateState(EBossState::Phase2_ChangePhase_Wait,
@@ -1792,14 +1795,23 @@ void AEnemyFlyingSaucer::SetupFsmComponent()
 	FsmComp->CreateState(EBossState::TestState,
 		[this]
 		{
-			SpawnCodyChaseHomingRocket();
-			SpawnMayChaseHomingRocket();
 		},
 
 		[this](float DT)
 		{
+			if (true == bIsDebugChangePhase)
+			{
+				// 레벨에서 디버그 키입력시 미사일발사스테이트로 변경
+				AFlyingSaucerAIController* AIController = Cast<AFlyingSaucerAIController>(GetController());
+				
+				FsmComp->ChangeState(EBossState::Phase2_BreakThePattern);
+				return;
+			}
+
+		
 			CodyChaseRocketSpawnCheck(DT);
 			MayChaseRocketSpawnCheck(DT);
+			
 		},
 
 		[this]

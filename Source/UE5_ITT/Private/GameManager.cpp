@@ -39,11 +39,6 @@ void UGameManager::ChangeCameraView(const FString& KeyName, float BlendTime)
 	}
 }
 
-void UGameManager::SetCody(ACody* ActorCody)
-{
-	Cody = ActorCody;
-}
-
 void UGameManager::LoadSound()
 {
 	//라이브러리 불러와서 에셋 로드

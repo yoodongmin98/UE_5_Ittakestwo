@@ -643,11 +643,19 @@ bool APlayerBase::AttackPlayerServer_Validate(const int att)
 }
 void APlayerBase::AttackPlayerServer_Implementation(const int att)
 {
+	if (PlayerHP<=0)
+	{
+		return;
+	}
 	PlayerHP -= att;
 }
 
 void APlayerBase::AttackPlayerClient_Implementation(const int att)
 {
+	if (PlayerHP <= 0)
+	{
+		return;
+	}
 	PlayerHP -= att;
 }
 

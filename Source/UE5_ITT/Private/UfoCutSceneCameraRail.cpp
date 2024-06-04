@@ -68,7 +68,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 
 	FsmComp->CreateState(Fsm::Delay0,
 		[this]
-		{
+		{		
 		},
 
 		[this](float DT)
@@ -123,7 +123,7 @@ void AUfoCutSceneCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Delay2,
 		[this]
 		{
-			Cast<UGameManager>(GetGameInstance())->GetCody()->GetController()->SetControlRotation(FRotator(0.f, -150.f, 0.f));
+			TempCody->GetController()->SetControlRotation(FRotator(0.f, -150.f, 0.f));
 			MulticastCameraViewReset(1.f);
 		},
 
@@ -161,7 +161,6 @@ void AUfoCutSceneCameraRail::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 	if (OtherActor != this && true == OtherActor->ActorHasTag("Player"))
 	{
 		MulticastSetCameraView(0.f);
-		ACody* Cody = Cast<ACody>(OtherActor);
-		Cast<UGameManager>(GetGameInstance())->SetCody(Cody);
+		TempCody = Cast<ACody>(OtherActor);
 	}
 }

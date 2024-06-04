@@ -64,7 +64,7 @@ void AUfoCameraRail::SetupFsm()
 	FsmComp->CreateState(Fsm::Move,
 		[this]
 		{
-			Cody = Cast<UGameManager>(GetGameInstance())->GetCody();
+			//Cody = Cast<UGameManager>(GetGameInstance())->GetCody();
 		},
 
 		[this](float DT)
