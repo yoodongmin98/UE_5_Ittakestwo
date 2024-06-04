@@ -406,7 +406,7 @@ private:
 	// 104 + 9990
 	FVector MayCorrectLocation = FVector(491.0f, -308.0f, 10094.55f);
 
-	FVector CodyUfoInsideLocation = FVector(395.0f, 115.0f, -4437.0f);
+	FVector CodyUfoInsideLocation = FVector(395.0f, 113.0f, -4437.0f);
 	FRotator CodyUfoInsideRotation = FRotator(0.f, -150.f, 0.f);
 
 	// 러프 비율을 저장할 float

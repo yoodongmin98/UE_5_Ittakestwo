@@ -19,12 +19,6 @@ public:
 
 	void AddCameraRigRail(const FString& KeyName, class AParentCameraRail* _CameraRigRail);
 	void ChangeCameraView(const FString& KeyName, float BlendTime);
-	void SetCody(class ACody* ActorCody);
-	ACody* GetCody()
-	{
-		return Cody;
-	}
-
 	UFUNCTION(BlueprintCallable)
 	bool IsGameStart()
 	{
@@ -48,6 +42,4 @@ private:
 	class UObjectLibrary* ObjLibrary = nullptr;
 
 	TMap<FString, class USoundCue*> SoundList;
-
-	ACody* Cody = nullptr;
 };
