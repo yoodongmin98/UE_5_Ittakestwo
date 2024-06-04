@@ -8,14 +8,7 @@
 
 USoundManageComponent::USoundManageComponent()
 {
-	bOverrideAttenuation = true; 
-	bAllowSpatialization = true;
 
-	AttenuationOverrides.bAttenuate = true;
-	AttenuationOverrides.AttenuationShape = EAttenuationShape::Sphere;
-	AttenuationOverrides.AttenuationShapeExtents = FVector(1500.f, 0.f, 0.f);
-	AttenuationOverrides.FalloffDistance = 4000.f;
-	AttenuationOverrides.bSpatialize = true;
 }
 
 void USoundManageComponent::MulticastPlaySoundLocation_Implementation(const FString& KeyName, FVector Location, float Min, float Max)
@@ -73,6 +66,11 @@ bool USoundManageComponent::IsSupportedForNetworking() const
 
 void USoundManageComponent::MulticastSetAttenuationDistance_Implementation(float Min, float Max)
 {
+	bOverrideAttenuation = true;
+	bAllowSpatialization = true;
+	AttenuationOverrides.bAttenuate = true;
+	AttenuationOverrides.bSpatialize = true;
+	AttenuationOverrides.AttenuationShape = EAttenuationShape::Sphere;
 	AttenuationOverrides.AttenuationShapeExtents = FVector(Min, 0.f, 0.f);
-	AttenuationOverrides.FalloffDistance = Max- Min;
+	AttenuationOverrides.FalloffDistance = Max- Min;	
 }

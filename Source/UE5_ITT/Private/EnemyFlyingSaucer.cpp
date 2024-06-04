@@ -85,8 +85,8 @@ void AEnemyFlyingSaucer::SetupComponent()
 	HatchOpenStaticMeshComp->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::KeepRelativeTransform, TEXT("Base"));
 	HatchOpenStaticMeshComp->SetVisibility(false);
 
-	SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundManageComponent"));
-	BGMComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("BGMComponent"));
+	SoundComp	= CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundManageComponent"));
+	BGMComp		= CreateDefaultSubobject<USoundManageComponent>(TEXT("BGMComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -109,8 +109,8 @@ void AEnemyFlyingSaucer::BeginPlay()
 		// 충돌이벤트 세팅
 		SetupHitEvent();
 
-		SoundComp->MulticastSetAttenuationDistance(12000.0f, 12000.0f);
-		BGMComp->MulticastSetAttenuationDistance(12000.0f, 12000.0f);
+		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		BGMComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 }
 

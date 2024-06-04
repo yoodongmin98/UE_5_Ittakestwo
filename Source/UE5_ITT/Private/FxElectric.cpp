@@ -7,6 +7,7 @@
 #include "ITTGameModeBase.h"
 #include "Components/BoxComponent.h"
 #include "PlayerBase.h"
+#include "GameManager.h"
 #include "SoundManageComponent.h"
 
 AFxElectric::AFxElectric(const FObjectInitializer& ObjectInitializer)
@@ -48,7 +49,6 @@ void AFxElectric::BeginPlay()
 		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AFxElectric::OnOverlapBegin);
 		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AFxElectric::OnOverlapEnd); 
 		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-		SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 	}
 }
 
@@ -70,12 +70,7 @@ void AFxElectric::SetupFsm()
 
 		[this](float DeltaTime)
 		{
-			//클라 접속 대기
-			if (GetWorld()->GetAuthGameMode()->GetNumPlayers() == 2)
-			{
-				ClientWaitTime += DeltaTime;
-			}
-			if (ClientWaitTime >= 1.f)
+			if (true == Cast<UGameManager>(GetWorld()->GetGameInstance())->IsGameStart())
 			{
 				FsmComp->ChangeState(Fsm::Delay);
 				return;
@@ -90,6 +85,7 @@ void AFxElectric::SetupFsm()
 	FsmComp->CreateState(Fsm::Delay,
 		[this]
 		{
+			SoundComp->MulticastSetAttenuationDistance(250.f, 300.f);
 		},
 
 		[this](float DT)

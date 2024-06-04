@@ -50,6 +50,9 @@ void AFloor::BeginPlay()
 		{
 			ArraySubLaser[i]->SetActorHiddenInGame(true);
 		}
+
+		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
 	}
 }
 
