@@ -26,6 +26,7 @@ AFloor::AFloor()
 		SetupFsm();
 
 		SoundComp = CreateDefaultSubobject<USoundManageComponent>(TEXT("SoundComp"));
+		RootComponent = SoundComp;
 	}
 }
 
@@ -50,8 +51,6 @@ void AFloor::BeginPlay()
 		{
 			ArraySubLaser[i]->SetActorHiddenInGame(true);
 		}
-
-		SoundComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	}
 }
